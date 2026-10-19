@@ -1,352 +1,140 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Form from "next/form";
 import Link from "@/app/components/responsive-link";
 import { shareCard } from "../content";
-import { CollaborationTrail, initials } from "../components/pieces";
-import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
-import { ProjectLogo } from "../components/project-logo";
-import { RotatingHeadline } from "../components/rotating-headline";
-import {
-  listPeople,
-  listProjects,
-  listRecentActivity,
-  type Person,
-  type ProjectSummary,
-} from "../lib/data";
+import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
+import { listOssMembers, listProjects } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
-import { projectTypeLabel } from "../lib/project-types";
+import {
+  DIRECTORY_SOURCES,
+  DIRECTORY_TRACKS,
+  badgeCounts,
+  directoryFacets,
+  filterDirectory,
+  isDirectorySource,
+  isDirectoryTrack,
+  productEntries,
+  repoEntry,
+  sourceLabel,
+  type DirectoryEntry,
+  type DirectoryFilters,
+  type DirectorySource,
+  type DirectoryTrack,
+} from "../lib/directory";
+import { listOpenSourceRepos } from "../lib/open-source-live";
+import { badgeKindLabel, badgeLabel, badgePeople, isBadgeKind, type Badge, type BadgeKind } from "../lib/badges";
 import { roleLabel } from "../lib/roles";
-import { stageLabel } from "../lib/stages";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Builders — Tampilkan Karyamu dan Bangun Portofolio yang Berdampak", "Builders — Show Your Work and Build a Portfolio That Matters");
-  const description = tx(locale, "Ruang publik untuk menampilkan karyamu, menunjukkan karya nyata, dan membuatmu lebih mudah ditemukan oleh tim yang tepat.", "A public place to build tech projects, show real work, and get discovered by the right team.");
+  const title = tx(locale, "Builders — Direktori Project untuk Dikontribusikan", "Builders — A Directory of Projects to Contribute To");
+  const description = tx(
+    locale,
+    "Kirim kode ke project open source di GitHub, atau bantu produk builders lewat peran lain. Pilih caramu, pilih project-nya, mulai.",
+    "Send code to open source projects on GitHub, or help builders' products in another role. Pick your way, pick a project, start.",
+  );
   return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
 
-const USE_CASES = [
-  ["Membangun secara terbuka agar orang dapat melihatnya", "Building in public, so people can see"],
-  ["Menemukan kolaborator untuk tumbuh bersama", "Finding a collaborator, to grow together"],
-  ["Mengubah karya menjadi portofolio", "Turning work into a portfolio"],
-  ["Terhubung dengan orang yang membutuhkanmu", "Connected by people who need you"],
-];
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-const WORKFLOW = [
-  ["Cantumkan proyek", "List a project", "Tuliskan masalahnya, sasarannya, dan sudah sejauh apa pekerjaannya.", "Write down the problem, who it is for, and where the work stands."],
-  ["Pilih cara proyek berjalan", "Choose how it lives", "Buka peran atau jadikan proyek sebagai catatan pengembangan publik.", "Open a role, or leave the project as a public build log."],
-  ["Kolaborasi di proyek nyata", "Collaborate on real projects", "Ambil peran, kerjakan kontribusi nyata, dan bangun pengalaman yang dapat dibuktikan.", "Take a role, make a real contribution, and build experience you can prove."],
-  ["Rilis dan simpan buktinya", "Ship and keep the proof", "Karya selesai dan kontribusi nyata masuk ke portofoliomu.", "Finished work and real contributions land on your portfolio."],
-  ["Ditemukan oleh tim tech", "Get discovered by tech teams", "Profilmu masuk ke Talent Pool agar recruiter, hiring manager, dan tim tech dapat melihat buktinya.", "Your profile enters the Talent Pool so recruiters, hiring managers, and tech teams can see the evidence."],
-] as const;
+/**
+ * What the URL asks for. Software engineers are who the site is for first,
+ * so with no choice made the GitHub path is the one showing.
+ */
+function readFilters(query: Record<string, string | string[] | undefined>): DirectoryFilters {
+  const track = one(query.track);
+  const source = one(query.source);
+  const badge = one(query.badge);
+  return {
+    track: isDirectoryTrack(track) ? track : "github",
+    source: isDirectorySource(source) ? source : "",
+    badge: isBadgeKind(badge) ? badge : "",
+    facet: one(query.facet).slice(0, 60),
+    q: one(query.q).slice(0, 100),
+  };
+}
 
-export default async function Home() {
-  const [projectsResult, peopleResult, activityResult, askingResult, locale] = await Promise.all([
-    readPublicly("projects on the home page", () => listProjects({ lane: "newest" }), []),
-    readPublicly("people on the home page", () => listPeople(400), []),
-    readPublicly("recent collaboration on the home page", () => listRecentActivity(5), []),
-    readPublicly("projects asking for a role", () => listProjects({ lane: "needs-help" }), []),
-    currentLocale(),
-  ]);
-  const projects = projectsResult.value;
-  const people = peopleResult.value;
-  const activity = activityResult.value;
-  // Only the ones that actually name a role: "mencari kolaborator" with nothing
-  // said about what for is not an invitation anybody can answer.
-  const asking = askingResult.value.filter((project) => project.openRoles.length > 0).slice(0, 4);
-  const dataUnavailable = [projectsResult, peopleResult, activityResult, askingResult]
-    .some((result) => result.unavailable);
-  const openRoles = projects.reduce((total, project) => total + project.openSeatCount, 0);
+function pathFor(filters: DirectoryFilters): string {
+  const params = new URLSearchParams();
+  if (filters.track !== "github") params.set("track", filters.track);
+  if (filters.source) params.set("source", filters.source);
+  if (filters.badge) params.set("badge", filters.badge);
+  if (filters.facet) params.set("facet", filters.facet);
+  if (filters.q) params.set("q", filters.q);
+  const search = params.toString();
+  return `/${search ? `?${search}` : ""}`;
+}
+
+const TRACK_COPY: Record<DirectoryTrack, { titleId: string; titleEn: string; noteId: string; noteEn: string }> = {
+  github: {
+    titleId: "Kode di GitHub",
+    titleEn: "Code on GitHub",
+    noteId: "Kirim pull request",
+    noteEn: "Send a pull request",
+  },
+  role: {
+    titleId: "Peran lain",
+    titleEn: "Other roles",
+    noteId: "Desain, produk, riset, konten",
+    noteEn: "Design, product, research, content",
+  },
+};
+
+/** GitHub's own colours for the languages in the catalogue, so a dot reads at a glance. */
+const LANGUAGE_COLOURS: Record<string, string> = {
+  TypeScript: "#3178c6",
+  JavaScript: "#f1e05a",
+  Go: "#00add8",
+  Python: "#3572a5",
+  PHP: "#4f5d95",
+  Markdown: "#083fa1",
+  Rust: "#dea584",
+  Java: "#b07219",
+  Kotlin: "#a97bff",
+  Dart: "#00b4ab",
+  Ruby: "#701516",
+  Swift: "#f05138",
+};
+
+/**
+ * The directory, read like an index rather than a landing page.
+ *
+ * A sidebar of facets with their counts on the left — how you contribute,
+ * where the project comes from, and its language or the role it wants — and a
+ * dense table on the right: one row per project, the same columns down the
+ * page, the button that starts the work always at the end of the row.
+ */
+export default async function Directory({ searchParams }: { searchParams?: SearchParams }) {
+  const query = searchParams ?? Promise.resolve({});
+  const locale = await currentLocale();
 
   return (
     <>
-      <SiteHeader returnTo="/" active="home" />
+      <SiteHeader returnTo={query.then((value) => pathFor(readFilters(value)))} active="home" />
 
-      <main id="main-content" className="landing-page">
-        <section className="landing-hero" aria-labelledby="landing-title">
-          <div className="landing-hero-copy">
-            <RotatingHeadline />
-            <p className="landing-hero-lead">
-              {tx(locale, "Ruang publik untuk membangun dan mengembangkan proyek techmu, membuktikan keahlianmu, dan berkolaborasi.", "A public place to build and grow your tech project, prove your skill and collaborate.")}
-            </p>
-
-            <div className="home-hero-actions" aria-label={tx(locale, "Mulai menggunakan Builders", "Get started with Builders")}>
-              <Link className="home-hero-primary" href="/new">
-                <span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add a project")}
-              </Link>
-              <Link className="home-hero-secondary" href="/explore">
-                {tx(locale, "Jelajahi proyek", "Browse projects")} <Arrow />
-              </Link>
-            </div>
-
-            <div className="landing-counts" aria-label={tx(locale, "Aktivitas Builders saat ini", "Current Builders activity")}>
-              <span className="landing-count">
-                <strong>{people.length}</strong>
-                <span>{tx(locale, "orang", "people")}</span>
-              </span>
-              <span className="landing-count">
-                <strong>{projects.length}</strong>
-                <span>{tx(locale, "proyek", "projects")}</span>
-              </span>
-              <span className="landing-count">
-                <strong>{openRoles}</strong>
-                <span>{tx(locale, "peran terbuka", "open roles")}</span>
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {dataUnavailable ? (
-          <p className="public-data-notice" role="status">
-            {tx(locale, "Sebagian data terbaru tidak dapat dimuat.", "Some live data could not be loaded.")} <Link href="/">{tx(locale, "Muat ulang halaman ini", "Refresh this page")}</Link>.
-          </p>
-        ) : null}
-
-        <section className="landing-project-feature solo-builder-feature" aria-labelledby="solo-builder-title">
-          <div className="landing-project-feature-head">
-            <div>
-              <p className="home-eyebrow">{tx(locale, "Untuk solo builder", "For solo builders")}</p>
-              <h2 id="solo-builder-title">
-                {tx(locale, "Jangan sampai proyekmu berhenti dan stuck di kamu sendirian.", "Don't let your project stop and get stuck with just you.")}
-              </h2>
-            </div>
+      <main id="main-content" className="dx-page">
+        <header className="dx-head">
+          <div>
+            <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p>
               {tx(
                 locale,
-                "Di sini kamu bisa cari orang untuk berkolaborasi dan membuat proyekmu terus bertumbuh — bukan cuma jadi folder yang didiamkan.",
-                "Find people to collaborate with here, and keep your project growing — instead of it becoming a folder nobody touches again.",
+                "Project open source dan produk builders yang sedang menerima kontributor.",
+                "Open source projects and builders' products that are taking contributors right now.",
               )}
             </p>
           </div>
+        </header>
 
-          <div className="landing-index-filters" aria-label={tx(locale, "Manfaat berkolaborasi", "Benefits of collaborating")}>
-            <span>✅ {tx(locale, "Buka peran", "Open roles")}</span><span>✅ {tx(locale, "Cari kolaborator", "Find collaborators")}</span><span>✅ {tx(locale, "Bagi kepemilikan", "Share ownership")}</span><span>✅ {tx(locale, "Proyek tetap jalan", "Keep it moving")}</span>
-          </div>
-
-          <div className="solo-builder-panels">
-            <div className="solo-builder-panel" aria-labelledby="contribution-activity-title">
-              <div className="solo-builder-panel-head">
-                <div>
-                  <p className="home-eyebrow">{tx(locale, "Sedang terjadi", "Happening now")}</p>
-                  <h3 id="contribution-activity-title">{tx(locale, "Aktivitas kontribusi", "Contribution activity")}</h3>
-                </div>
-                <span className="live-dot" title={tx(locale, "Diperbarui dari aktivitas proyek", "Updated from project activity")} />
-              </div>
-              <p className="solo-builder-panel-note">
-                {tx(locale, "Kontribusi nyata yang baru saja terjadi di proyek orang lain.", "Real contributions that just happened on other people's projects.")}
-              </p>
-              {/* The trail reads the clock for "2 hari lalu", so it arrives at
-                  request time behind its own boundary rather than holding the
-                  rest of the page back. */}
-              <Suspense fallback={<Skeleton height={196} />}>
-                <CollaborationTrail
-                  events={activity}
-                  locale={locale}
-                  emptyNote={tx(locale, "Belum ada aktivitas. Jadilah yang pertama berkontribusi.", "No activity yet. Be the first to contribute.")}
-                />
-              </Suspense>
-              <Link className="solo-builder-panel-link" href="/explore?lane=active">
-                {tx(locale, "Lihat proyek yang sedang bergerak", "See the projects on the move")} <Arrow />
-              </Link>
-            </div>
-
-            <div className="solo-builder-panel" aria-labelledby="asking-for-role-title">
-              <div className="solo-builder-panel-head">
-                <div>
-                  <p className="home-eyebrow">{tx(locale, "Sedang dicari", "Wanted right now")}</p>
-                  <h3 id="asking-for-role-title">{tx(locale, "Proyek ini mencari peran apa", "Which project needs which role")}</h3>
-                </div>
-              </div>
-              <p className="solo-builder-panel-note">
-                {tx(locale, "Proyek yang sudah menyebutkan peran yang mereka butuhkan.", "Projects that have already named the role they need.")}
-              </p>
-              {asking.length > 0 ? (
-                <ul className="role-wanted-list">
-                  {asking.map((project) => (
-                    <li key={project.id}>
-                      <Link href={`/projects/${project.slug}`}>
-                        <strong>{project.title}</strong>
-                        <small>{stageLabel(project.stage, locale)}</small>
-                      </Link>
-                      <span className="role-wanted-roles" aria-label={tx(locale, `Peran yang dicari ${project.title}`, `Roles ${project.title} is looking for`)}>
-                        {project.openRoles.slice(0, 2).map((role) => (
-                          <i key={role}>{roleLabel(role, "", locale)}</i>
-                        ))}
-                        {project.openRoles.length > 2 ? <i>+{project.openRoles.length - 2}</i> : null}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="solo-builder-panel-empty">
-                  {tx(locale, "Belum ada peran yang dibuka. Proyekmu bisa jadi yang pertama.", "No roles are open yet. Yours could be the first.")}
-                </p>
-              )}
-              <Link className="solo-builder-panel-link" href="/explore?needs=open">
-                {tx(locale, "Lihat semua peran yang dicari", "See every role being asked for")} <Arrow />
-              </Link>
-            </div>
-          </div>
-
-          <Link className="landing-inline-link" href="/new">
-            {tx(locale, "Cantumkan proyek dan buka peran", "List your project and open a role")} <Arrow />
-          </Link>
-        </section>
-
-        <section className="landing-use-cases" aria-labelledby="use-cases-title">
-          <div className="landing-section-intro">
-            <p className="home-eyebrow">{tx(locale, "Mengapa upload karyamu di sini?", "Why share your project here?")}</p>
-            <h2 id="use-cases-title">{tx(locale, "Bagikan proyekmu agar dilihat semua.", "Put your project, so everyone can see.")}</h2>
-            <p className="landing-section-lead">{tx(locale, "Setelah dibagikan, kamu dapat:", "Once you share it, you can:")}</p>
-          </div>
-
-          <div className="use-case-layout">
-            <ul className="use-case-list">
-              {USE_CASES.map(([idCopy, enCopy]) => (
-                <li key={enCopy}><span aria-hidden="true">↗</span>{tx(locale, idCopy, enCopy)}</li>
-              ))}
-            </ul>
-          </div>
-
-          <Link className="landing-inline-link" href="/explore">
-            {tx(locale, "Lihat contoh proyek", "See example projects")} <Arrow />
-          </Link>
-        </section>
-
-        <section className="landing-project-feature" id="projects" aria-labelledby="project-feature-title">
-          <div className="landing-project-feature-head">
-            <div>
-              <p className="home-eyebrow">01 · {tx(locale, "Galeri Proyek", "Project Showcase")}</p>
-              <h2 id="project-feature-title">{tx(locale, "Satu proyek yang dibagikan membuka banyak peluang.", "One shared project creates multiple opportunities.")}</h2>
-            </div>
-          </div>
-
-          <div className="landing-index-filters" aria-label={tx(locale, "Contoh filter proyek", "Example project filters")}>
-            <span>✅ {tx(locale, "Mudah dicari", "Searchable")}</span><span>✅ {tx(locale, "Menginspirasi dan terinspirasi", "Inspire and get inspired")}</span><span>✅ {tx(locale, "Tumbuh bersama kontributor", "Grow with contributors")}</span><span>✅ {tx(locale, "Temukan kolaborator", "Find collaborators")}</span>
-          </div>
-
-          {projects.length > 0 ? (
-            <div className="landing-project-index">
-              {projects.slice(0, 3).map((project) => <ProjectIndexRow key={project.id} project={project} locale={locale} />)}
-            </div>
-          ) : (
-            <p className="landing-data-empty">{tx(locale, "Belum ada proyek. Tambahkan karya pertama.", "No projects yet. Add the first piece of work.")}</p>
-          )}
-
-          <Link className="landing-inline-link" href="/explore">{tx(locale, "Jelajahi semua proyek", "Browse all projects")} <Arrow /></Link>
-        </section>
-
-        <section className="portfolio-story" id="portfolio" aria-labelledby="portfolio-story-title">
-          <div className="portfolio-story-copy">
-            <p className="home-eyebrow">02 · {tx(locale, "Pembuat portofolio", "Portfolio builder")}</p>
-            <h2 id="portfolio-story-title">{tx(locale, "Capek ngurus web portofolio sendirian?", "Tired of maintaining a portfolio on your own?")}</h2>
-            <p>
-              {tx(locale, "Profilmu mengumpulkan proyek, kontribusi, dan peran yang benar-benar dijalani. Satu tautan yang terus berkembang setiap kali sesuatu dirilis.", "Your profile collects projects, contributions, and the roles that actually happened. One link that grows every time something ships.")}
-            </p>
-            <ul>
-              <li><span>01</span> {tx(locale, "Portofolio pribadi yang berpusat pada proyek", "A project-first personal portfolio")}</li>
-              <li><span>02</span> {tx(locale, "Tidak perlu deployment", "No deployment required")}</li>
-              <li><span>03</span> {tx(locale, "Keahlian dibuktikan melalui karya yang dirilis", "Skills proven by shipped work")}</li>
-            </ul>
-            <a className="portfolio-story-link" href="https://builders.swegrowth.id/u/zikrul-ihsan">
-              {tx(locale, "Lihat portofolio aktif", "See a live portfolio")} <Arrow />
-            </a>
-          </div>
-
-          <a
-            className="portfolio-preview"
-            href="https://builders.swegrowth.id/u/zikrul-ihsan"
-            aria-label={tx(locale, "Lihat portofolio Zikrul Ihsan", "See Zikrul Ihsan's portfolio")}
-          >
-            <div className="portfolio-preview-label">
-              <span>{tx(locale, "PORTOFOLIO BERBASIS KARYA", "WORK-BUILT PORTFOLIO")}</span>
-              <i><b /> {tx(locale, "Profil aktif", "Active profile")}</i>
-            </div>
-            <div className="portfolio-preview-person">
-              <span className="portfolio-preview-avatar" aria-hidden="true">ZI</span>
-              <div>
-                <h3>Zikrul Ihsan</h3>
-                <p>{tx(locale, "Insinyur Perangkat Lunak · Penggerak Komunitas", "Software Engineer · Community Builder")}</p>
-              </div>
-            </div>
-            <p className="portfolio-preview-bio">
-              {tx(locale, "Membangun produk digital, komunitas, dan proyek publik yang bermanfaat.", "Building digital products, communities, and useful public projects.")}
-            </p>
-            <ul className="portfolio-preview-skills" aria-label={tx(locale, "Keahlian Zikrul Ihsan", "Zikrul Ihsan's skills")}>
-              <li>{tx(locale, "5 tahun", "5 years")}</li><li>Python</li><li>{tx(locale, "Rekayasa AI", "AI Engineering")}</li>
-            </ul>
-            <div className="portfolio-preview-proof">
-              <div><strong>6</strong><span>{tx(locale, "proyek dibangun", "projects built")}</span></div>
-              <div><span>{tx(locale, "Karya pilihan", "Selected work")}</span><p>Swegrowth · Main Aman · CariKontak</p></div>
-            </div>
-            <span className="portfolio-preview-url"><span>builders.swegrowth.id/u/zikrul-ihsan</span> <Arrow diagonal /></span>
-          </a>
-        </section>
-
-        <section className="talent-story" aria-labelledby="talent-story-title">
-          <div className="talent-story-copy">
-            <p className="home-eyebrow">03 · Talent pool</p>
-            <h2 id="talent-story-title">{tx(locale, "Lengkapi profil profesionalmu agar ditemukan oleh recruiters", "Complete your professional profile, then get discovered by recruiters")}</h2>
-            <p>
-              {tx(locale, "Kolaborasi di proyek tech membangun pengalaman nyata. Talent Pool menghubungkanmu dengan recruiter, hiring manager, dan tim tech.", "Collaborating on tech projects builds real experience. Talent Pool connects you with recruiters, hiring managers, and tech teams.")}
-            </p>
-            <ul>
-              <li><span>✓</span> {tx(locale, "Recruiter dapat menemukan tech talent melalui peran, keahlian, dan status peluang", "Recruiters can find tech talent through role, skills, and opportunity status")}</li>
-              <li><span>✓</span> {tx(locale, "Hiring manager dapat menilai keahlianmu dari proyek yang kamu kerjakan", "Hiring managers can assess your skills through the projects you worked on")}</li>
-              <li><span>✓</span> {tx(locale, "Tim tech dapat menemukan rekan yang tepat untuk diajak bekerja bersama", "Tech teams can find the right people to work with")}</li>
-            </ul>
-            <Link className="talent-story-link" href="/people">{tx(locale, "Jelajahi tech talent", "Browse tech talent")} <Arrow /></Link>
-          </div>
-
-          <div className="talent-preview" aria-label={tx(locale, "Tech talent di Builders", "Tech talent on Builders")}>
-            <div className="talent-preview-head">
-              <span>{tx(locale, "Tech talent dengan karya yang terlihat", "Tech talent with visible work")}</span>
-              <Link href="/people">{tx(locale, "Lihat semua", "View all")}</Link>
-            </div>
-            {people.length > 0 ? (
-              <ul>
-                {people.slice(0, 3).map((person) => <TalentRow key={person.id} person={person} locale={locale} />)}
-              </ul>
-            ) : (
-              <div className="talent-preview-empty"><p>{tx(locale, "Belum ada profil.", "No profiles yet.")}</p><Link href="/signup">{tx(locale, "Buat profilmu", "Create yours")}</Link></div>
-            )}
-          </div>
-        </section>
-
-        <section className="how-it-works" aria-labelledby="how-title">
-          <div className="how-heading">
-            <div>
-              <p className="home-eyebrow">{tx(locale, "Cara semuanya terhubung", "How it fits together")}</p>
-              <h2 id="how-title">{tx(locale, "Cara memulai 🏁", "How to get started 🏁")}</h2>
-            </div>
-            <p>{tx(locale, "Cantumkan karya sekali saja. Indeks proyek, portofolio, dan talent pool berkembang dari bukti yang sama.", "List the work once. The project index, portfolio, and talent pool grow from the same evidence.")}</p>
-          </div>
-          <ol className="how-steps how-steps-five">
-            {WORKFLOW.map(([titleId, titleEn, bodyId, bodyEn], index) => (
-              <li key={titleEn}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <div className="how-step-mark" aria-hidden="true">{index + 1}</div>
-                <h3>{tx(locale, titleId, titleEn)}</h3>
-                <p>{tx(locale, bodyId, bodyEn)}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="landing-final-cta" aria-labelledby="final-cta-title">
-          <p className="home-eyebrow">{tx(locale, "Mulai dari kamu", "Start with you")}</p>
-          <h2 id="final-cta-title">{tx(locale, "Tampilkan karya agar orang dapat melihatnya.", "Show your work so people can see it.")}</h2>
-          <p>{tx(locale, "Tambahkan proyek meski masih berupa ide. Perbarui seiring perkembangannya.", "Add a project even if it's still an idea. Update it as it moves.")}</p>
-          <div>
-            <Link className="home-hero-primary" href="/new"><span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add a project")}</Link>
-            <Link className="landing-final-secondary" href="/explore">{tx(locale, "Temukan tempat untuk berkontribusi", "Find a place to contribute")} <Arrow /></Link>
-          </div>
-          <small>{tx(locale, "Gratis untuk komunitas.", "Free for the community.")}</small>
-        </section>
+        <Suspense fallback={<DirectorySkeleton />}>
+          <DirectoryBody query={query} locale={locale} />
+        </Suspense>
       </main>
 
       <SiteFooter />
@@ -354,46 +142,378 @@ export default async function Home() {
   );
 }
 
-function ProjectIndexRow({ project, locale }: { project: ProjectSummary; locale: Locale }) {
-  const openRole = project.openRoles[0];
+async function DirectoryBody({ query, locale }: { query: SearchParams; locale: Locale }) {
+  const filters = readFilters(await query);
+  const [reposResult, projectsResult, membersResult] = await Promise.all([
+    readPublicly("open source repos in the directory", () => listOpenSourceRepos(), []),
+    readPublicly("products in the directory", () => listProjects({ lane: "active" }), []),
+    readPublicly("members' open source records in the directory", () => listOssMembers(), []),
+  ]);
+
+  const repos = reposResult.value;
+  const members = membersResult.value;
+  const entries: DirectoryEntry[] = [
+    ...repos.filter((repo) => repo.list === "internal").map((repo) => repoEntry(repo, locale, members)),
+    ...repos.filter((repo) => repo.list === "recommended").map((repo) => repoEntry(repo, locale, members)),
+    ...projectsResult.value.flatMap((project) =>
+      productEntries(project, projectBlurb, (role) => roleLabel(role, "", locale), locale),
+    ),
+  ];
+  const matched = filterDirectory(entries, filters);
+  const onTrack = entries.filter((entry) => entry.track === filters.track);
+  const facets = directoryFacets(entries, filters.track);
+  const sources = DIRECTORY_SOURCES.map((source) => ({
+    source,
+    count: onTrack.filter((entry) => entry.source === source).length,
+  })).filter(({ count }) => count > 0);
+  const badges = badgeCounts(entries, filters.track);
+  const code = filters.track === "github";
+  const filtered = Boolean(filters.source || filters.badge || filters.facet || filters.q);
+
   return (
-    <article className="landing-index-row">
-      <ProjectLogo title={project.title} website={project.liveUrl} logoUrl={project.logoUrl} />
-      <div className="landing-index-main">
-        <p>
-          <span>{stageLabel(project.stage, locale)}</span>
-          {projectTypeLabel(project.projectType, locale) ? ` · ${projectTypeLabel(project.projectType, locale)}` : ""}
-          {project.tags[0] ? ` · ${project.tags[0]}` : ""}
-        </p>
-        <h3><Link className="card-cover-link" href={`/projects/${project.slug}`}>{project.title}</Link></h3>
-        <p>{projectBlurb(project)}</p>
-      </div>
-      <div className="landing-index-role">
-        <small>{openRole ? tx(locale, "Peran terbuka", "Open role") : tx(locale, "Catatan pengembangan", "Build log")}</small>
-        <strong>{openRole ? roleLabel(openRole, "", locale) : tx(locale, "Tidak ada peran terbuka", "No role open")}</strong>
-      </div>
-      <Link className="landing-index-owner" href={`/u/${project.owner.username}`}>
-        <span aria-hidden="true">{initials(project.owner.name)}</span>
-        <small>{project.owner.name}</small>
-      </Link>
-    </article>
+    <div className="dx-layout">
+      {/* On a phone the first choice is a two-way tab across the top; the
+          sidebar group below says the same thing on a wide screen. */}
+      <nav className="dx-mtabs" aria-label={tx(locale, "Cara kontribusi", "How to contribute")}>
+        {DIRECTORY_TRACKS.map((track) => (
+          <Link
+            key={track}
+            className={filters.track === track ? "is-active" : ""}
+            aria-current={filters.track === track ? "page" : undefined}
+            href={pathFor({ track, source: "", badge: "", facet: "", q: filters.q })}
+          >
+            <TrackIcon track={track} />
+            {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+            <span>{entries.filter((entry) => entry.track === track).length}</span>
+          </Link>
+        ))}
+      </nav>
+
+      <aside className="dx-side" aria-label={tx(locale, "Filter", "Filters")}>
+        <FacetGroup className="dx-facet-tracks" title={tx(locale, "Cara kontribusi", "How to contribute")}>
+          {DIRECTORY_TRACKS.map((track) => (
+            <FacetLink
+              key={track}
+              active={filters.track === track}
+              href={pathFor({ track, source: "", badge: "", facet: "", q: filters.q })}
+              count={entries.filter((entry) => entry.track === track).length}
+              icon={<TrackIcon track={track} />}
+              note={tx(locale, TRACK_COPY[track].noteId, TRACK_COPY[track].noteEn)}
+            >
+              {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+            </FacetLink>
+          ))}
+        </FacetGroup>
+
+        {badges.length > 0 ? (
+          <FacetGroup title={tx(locale, "Tanda", "Signals")}>
+            {badges.map(({ kind, count }) => (
+              <FacetLink
+                key={kind}
+                active={filters.badge === kind}
+                href={pathFor({ ...filters, badge: filters.badge === kind ? "" : kind })}
+                count={count}
+                icon={<BadgeIcon kind={kind} />}
+              >
+                {badgeKindLabel(kind, locale)}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
+
+        {sources.length > 1 ? (
+          <FacetGroup title={tx(locale, "Sumber", "Source")}>
+            <FacetLink all active={filters.source === ""} href={pathFor({ ...filters, source: "" })} count={onTrack.length}>
+              {tx(locale, "Semua", "All")}
+            </FacetLink>
+            {sources.map(({ source, count }) => (
+              <FacetLink
+                key={source}
+                active={filters.source === source}
+                href={pathFor({ ...filters, source: filters.source === source ? "" : source })}
+                count={count}
+              >
+                {sourceLabel(source, locale)}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
+
+        {facets.length > 0 ? (
+          <FacetGroup title={code ? tx(locale, "Bahasa", "Language") : tx(locale, "Peran yang dicari", "Role wanted")}>
+            <FacetLink all active={filters.facet === ""} href={pathFor({ ...filters, facet: "" })} count={onTrack.length}>
+              {tx(locale, "Semua", "All")}
+            </FacetLink>
+            {facets.map(({ value, count }) => (
+              <FacetLink
+                key={value}
+                active={filters.facet === value}
+                href={pathFor({ ...filters, facet: filters.facet === value ? "" : value })}
+                count={count}
+                icon={code ? <LanguageDot language={value} /> : undefined}
+              >
+                {value}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
+      </aside>
+
+      <section className="dx-results" aria-label={tx(locale, "Hasil", "Results")}>
+        <div className="dx-toolbar">
+          <Form className="dx-search" action="/" role="search">
+            {filters.track !== "github" ? <input type="hidden" name="track" value={filters.track} /> : null}
+            {filters.source ? <input type="hidden" name="source" value={filters.source} /> : null}
+            {filters.badge ? <input type="hidden" name="badge" value={filters.badge} /> : null}
+            {filters.facet ? <input type="hidden" name="facet" value={filters.facet} /> : null}
+            <label>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+              <span className="sr-only">{tx(locale, "Cari project", "Search projects")}</span>
+              <input type="search" name="q" defaultValue={filters.q} placeholder={tx(locale, "Cari project…", "Search projects…")} />
+            </label>
+          </Form>
+          <p className="dx-count" role="status">
+            <strong>{matched.length}</strong> {tx(locale, "project", matched.length === 1 ? "project" : "projects")}
+            {filtered ? <> · <Link href={pathFor({ track: filters.track, source: "", badge: "", facet: "", q: "" })}>{tx(locale, "reset", "reset")}</Link></> : null}
+          </p>
+        </div>
+
+        {reposResult.unavailable || projectsResult.unavailable ? (
+          <p className="public-data-notice" role="status">
+            {tx(locale, "Sebagian daftar tidak dapat dimuat.", "Part of the list could not be loaded.")} <Link href={pathFor(filters)}>{tx(locale, "Muat ulang", "Reload")}</Link>.
+          </p>
+        ) : null}
+
+        <div className={`dx-table dx-table-${filters.track}`} role="table" aria-label={tx(locale, "Daftar project", "Project list")}>
+          <div className="dx-row dx-row-head" role="row">
+            <span role="columnheader">Project</span>
+            <span role="columnheader">{code ? tx(locale, "Bahasa", "Language") : tx(locale, "Mencari", "Looking for")}</span>
+            <span role="columnheader" className="dx-col-stars">{code ? "★" : ""}</span>
+            <span role="columnheader"><span className="sr-only">{tx(locale, "Aksi", "Action")}</span></span>
+          </div>
+
+          {matched.length > 0 ? (
+            matched.map((entry) => <DirectoryRow key={entry.key} entry={entry} locale={locale} />)
+          ) : (
+            <div className="dx-empty" role="row">
+              <p role="cell">
+                {tx(locale, "Tidak ada project yang cocok.", "No project matches.")}{" "}
+                <Link href={pathFor({ track: filters.track, source: "", badge: "", facet: "", q: "" })}>{tx(locale, "Reset filter", "Reset filters")}</Link>
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 
-function TalentRow({ person, locale }: { person: Person; locale: Locale }) {
+function FacetGroup({ title, className = "", children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
-    <li>
-      <Link href={`/u/${person.username}`}>
-        <span className="talent-avatar" aria-hidden="true">{initials(person.name)}</span>
-        <span className="talent-person-copy">
-          <strong>{person.name}</strong>
-          <small>{person.profession || person.headline || tx(locale, "Pengembang", "Builder")}</small>
+    <div className={`dx-facet ${className}`}>
+      <p className="dx-facet-title">{title}</p>
+      <ul>{children}</ul>
+    </div>
+  );
+}
+
+function FacetLink({
+  active,
+  href,
+  count,
+  icon,
+  note,
+  all = false,
+  children,
+}: {
+  active: boolean;
+  href: string;
+  count: number;
+  icon?: React.ReactNode;
+  note?: string;
+  /** The "All" entry of a group, which a phone leaves out. */
+  all?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className={all ? "dx-facet-all" : undefined}>
+      <Link className={`dx-facet-link ${active ? "is-active" : ""}`} aria-current={active ? "true" : undefined} href={href}>
+        {icon}
+        <span className="dx-facet-label">
+          {children}
+          {note ? <small>{note}</small> : null}
         </span>
-        <span className="talent-skills" aria-label={tx(locale, `Keahlian ${person.name}`, `${person.name}'s skills`)}>
-          {person.skills.slice(0, 2).map((skill) => <i key={skill}>{skill}</i>)}
-        </span>
-        <Arrow />
+        <span className="dx-facet-count">{count}</span>
       </Link>
     </li>
   );
+}
+
+/**
+ * One badge on a row. When it names people, their GitHub avatars ride along —
+ * a face is what makes "a friend has been here" believable — and the badge
+ * links to the first of them: their profile here when the badge comes from
+ * members' own records, their GitHub otherwise.
+ */
+function BadgeChip({ badge, locale }: { badge: Badge; locale: Locale }) {
+  const people = badgePeople(badge);
+  const label = badgeLabel(badge, locale);
+  const title = people.length > 0 ? `${label}: ${people.map((person) => `@${person}`).join(", ")}` : label;
+  const content = (
+    <>
+      <BadgeIcon kind={badge.kind} />
+      <span>{label}</span>
+      {people.length > 0 ? (
+        <span className="dx-badge-faces" aria-hidden="true">
+          {people.slice(0, 3).map((person) => (
+            // GitHub serves a small avatar at this address for any username;
+            // next/image would need the host allow-listed for a 20px picture.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={person} src={`https://github.com/${person}.png?size=40`} alt="" width={18} height={18} loading="lazy" />
+          ))}
+        </span>
+      ) : null}
+    </>
+  );
+
+  const profile = badge.profiles?.[0];
+
+  return (
+    <li className={`dx-badge dx-badge-${badge.kind}`} title={title}>
+      {profile ? (
+        <Link href={`/u/${profile}`} aria-label={title}>{content}</Link>
+      ) : people.length > 0 ? (
+        <a href={`https://github.com/${people[0]}`} target="_blank" rel="noopener noreferrer" aria-label={title}>{content}</a>
+      ) : (
+        content
+      )}
+    </li>
+  );
+}
+
+function BadgeIcon({ kind }: { kind: BadgeKind }) {
+  if (kind === "indonesian") {
+    return (
+      <svg className="dx-badge-icon dx-flag" viewBox="0 0 16 12" aria-hidden="true">
+        <rect width="16" height="6" fill="#e70011" />
+        <rect y="6" width="16" height="6" fill="#fff" />
+        <rect x=".5" y=".5" width="15" height="11" fill="none" stroke="#d4d4d8" />
+      </svg>
+    );
+  }
+  if (kind === "in-our-group") {
+    return (
+      <svg className="dx-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="9" cy="8" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.5M17.5 14a5 5 0 0 1 3 5" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="dx-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12 4.5 4.5L19 7" />
+    </svg>
+  );
+}
+
+function LanguageDot({ language }: { language: string }) {
+  return <span className="dx-lang-dot" style={{ background: LANGUAGE_COLOURS[language] ?? "#a1a1aa" }} aria-hidden="true" />;
+}
+
+function TrackIcon({ track }: { track: DirectoryTrack }) {
+  return track === "github" ? (
+    <svg className="dx-track-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" />
+    </svg>
+  ) : (
+    <svg className="dx-track-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" />
+    </svg>
+  );
+}
+
+function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale }) {
+  const external = { target: "_blank", rel: "noopener noreferrer" };
+  const owner = entry.source === "product" ? tx(locale, `oleh ${entry.owner}`, `by ${entry.owner}`) : entry.owner;
+  const sourceTag: Record<DirectorySource, string> = {
+    internal: tx(locale, "milik kami", "ours"),
+    recommended: tx(locale, "rekomendasi", "recommended"),
+    product: tx(locale, "produk builders", "builders' product"),
+  };
+
+  return (
+    <div className={`dx-row dx-row-${entry.source}`} role="row">
+      <div className="dx-cell-main" role="cell">
+        <span className="dx-logo" aria-hidden="true">{entry.name.slice(0, 1).toUpperCase()}</span>
+        <div className="dx-main-copy">
+          <p className="dx-name">
+            {entry.href.startsWith("http") ? (
+              <a href={entry.href} {...external}>{entry.name}</a>
+            ) : (
+              <Link href={entry.href}>{entry.name}</Link>
+            )}
+            <span className="dx-owner">{owner}</span>
+          </p>
+          <p className="dx-desc">{entry.description}</p>
+          {entry.badges.length > 0 ? (
+            <ul className="dx-badges" aria-label={tx(locale, "Tanda", "Signals")}>
+              {entry.badges.map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
+            </ul>
+          ) : null}
+          <p className="dx-tags">
+            <span className={`dx-tag dx-tag-${entry.source}`}>{sourceTag[entry.source]}</span>
+            {entry.track === "github" ? entry.labels.map((label) => <span key={label} className="dx-tag">{label}</span>) : null}
+          </p>
+        </div>
+      </div>
+
+      <div className="dx-cell-meta" role="cell">
+        {entry.track === "github" ? (
+          entry.language ? <span className="dx-lang"><LanguageDot language={entry.language} />{entry.language}</span> : <span className="dx-muted">—</span>
+        ) : (
+          <span className="dx-roles">
+            {entry.labels.slice(0, 2).map((label) => <span key={label} className="dx-role">{label}</span>)}
+            {entry.labels.length > 2 ? <span className="dx-muted">+{entry.labels.length - 2}</span> : null}
+          </span>
+        )}
+      </div>
+
+      <div className="dx-cell-stars" role="cell">
+        {entry.stars !== null ? compactNumber(entry.stars, locale) : entry.track === "github" ? <span className="dx-muted">—</span> : null}
+      </div>
+
+      <div className="dx-cell-action" role="cell">
+        {entry.external ? (
+          <a className="dx-action" href={entry.actionHref} {...external}>
+            {entry.track === "github" ? tx(locale, "Lihat isu", "Issues") : entry.actionLabel} <span aria-hidden="true">↗</span>
+          </a>
+        ) : (
+          <Link className="dx-action" href={entry.actionHref}>
+            {tx(locale, "Lihat peran", "Roles")} <span aria-hidden="true">→</span>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DirectorySkeleton() {
+  return (
+    <div className="dx-layout" aria-busy="true">
+      <div className="dx-side">
+        <Skeleton height={220} style={{ borderRadius: 8 }} />
+      </div>
+      <div className="dx-results">
+        <Skeleton height={40} style={{ borderRadius: 8, marginBottom: 14 }} />
+        {[0, 1, 2, 3, 4, 5].map((slot) => <Skeleton key={slot} height={78} style={{ borderRadius: 0, marginBottom: 1 }} />)}
+      </div>
+    </div>
+  );
+}
+
+function compactNumber(value: number, locale: Locale): string {
+  return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}
+
+function one(value: string | string[] | undefined): string {
+  return (Array.isArray(value) ? value[0] : value) ?? "";
 }

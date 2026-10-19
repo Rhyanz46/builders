@@ -5,53 +5,23 @@ export default function Loading() {
   return (
     <>
       <HeaderShell active="home" />
-      <main id="main-content" className="landing-page">
+      <main id="main-content" className="dx-page">
         <LoadingNote />
-
-        <section className="landing-hero">
-          <div className="landing-hero-copy">
-            <Skeleton height={11} width={230} style={{ marginBottom: 20 }} />
-            <Skeleton height={63} width="94%" style={{ marginBottom: 11 }} />
-            <Skeleton height={63} width="78%" style={{ marginBottom: 27 }} />
-            <Skeleton height={15} width="88%" style={{ marginBottom: 10 }} />
-            <Skeleton height={15} width="72%" />
-            <div className="home-hero-actions">
-              <Skeleton height={50} width={180} />
-              <Skeleton height={50} width={225} />
-            </div>
+        <div className="dx-head">
+          <div style={{ width: "100%" }}>
+            <Skeleton height={28} width={280} style={{ marginBottom: 10 }} />
+            <Skeleton height={14} width="46%" />
           </div>
-        </section>
-
-        <section className="landing-stats">
-          <div className="landing-stats-heading">
-            <div>
-              <Skeleton height={11} width={190} style={{ marginBottom: 18 }} />
-              <Skeleton height={48} width="78%" />
-            </div>
+        </div>
+        <div className="dx-layout">
+          <div className="dx-side">
+            <Skeleton height={220} style={{ borderRadius: 8 }} />
           </div>
-          <div className="ecosystem-card">
-            <Skeleton height={12} width="32%" style={{ marginBottom: 28 }} />
-            <Skeleton height={82} style={{ marginBottom: 18 }} />
-            <Skeleton height={130} />
+          <div className="dx-results">
+            <Skeleton height={40} style={{ borderRadius: 8, marginBottom: 14 }} />
+            {[0, 1, 2, 3, 4, 5].map((slot) => <Skeleton key={slot} height={78} style={{ borderRadius: 0, marginBottom: 1 }} />)}
           </div>
-        </section>
-
-        <section className="landing-purpose">
-          <div className="landing-section-intro">
-            <Skeleton height={11} width={210} style={{ marginBottom: 18 }} />
-            <Skeleton height={50} width="72%" />
-          </div>
-          <div className="purpose-grid">
-            {[0, 1, 2].map((slot) => (
-              <div className="purpose-card" key={slot}>
-                <Skeleton height={49} width={49} style={{ marginBottom: 42 }} />
-                <Skeleton height={9} width="38%" style={{ marginBottom: 18 }} />
-                <Skeleton height={24} width="88%" style={{ marginBottom: 9 }} />
-                <Skeleton height={24} width="70%" />
-              </div>
-            ))}
-          </div>
-        </section>
+        </div>
       </main>
     </>
   );

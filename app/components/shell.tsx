@@ -36,16 +36,13 @@ export function Brand({ footer = false, locale }: { footer?: boolean; locale: Lo
 /*
  * The main menu.
  *
- * The three routes people come here to use, then the two that answer for the
- * site itself: what this is, and where to say it is broken. Both were reachable
- * only from the footer, which is the part of a page nobody scrolls to when they
- * are lost — exactly the moment either one is wanted.
+ * The directory is the site, so the menu is short: the directory itself, then
+ * the two pages that answer for the site — what this is, and where to say it
+ * is broken. Listing a project is the header's button, not a menu entry.
  */
 const LINKS: { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName }[] = [
-  { href: "/", label: "Home", labelId: "Beranda", key: "home", icon: "home" },
-  { href: "/explore", label: "Explore", labelId: "Jelajahi", key: "explore", icon: "explore" },
-  { href: "/people", label: "Talent Pool", labelId: "Talent Pool", key: "people", icon: "people" },
-  { href: "/about", label: "About Us", labelId: "Tentang Kami", key: "about", icon: "about" },
+  { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "home" },
+  { href: "/about", label: "About", labelId: "Tentang", key: "about", icon: "about" },
   { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
 
@@ -202,14 +199,14 @@ async function VisitorHeader({
               </Link>
               <AccountMenu viewer={viewer} waiting={waiting} locale={locale} />
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add project")}
+                <span aria-hidden="true">+</span> {tx(locale, "Daftarkan project", "List a project")}
               </Link>
             </>
           ) : (
             <>
               <Link className="nav-login" href={signInPath(destination)}>{tx(locale, "Masuk", "Sign in")}</Link>
               <Link className="primary-action" href="/new">
-                <span aria-hidden="true">+</span> {tx(locale, "Tambah proyek", "Add project")}
+                <span aria-hidden="true">+</span> {tx(locale, "Daftarkan project", "List a project")}
               </Link>
             </>
           )}
@@ -264,7 +261,7 @@ function AccountMenu({ viewer, waiting, locale }: { viewer: Viewer; waiting: num
           </Link>
           <Link href="/new">
             <HeaderIcon name="add" />
-            <span>{tx(locale, "Tambah proyek", "Add project")}</span>
+            <span>{tx(locale, "Daftarkan project", "List a project")}</span>
           </Link>
           <Link href="/account/language">
             <HeaderIcon name="language" />
@@ -322,7 +319,7 @@ function MobileHeaderMenu({
 
         <Link className="mobile-project-action" href="/new">
           <HeaderIcon name="add" />
-          <span>{tx(locale, "Tambah proyek", "Add project")}</span>
+          <span>{tx(locale, "Daftarkan project", "List a project")}</span>
         </Link>
 
         {viewer ? (
@@ -394,11 +391,10 @@ export async function SiteFooter() {
   return (
     <footer>
       <Brand footer locale={locale} />
-      <p>{tx(locale, "Ruang publik untuk karya nyata, bukti, dan orang-orang di baliknya.", "A public place for real work, proof, and the people behind it.")}</p>
+      <p>{tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}</p>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
-        <Link href="/">{tx(locale, "Beranda", "Home")}</Link>
-        <Link href="/explore">{tx(locale, "Jelajahi", "Explore")}</Link>
-        <Link href="/people">Talent Pool</Link>
+        <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
+        <Link href="/new">{tx(locale, "Daftarkan project", "List a project")}</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
         <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
