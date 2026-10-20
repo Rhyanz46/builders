@@ -3,9 +3,10 @@ import { memberBadges, mergeBadges, type OssMember } from "./oss";
 import type { GitHubRepositoryStats } from "./github";
 import { parseGitHubRepositoryUrl } from "./github";
 import { tx, type Locale } from "./locale";
+import { isHttpUrl } from "./brief";
 import {
-  localized,
   reasonLabel,
+  repoBadges,
   repoUrl,
   starterIssuesUrl,
   type OpenSourceRepo,
@@ -23,7 +24,9 @@ import {
  *     research, content, engineering…), asked for and answered on this site.
  *
  * A product that does both is listed once on each path, with the action that
- * path needs. `source` says where an entry comes from, as a label.
+ * path needs, and each entry says whether it also takes the other kind of help.
+ * `source` says whether the maintainers are here — one of us, so somebody you
+ * can reach — or a repository from outside that one of us recommends.
  *
  * Pure, so the unit tests read it directly.
  */
@@ -34,7 +37,7 @@ export function isDirectoryTrack(value: string): value is DirectoryTrack {
   return (DIRECTORY_TRACKS as readonly string[]).includes(value);
 }
 
-export const DIRECTORY_SOURCES = ["internal", "recommended", "product"] as const;
+export const DIRECTORY_SOURCES = ["community", "recommended"] as const;
 export type DirectorySource = (typeof DIRECTORY_SOURCES)[number];
 
 export function isDirectorySource(value: string): value is DirectorySource {
@@ -43,26 +46,110 @@ export function isDirectorySource(value: string): value is DirectorySource {
 
 export type DirectoryEntry = {
   key: string;
+  /** A catalogue repository, or a product listed on this site. */
+  kind: "repo" | "product";
   track: DirectoryTrack;
   source: DirectorySource;
   name: string;
   /** Who it belongs to: a GitHub owner, or the founder's name. */
   owner: string;
+  /** An image for the tile: the product's logo, or the repo owner's avatar. */
+  logoUrl: string;
+  /** The product's website, whose favicon stands in when there is no logo. */
+  website: string;
+  /** Where else it lives — its repository and its website — each with an icon. */
+  links: DirectoryLink[];
   description: string;
+  /** A catalogue repo's reason for being listed, in its submitter's words. */
+  why?: string;
+  /** Who put a catalogue repo forward. */
+  submittedBy?: { username: string; name: string } | null;
   /** Why a repo is listed, or the roles a product is asking for. */
   labels: string[];
+  /**
+   * Where it stands on pull requests — see `PRTier`. The one thing a code-path
+   * visitor most wants to know, so it sits next to the name, not among tags.
+   * Null for a product with no GitHub repository.
+   */
+  prTier: PRTier | null;
+  /** Shorthand for `takesPRs(prTier)`. */
+  welcomesPRs: boolean;
+  /** It is asking for people in named roles — design, product, research… */
+  hasOpenRoles: boolean;
   /** Hand-set trust signals about the people around it — see `badges.ts`. */
   badges: Badge[];
   language: string;
   stars: number | null;
+  /** When GitHub last saw a push — the card's "Updated …". Null when unknown. */
+  updatedAt: string | null;
+  /** Its GitHub repository as `owner/name`, lower-cased — what the Star button stars. Null without one. */
+  repo: string | null;
   /** Where the name links — the repo, or the product's page here. */
   href: string;
   /** The one action that matters on this path. */
   actionHref: string;
   actionLabel: string;
+  /** What the button opens, so the table can label it in one short word. */
+  actionKind: "issues" | "repo" | "roles";
   /** True when `actionHref` leaves this site. */
   external: boolean;
 };
+
+export type DirectoryLink = { kind: "github" | "website"; href: string; label: string };
+
+/**
+ * How far a repository is from merging somebody's first pull request, measured
+ * on GitHub rather than taken from a checkbox — a box ticked five years ago on
+ * a repository nobody has touched since is not an invitation.
+ *
+ *   - `active`    open, and an outsider's PR was merged in the last 90 days
+ *   - `first`     open and alive, but no outsider has been merged yet
+ *   - `open`      open and alive; GitHub did not say whether outsiders merge
+ *   - `unopened`  the owner has not said they take pull requests
+ *   - `inactive`  open, but archived or untouched for 120 days
+ *
+ * Listed in the order the directory shows them.
+ */
+export const PR_TIERS = ["active", "first", "open", "unopened", "inactive"] as const;
+export type PRTier = (typeof PR_TIERS)[number];
+
+export function isPRTier(value: string): value is PRTier {
+  return (PR_TIERS as readonly string[]).includes(value);
+}
+
+/** The window an outsider's merged PR counts as evidence for. */
+export const PR_EVIDENCE_DAYS = 90;
+/** How long a repository may go without a push before it counts as inactive. */
+export const ALIVE_DAYS = 120;
+
+/** What GitHub said about who gets merged, and when it was asked. */
+export type RepoActivity = { outsidePRs: number | null; checkedAt: number };
+
+export function prTier(
+  opened: boolean,
+  stats: Pick<GitHubRepositoryStats, "pushedAt" | "archived"> | null | undefined,
+  activity: RepoActivity | null | undefined,
+): PRTier {
+  if (!opened) return "unopened";
+  if (stats?.archived) return "inactive";
+  const pushed = stats?.pushedAt ? Date.parse(stats.pushedAt) : NaN;
+  if (activity && Number.isFinite(pushed) && activity.checkedAt - pushed > ALIVE_DAYS * 86_400_000) return "inactive";
+  if (activity?.outsidePRs == null) return "open";
+  return activity.outsidePRs > 0 ? "active" : "first";
+}
+
+/** Whether a tier still invites a pull request — everything but the two at the bottom. */
+export function takesPRs(tier: PRTier | null): boolean {
+  return tier === "active" || tier === "first" || tier === "open";
+}
+
+export function prTierLabel(tier: PRTier, locale: Locale): string {
+  if (tier === "active") return tx(locale, "Aktif menerima PR", "Actively accepting PRs");
+  if (tier === "first") return tx(locale, "Cari kontributor pertama", "Looking for a first contributor");
+  if (tier === "open") return tx(locale, "Menerima PR", "Accepting PRs");
+  if (tier === "unopened") return tx(locale, "Belum buka PR", "Not open to PRs yet");
+  return tx(locale, "Tidak aktif", "Inactive");
+}
 
 /** The slice of a Builders project the directory needs. */
 export type DirectoryProduct = {
@@ -71,12 +158,18 @@ export type DirectoryProduct = {
   title: string;
   tagline: string;
   repoUrl: string;
+  liveUrl?: string;
+  logoUrl?: string;
   openForGitHubContributions: boolean;
   openSeatCount: number;
   openRoles: string[];
   /** Filled seats — people who have already joined and helped. */
   activeMemberCount: number;
   owner: { name: string };
+  /** GitHub's numbers for `repoUrl`, when it is a GitHub repository that answered. */
+  repoStats?: GitHubRepositoryStats | null;
+  /** Who gets merged on that repository. */
+  repoActivity?: RepoActivity | null;
 };
 
 /**
@@ -85,24 +178,44 @@ export type DirectoryProduct = {
  * alongside whatever was set by hand in the catalogue.
  */
 export function repoEntry(
-  repo: OpenSourceRepo & { stats?: GitHubRepositoryStats | null },
+  repo: OpenSourceRepo & { stats?: GitHubRepositoryStats | null; activity?: RepoActivity | null },
   locale: Locale,
   members: OssMember[] = [],
 ): DirectoryEntry {
+  // Being in the catalogue means being put forward for contributions, so it
+  // counts as opened; GitHub decides how far along it is.
+  const tier = prTier(true, repo.stats, repo.activity);
+  const open = takesPRs(tier);
   return {
     key: `repo:${repo.owner}/${repo.repo}`,
+    kind: "repo",
     track: "github",
-    source: repo.list,
+    // Our own repositories are listed with the products of the community:
+    // either way the maintainers are people you can reach here.
+    source: repo.list === "internal" ? "community" : "recommended",
     name: repo.repo,
     owner: repo.owner,
-    description: localized(repo.summary, locale),
-    labels: repo.reasons.filter((reason) => reason !== "ours").map((reason) => reasonLabel(reason, locale)),
-    badges: mergeBadges(repo.badges, memberBadges(`${repo.owner}/${repo.repo}`, members)),
-    language: repo.stats?.language || repo.language,
+    // GitHub serves any owner's avatar at this address; it is what people
+    // recognise a repository by.
+    logoUrl: `https://github.com/${encodeURIComponent(repo.owner)}.png?size=80`,
+    website: "",
+    links: [],
+    description: repo.summary,
+    why: repo.why,
+    submittedBy: repo.submittedBy,
+    labels: repo.reasons.map((reason) => reasonLabel(reason, locale)),
+    prTier: tier,
+    welcomesPRs: open,
+    hasOpenRoles: false,
+    badges: mergeBadges(repoBadges(repo), memberBadges(`${repo.owner}/${repo.repo}`, members)),
+    language: repo.stats?.language ?? "",
     stars: repo.stats ? repo.stats.stars : null,
+    updatedAt: repo.stats?.pushedAt ?? null,
+    repo: `${repo.owner}/${repo.repo}`.toLowerCase(),
     href: repoUrl(repo),
-    actionHref: starterIssuesUrl(repo),
-    actionLabel: tx(locale, "Isu pemula di GitHub", "Starter issues on GitHub"),
+    actionHref: open ? starterIssuesUrl(repo) : repoUrl(repo),
+    actionLabel: open ? tx(locale, "Isu pemula di GitHub", "Starter issues on GitHub") : tx(locale, "Lihat repo", "View repo"),
+    actionKind: open ? "issues" : "repo",
     external: true,
   };
 }
@@ -118,15 +231,36 @@ export function productEntries<P extends DirectoryProduct>(
   roleName: (role: string) => string,
   locale: Locale,
 ): DirectoryEntry[] {
-  const repository = project.openForGitHubContributions ? parseGitHubRepositoryUrl(project.repoUrl) : null;
+  // Every product with a GitHub repository is on the code path, ranked by its
+  // PR tier: the ones merging outsiders first, the ones not taking PRs last —
+  // still findable for somebody who wants to read the code, but never
+  // presented as an invitation. The tier also decides where the button goes.
+  const repository = parseGitHubRepositoryUrl(project.repoUrl);
+  const tier = repository ? prTier(project.openForGitHubContributions, project.repoStats, project.repoActivity) : null;
+  const welcomesPRs = takesPRs(tier);
   const page = `/projects/${project.slug}`;
+  const rolesHref = `${page}?tab=collaboration#help-heading`;
+  const website = project.liveUrl && isHttpUrl(project.liveUrl) ? project.liveUrl : "";
+  const links: DirectoryLink[] = [
+    ...(repository ? [{ kind: "github" as const, href: repository.url, label: `${repository.owner}/${repository.repo}` }] : []),
+    ...(website ? [{ kind: "website" as const, href: website, label: hostOf(website) }] : []),
+  ];
   const base = {
-    source: "product" as const,
+    kind: "product" as const,
+    source: "community" as const,
     name: project.title,
     owner: project.owner.name,
+    logoUrl: productLogo(project.logoUrl ?? "", website, repository),
+    website,
+    links,
+    prTier: tier,
+    welcomesPRs,
+    hasOpenRoles: project.openSeatCount > 0,
     description: describe(project),
     language: "",
     stars: null,
+    updatedAt: null,
+    repo: repository ? `${repository.owner}/${repository.repo}`.toLowerCase() : null,
     href: page,
     // A filled seat is somebody from here who already joined: the product's
     // own "a friend has been here", counted rather than named.
@@ -138,13 +272,22 @@ export function productEntries<P extends DirectoryProduct>(
   const entries: DirectoryEntry[] = [];
 
   if (repository) {
+    // On the code path the repository is the thing being offered, so the row
+    // reads like one: GitHub's language and stars, and the name opens the repo.
+    const stats = project.repoStats ?? null;
     entries.push({
       ...base,
       key: `product:${project.id}:github`,
       track: "github",
+      description: base.description || stats?.description || "",
+      language: stats?.language ?? "",
+      stars: stats ? stats.stars : null,
+      updatedAt: stats?.pushedAt ?? null,
+      href: repository.url,
       labels: [],
-      actionHref: `${repository.url}/issues`,
-      actionLabel: tx(locale, "Isu di GitHub", "Issues on GitHub"),
+      actionHref: welcomesPRs ? `${repository.url}/issues` : repository.url,
+      actionLabel: welcomesPRs ? tx(locale, "Isu di GitHub", "Issues on GitHub") : tx(locale, "Lihat repo", "View repo"),
+      actionKind: welcomesPRs ? "issues" : "repo",
       external: true,
     });
   }
@@ -154,18 +297,38 @@ export function productEntries<P extends DirectoryProduct>(
       key: `product:${project.id}:role`,
       track: "role",
       labels: project.openRoles.map(roleName),
-      actionHref: `${page}?tab=collaboration#help-heading`,
+      actionHref: rolesHref,
       actionLabel: tx(locale, "Lihat peran", "See the roles"),
+      actionKind: "roles",
       external: false,
     });
   }
   return entries;
 }
 
+/**
+ * Narrowing by what else a project takes: pull requests, or people in roles.
+ * A product can do both, so either filter makes sense on either path.
+ */
+export const DIRECTORY_OPENINGS = ["prs", "roles"] as const;
+export type DirectoryOpening = (typeof DIRECTORY_OPENINGS)[number];
+
+export function isDirectoryOpening(value: string): value is DirectoryOpening {
+  return (DIRECTORY_OPENINGS as readonly string[]).includes(value);
+}
+
+function isOpenFor(entry: DirectoryEntry, opening: DirectoryOpening): boolean {
+  return opening === "prs" ? entry.welcomesPRs : entry.hasOpenRoles;
+}
+
 export type DirectoryFilters = {
   track: DirectoryTrack;
-  /** Where entries come from — ours, recommended, or a builders' product. Empty for any. */
+  /** Whether the maintainers are in the community, or recommended from outside. Empty for any. */
   source: DirectorySource | "";
+  /** Only entries taking this kind of help. Empty for any. */
+  open?: DirectoryOpening | "";
+  /** Only entries at this PR tier. Empty for any. */
+  pr?: PRTier | "";
   /** Only entries carrying this badge. Empty for any. */
   badge: BadgeKind | "";
   /** A language on the GitHub path, a role on the role path. Empty for any. */
@@ -179,23 +342,56 @@ function facetsOf(entry: DirectoryEntry): string[] {
 }
 
 /**
- * One path, narrowed by its chip and the search box. Order is kept as given:
- * ours first, then recommendations, then products — the caller builds it in
- * that order.
+ * One path, narrowed by its chip and the search box. On the code path entries
+ * are ranked by PR tier — merging outsiders first, not taking PRs last — and
+ * within a tier, and on the role path, the order is kept as the caller built it.
  */
+/** How many cards one page of the directory shows. */
+export const PAGE_SIZE = 20;
+
+export type DirectoryPage<T> = { items: T[]; page: number; pages: number };
+
+/**
+ * One page of `items`, counted from 1. A page past the end — an old link to a
+ * list that has since shrunk — lands on the last page rather than an empty
+ * one; anything that is not a whole number lands on the first.
+ */
+export function paginate<T>(items: T[], requested: string | number, size = PAGE_SIZE): DirectoryPage<T> {
+  const pages = Math.max(1, Math.ceil(items.length / size));
+  const asked = typeof requested === "number" ? requested : Number.parseInt(requested, 10);
+  const page = Number.isInteger(asked) && asked >= 1 ? Math.min(asked, pages) : 1;
+  return { items: items.slice((page - 1) * size, page * size), page, pages };
+}
+
 export function filterDirectory(entries: DirectoryEntry[], filters: DirectoryFilters): DirectoryEntry[] {
   const query = searchable(filters.q);
   const facet = searchable(filters.facet);
-  return entries.filter((entry) => {
+  const matched = entries.filter((entry) => {
     if (entry.track !== filters.track) return false;
     if (filters.source && entry.source !== filters.source) return false;
+    if (filters.open && !isOpenFor(entry, filters.open)) return false;
+    if (filters.pr && entry.prTier !== filters.pr) return false;
     if (filters.badge && !entry.badges.some((badge) => badge.kind === filters.badge)) return false;
     if (facet && !facetsOf(entry).some((value) => searchable(value) === facet)) return false;
     if (!query) return true;
     return searchable(
-      [entry.name, entry.owner, entry.description, entry.language, ...entry.labels].join(" "),
+      [entry.name, entry.owner, ...entry.links.map((link) => link.label), entry.description, entry.language, ...entry.labels].join(" "),
     ).includes(query);
   });
+  return filters.track === "github" ? matched.toSorted((a, b) => tierRank(a) - tierRank(b)) : matched;
+}
+
+function tierRank(entry: DirectoryEntry): number {
+  return entry.prTier ? PR_TIERS.indexOf(entry.prTier) : PR_TIERS.length;
+}
+
+/** How many entries on the code path sit at each PR tier, in tier order. Empty when they all share one. */
+export function prTierCounts(entries: DirectoryEntry[]): { tier: PRTier; count: number }[] {
+  const counts = PR_TIERS.map((tier) => ({
+    tier,
+    count: entries.filter((entry) => entry.track === "github" && entry.prTier === tier).length,
+  })).filter(({ count }) => count > 0);
+  return counts.length > 1 ? counts : [];
 }
 
 /** How many entries on one path carry each badge, in the order badges are defined. */
@@ -204,6 +400,24 @@ export function badgeCounts(entries: DirectoryEntry[], track: DirectoryTrack): {
     kind,
     count: entries.filter((entry) => entry.track === track && entry.badges.some((badge) => badge.kind === kind)).length,
   })).filter(({ count }) => count > 0);
+}
+
+/**
+ * The openings worth offering as filters on one path: only those that would
+ * actually narrow it — not one no entry has, and not one every entry has
+ * (every entry on the role path has open roles).
+ */
+export function openingCounts(entries: DirectoryEntry[], track: DirectoryTrack): { open: DirectoryOpening; count: number }[] {
+  const onTrack = entries.filter((entry) => entry.track === track);
+  // On the code path, pull requests have their own finer filter: the tiers.
+  const openings = DIRECTORY_OPENINGS.filter((open) => !(track === "github" && open === "prs"));
+  return openings.map((open) => ({ open, count: onTrack.filter((entry) => isOpenFor(entry, open)).length })).filter(
+    ({ count }) => count > 0 && count < onTrack.length,
+  );
+}
+
+export function openingLabel(open: DirectoryOpening, locale: Locale): string {
+  return open === "prs" ? tx(locale, "Menerima PR", "Accepting PRs") : tx(locale, "Juga buka peran", "Also has open roles");
 }
 
 /** The chips for one path, most common first. */
@@ -219,15 +433,32 @@ export function directoryFacets(entries: DirectoryEntry[], track: DirectoryTrack
 }
 
 export function sourceLabel(source: DirectorySource, locale: Locale): string {
-  if (source === "internal") return tx(locale, "Open source kami", "Our open source");
-  if (source === "recommended") return tx(locale, "Rekomendasi", "Recommended");
-  return tx(locale, "Produk builders", "Builders' product");
+  return source === "community" ? tx(locale, "Dari komunitas", "From the community") : tx(locale, "Rekomendasi", "Recommended");
 }
 
 export function trackLabel(track: DirectoryTrack, locale: Locale): string {
   return track === "github"
     ? tx(locale, "Open source di GitHub", "Open source on GitHub")
     : tx(locale, "Peran lain", "Other roles");
+}
+
+/**
+ * The tile's image: the product's own logo, else (left empty) its website's
+ * favicon, which the tile fetches itself, else its GitHub owner's avatar.
+ * GitHub's generic Octocat — what a repo page offers as its image, so what an
+ * import from a repo link saves — counts as no logo: it looks the same on
+ * every card.
+ */
+function productLogo(logoUrl: string, website: string, repository: { owner: string } | null): string {
+  const generic = /^https:\/\/github\.githubassets\.com\//.test(logoUrl);
+  if (logoUrl && !generic) return logoUrl;
+  if (website || !repository) return "";
+  return `https://github.com/${encodeURIComponent(repository.owner)}.png?size=80`;
+}
+
+/** `www.example.com/app` → `example.com`, for a link that reads at a glance. */
+function hostOf(url: string): string {
+  return new URL(url).hostname.replace(/^www\./, "");
 }
 
 function searchable(value: string): string {

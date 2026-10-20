@@ -197,6 +197,45 @@ export type OssContributionRow = {
   created_at: string;
 };
 
+/** 20261022000000_repo_signals.sql — GitHub facts per listed repository; written only by the refresh-repos Edge Function. */
+export type RepoSignalRow = {
+  repo: string;
+  stars: number | null;
+  language: string;
+  description: string;
+  pushed_at: string | null;
+  archived: boolean;
+  outside_prs: number | null;
+  checked_at: string;
+  last_error: string | null;
+};
+
+/** 20261021000000_oss_catalogue.sql — the open source catalogue. */
+export type OssRepoRow = {
+  id: number;
+  /** `owner/name`, lower-cased. */
+  repo: string;
+  /** internal | recommended */
+  list: string;
+  reasons: string[];
+  why: string;
+  summary: string;
+  indonesian: boolean;
+  starter_label: string;
+  /** pending | approved | rejected */
+  status: string;
+  submitted_by: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
+/** Who curates the catalogue. Added by hand in the SQL editor. */
+export type SiteAdminRow = {
+  user_id: string;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -273,6 +312,24 @@ export type Database = {
         Insert: never;
         Update: never;
       };
+      oss_repos: {
+        Row: OssRepoRow;
+        Insert: Pick<OssRepoRow, "repo"> & Partial<Omit<OssRepoRow, "id" | "repo" | "created_at">>;
+        // Only a site admin may update; the policy says so, not the type.
+        Update: Partial<Omit<OssRepoRow, "id" | "repo" | "created_at" | "submitted_by">>;
+      };
+      site_admins: {
+        Row: SiteAdminRow;
+        // Written by hand in the SQL editor, never by the app.
+        Insert: never;
+        Update: never;
+      };
+      repo_signals: {
+        Row: RepoSignalRow;
+        // The service role writes, from the Edge Function; the app only reads.
+        Insert: never;
+        Update: never;
+      };
       oss_contributions: {
         Row: OssContributionRow;
         Insert: Pick<OssContributionRow, "user_id" | "repo"> & Partial<Pick<OssContributionRow, "relation">>;
@@ -285,6 +342,7 @@ export type Database = {
     };
     Functions: {
       move_task: { Args: { task_id: number; next_status: string }; Returns: undefined };
+      is_site_admin: { Args: Record<string, never>; Returns: boolean };
       submit_proposal: {
         Args: { target_task_id?: number | null; target_seat_id?: number | null; message?: string };
         Returns: undefined;
