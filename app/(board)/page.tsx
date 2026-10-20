@@ -154,31 +154,36 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
           <div>
             <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p className="dx-head-community">
-              {tx(locale, "Repo dan produk terkurasi dari ", "Repos and products curated in the ")}
-              {waCommunityUrl ? (
-                <a href={waCommunityUrl} target="_blank" rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z" /><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.6-2-1-1 .8a4 4 0 0 1-1.7-1.7l.8-1-1-2z" />
-                  </svg>
-                  {tx(locale, "WA builder @SWEGrowth", "@SWEGrowth builder WA")}
-                </a>
+              {locale === "id" ? (
+                <>
+                  Repo dan produk terkurasi dari <Link href="/about">komunitas builder dan kontributor swegrowth</Link>. Gabung untuk update
+                  dan berbagi project pilihanmu.
+                </>
               ) : (
-                tx(locale, "builder @SWEGrowth", "@SWEGrowth builders")
-              )}
-              .{" "}
-              {tx(
-                locale,
-                "Gabung untuk update dan berbagi tentang kontribusi di Open Source.",
-                "Join for updates and to share your open source contributions.",
+                <>
+                  Repos and products curated in the <Link href="/about">swegrowth builders and contributors community</Link>. Join for updates
+                  and to share your preferred projects.
+                </>
               )}
             </p>
-            <p className="dx-head-powered">
-              Powered by
-              <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">
-                <Image src="/swegrowth-logo.png" alt="Software Engineer Growth Community" width={25} height={24} />
-              </a>
-            </p>
+            <div className="dx-head-actions">
+              {waCommunityUrl ? (
+                <a className="dx-wa-cta" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">
+                  <span className="dx-wa-icon" aria-hidden="true" />
+                  Join WA Community
+                </a>
+              ) : null}
+              <p className="dx-head-powered">
+                Powered by
+                <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">
+                  <Image src="/swegrowth-logo.png" alt="Software Engineer Growth Community" width={25} height={24} />
+                </a>
+              </p>
+            </div>
           </div>
+          <Suspense fallback={null}>
+            <HeadStats locale={locale} />
+          </Suspense>
         </header>
 
         <Suspense fallback={<DirectorySkeleton />}>
@@ -191,9 +196,11 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
   );
 }
 
-async function DirectoryBody({ query, locale }: { query: SearchParams; locale: Locale }) {
-  const raw = await query;
-  const filters = readFilters(raw);
+/**
+ * Everything listed, both tracks. Every read underneath is cached, so the
+ * heading's numbers and the list share one trip to the database.
+ */
+async function readDirectory(locale: Locale) {
   // GitHub's facts come from the database, read once and shared by catalogue
   // repos and products; nothing on this page calls GitHub.
   const signalsResult = await readPublicly("repository signals in the directory", () => listRepoSignals(), {});
@@ -218,6 +225,33 @@ async function DirectoryBody({ query, locale }: { query: SearchParams; locale: L
       productEntries(project, projectBlurb, (role) => roleLabel(role, "", locale), locale),
     ),
   ];
+  return { entries, members, unavailable: reposResult.unavailable || projectsResult.unavailable };
+}
+
+/** The directory in three numbers, beside the heading on a wide screen. */
+async function HeadStats({ locale }: { locale: Locale }) {
+  const { entries, members } = await readDirectory(locale);
+  const stats = [
+    { value: entries.filter((entry) => entry.track === "github").length, label: tx(locale, "Repo", "Repos") },
+    { value: entries.filter((entry) => entry.track === "role").length, label: tx(locale, "Produk cari bantuan", "Products seeking help") },
+    { value: members.length, label: tx(locale, "Terdaftar", "Registered") },
+  ];
+  return (
+    <dl className="dx-head-stats">
+      {stats.map((stat) => (
+        <div key={stat.label}>
+          <dt>{stat.label}</dt>
+          <dd>{stat.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+async function DirectoryBody({ query, locale }: { query: SearchParams; locale: Locale }) {
+  const raw = await query;
+  const filters = readFilters(raw);
+  const { entries, unavailable } = await readDirectory(locale);
   const matched = filterDirectory(entries, filters);
   // The page lives in the URL beside the filters; every filter link is built
   // without it, so changing what is shown starts again from page one.
@@ -391,7 +425,7 @@ async function DirectoryBody({ query, locale }: { query: SearchParams; locale: L
           </p>
         </div>
 
-        {reposResult.unavailable || projectsResult.unavailable ? (
+        {unavailable ? (
           <p className="public-data-notice" role="status">
             {tx(locale, "Sebagian daftar tidak dapat dimuat.", "Part of the list could not be loaded.")} <Link href={pathFor(filters)}>{tx(locale, "Muat ulang", "Reload")}</Link>.
           </p>
