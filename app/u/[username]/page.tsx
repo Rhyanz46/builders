@@ -7,7 +7,6 @@ import { ActivityList, initials, monthYear } from "../../components/pieces";
 import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
-import { AvailabilityBadges } from "../../components/availability-badges";
 import { OssRecordEmpty, OssRecordList } from "../../components/oss-record";
 import { SubmitButton } from "../../components/submit-button";
 import {
@@ -20,7 +19,7 @@ import {
   type Person,
   type ProjectSummary,
 } from "../../lib/data";
-import { HIGHLIGHT_KINDS, VISIBILITY_KINDS, visibilityLabel } from "../../lib/activity";
+import { EVENT_KINDS, HIGHLIGHT_KINDS, eventKindLabel } from "../../lib/activity";
 import { domainOf, projectBlurb } from "../../lib/brief";
 import { nextSteps, remainingSteps } from "../../lib/next-steps";
 import { githubHandle, type OssContribution } from "../../lib/oss";
@@ -119,7 +118,6 @@ export default async function ProfilePage({
   const website = safeWebUrl(person.website);
   const linkedin = safeWebUrl(person.linkedin);
   const x = safeWebUrl(person.x);
-  const resume = safeWebUrl(person.resume);
   const publicEmail = safePublicEmail(person.publicEmail);
   const contacts: Array<{ href: string; icon: LinkIconKind; label: string; external: boolean }> = [
     ...(handle ? [{ href: `https://github.com/${handle}`, icon: "github" as const, label: `@${handle}`, external: true }] : []),
@@ -127,7 +125,6 @@ export default async function ProfilePage({
     ...(publicEmail ? [{ href: `mailto:${publicEmail}`, icon: "email" as const, label: publicEmail, external: false }] : []),
     ...(linkedin ? [{ href: linkedin, icon: "linkedin" as const, label: "LinkedIn", external: true }] : []),
     ...(x ? [{ href: x, icon: "x" as const, label: "X", external: true }] : []),
-    ...(resume ? [{ href: resume, icon: "resume" as const, label: tx(locale, "Résumé", "Résumé"), external: true }] : []),
   ];
 
   const trailPath = (next: { trail?: string; limit?: number }) => {
@@ -261,11 +258,11 @@ export default async function ProfilePage({
                       {tx(locale, "Item yang dicentang muncul di profil publikmu. Item yang tidak dicentang tetap hanya terlihat olehmu—tetap tercatat dan tidak dihapus.", "Checked items appear on your public profile. Unchecked items remain visible only to you—they are still recorded and are not deleted.")}
                     </p>
                     <ul className="kind-list">
-                      {VISIBILITY_KINDS.map((kind) => (
+                      {EVENT_KINDS.map((kind) => (
                         <li key={kind}>
                           <label htmlFor={`show-${kind}`}>
                             <input id={`show-${kind}`} type="checkbox" name="show" value={kind} defaultChecked={!person.activityHidden.includes(kind)} />
-                            {visibilityLabel(kind, locale)}
+                            {eventKindLabel(kind, locale)}
                           </label>
                         </li>
                       ))}
@@ -284,22 +281,17 @@ export default async function ProfilePage({
                 <p className="pf-bio">{person.bio}</p>
               </section>
             ) : null}
-            {person.skills.length > 0 || person.fields.length > 0 || person.yearsExperience !== null ? (
+            {/* Skills only: experience, fields, opportunity status and the
+                résumé left the profile editor with the talent pool, so they
+                are not shown either — nobody could correct them any more. */}
+            {person.skills.length > 0 ? (
               <section className="pf-card">
                 <h2>{tx(locale, "Keahlian", "Skills")}</h2>
                 <ul className="pf-tags">
-                  {person.yearsExperience !== null ? (
-                    <li>{tx(locale, `${person.yearsExperience} tahun pengalaman`, `${person.yearsExperience} years of experience`)}</li>
-                  ) : null}
-                  {person.fields.map((field) => <li key={`field-${field}`}>{field}</li>)}
                   {person.skills.map((skill) => <li key={`skill-${skill}`}>{skill}</li>)}
                 </ul>
               </section>
             ) : null}
-            <section className="pf-card">
-              <h2>{tx(locale, "Status", "Status")}</h2>
-              <AvailabilityBadges status={person.availability} fields={[]} skills={[]} locale={locale} />
-            </section>
           </aside>
         </div>
       </main>
