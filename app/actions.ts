@@ -17,6 +17,7 @@ import { isStage, meetsStage, settleStage, type Stage } from "./lib/stages";
 import { TASK_LIMITS, isTaskStatus, validateTask } from "./lib/tasks";
 import { UPDATE_LIMITS, validateUpdate } from "./lib/updates";
 import { hiddenFrom } from "./lib/activity";
+import { isReactionKey } from "./lib/reactions";
 import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
 import { fetchLinkMetadata, normaliseLink, titleFromLink } from "./lib/link-metadata";
 import { currentViewer, viewerId } from "./lib/session";
@@ -29,6 +30,7 @@ import {
   PROFILE_LIMITS,
   PROFILE_MAXIMUM,
   isEmail,
+  validateGitHub,
   validateProfile,
   type ProfileFieldErrors,
   type ProfileInput,
@@ -1095,15 +1097,10 @@ export async function updateProfile(
     headline: text(formData, "headline"),
     bio: text(formData, "bio"),
     skills: text(formData, "skills"),
-    yearsExperience: text(formData, "yearsExperience"),
-    fields: text(formData, "fields"),
-    availability: text(formData, "availability"),
     website: text(formData, "website"),
     publicEmail: text(formData, "publicEmail"),
-    github: text(formData, "github"),
     linkedin: text(formData, "linkedin"),
     x: text(formData, "x"),
-    resume: text(formData, "resume"),
   };
 
   const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
@@ -1114,12 +1111,6 @@ export async function updateProfile(
   const errors = validateProfile(values, locale);
   if (Object.keys(errors).length > 0) return { errors, values };
 
-  const rawExperience = values.yearsExperience;
-  const yearsExperience =
-    rawExperience === ""
-      ? null
-      : Math.max(0, Math.min(Number(rawExperience), PROFILE_LIMITS.yearsExperience));
-
   const supabase = await requireSupabase();
   const { error } = await supabase
     .from("profiles")
@@ -1129,15 +1120,13 @@ export async function updateProfile(
       headline: values.headline.slice(0, PROFILE_MAXIMUM.headline),
       bio: values.bio.slice(0, PROFILE_MAXIMUM.bio),
       skills: normalisePeopleTerms(values.skills, PROFILE_LIMITS.skills),
-      years_experience: yearsExperience,
-      fields: normalisePeopleTerms(values.fields, PROFILE_LIMITS.fields),
-      availability_status: values.availability,
+      // Not here on purpose: years_experience, fields, availability_status
+      // and resume_url left the form with the talent pool, so a save leaves
+      // whatever is stored in them alone. github has its own form below.
       website: profileUrl(values.website),
       public_email: profileEmail(values.publicEmail),
-      github: profileUrl(values.github),
       linkedin: profileUrl(values.linkedin),
       x_url: profileUrl(values.x),
-      resume_url: profileUrl(values.resume),
     })
     .eq("id", viewer.id);
   if (error) return { errors: { form: error.message }, values };
@@ -1149,6 +1138,77 @@ export async function updateProfile(
   revalidatePath("/people");
   revalidatePath("/get-started");
   redirect(returnTo ?? `/u/${viewer.username}?saved=1`);
+}
+
+export type GitHubState = {
+  errors: { github?: string; form?: string };
+  values: { github: string; shown: boolean };
+  saved?: boolean;
+};
+
+/**
+ * Saves the GitHub account, and whether its activity may be shown on
+ * /activity.
+ *
+ * Its own form at the top of /account/profile, because the open source record
+ * sits between it and the rest of the profile and forms cannot nest. The yes
+ * to /activity goes with the account it is about: without an account there
+ * is nothing to show, so clearing the account clears the yes too, and a new
+ * account later starts from no.
+ */
+export async function saveGitHub(_state: GitHubState, formData: FormData): Promise<GitHubState> {
+  const values = { github: text(formData, "github"), shown: formData.get("github_activity") === "1" };
+  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  if (!viewer) {
+    return { errors: { form: tx(locale, "Sesi kamu telah berakhir. Masuk kembali, lalu simpan sekali lagi.", "You are no longer signed in. Sign in again, then save once more.") }, values };
+  }
+
+  const checked = validateGitHub(values.github, locale);
+  if ("error" in checked) return { errors: { github: checked.error }, values };
+
+  const shown = checked.url !== "" && values.shown;
+  const supabase = await requireSupabase();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ github: checked.url, github_activity_shown: shown })
+    .eq("id", viewer.id);
+  if (error) return { errors: { form: error.message }, values };
+
+  // The handle is the picture on directory badges and the person on /activity.
+  updateTag(tags.person(viewer.username));
+  updateTag(tags.people);
+  updateTag(tags.projects);
+  updateTag(tags.activity);
+  revalidatePath(`/u/${viewer.username}`);
+  return { errors: {}, values: { github: checked.url, shown }, saved: true };
+}
+
+export type ReactionResult = { ok: true } | { ok: false; reason: "signin" | "failed" };
+
+/**
+ * Leaves an emoji on a pull request on /activity, or takes it back if the
+ * viewer already left that one. Who may react to what is the table's
+ * policies' business — the PR has to be one the page shows — and the notice
+ * to the PR's author is a trigger's; see 20261025000000_activity_reactions.sql.
+ */
+export async function setReaction(url: string, emoji: string, on: boolean): Promise<ReactionResult> {
+  if (!isReactionKey(emoji) || !url.startsWith("https://github.com/") || url.length > 500) return { ok: false, reason: "failed" };
+  const viewer = await viewerId();
+  if (!viewer) return { ok: false, reason: "signin" };
+
+  const supabase = await requireSupabase();
+  const { error } = on
+    ? await supabase.from("activity_reactions").insert({ pull_request_url: url, emoji })
+    : await supabase.from("activity_reactions").delete().eq("pull_request_url", url).eq("user_id", viewer).eq("emoji", emoji);
+  // Pressing twice before the first press lands is not a failure: the
+  // reaction is there, which is what was asked for.
+  if (error && error.code !== "23505") {
+    console.warn(`[ahsan] Reaction could not be saved: ${error.message}`);
+    return { ok: false, reason: "failed" };
+  }
+
+  updateTag(tags.reactions);
+  return { ok: true };
 }
 
 /* ------------------------------------------------------------------ *

@@ -83,6 +83,8 @@ export type ProfileRow = {
   resume_url: string;
   /** Trail kinds this person keeps off their public profile. */
   activity_hidden: string[];
+  /** Agreed to their GitHub activity being shown on /activity; off until they turn it on. */
+  github_activity_shown: boolean;
   created_at: string;
 };
 
@@ -236,6 +238,16 @@ export type GitHubCommitSummaryRow = {
   checked_at: string;
 };
 
+/** 20261025000000_activity_reactions.sql — one emoji, by one member, on one pull request. */
+export type ActivityReactionRow = {
+  id: number;
+  pull_request_url: string;
+  user_id: string;
+  /** tada | clap | fire | heart | rocket */
+  emoji: string;
+  created_at: string;
+};
+
 /** 20261021000000_oss_catalogue.sql — the open source catalogue. */
 export type OssRepoRow = {
   id: number;
@@ -365,6 +377,13 @@ export type Database = {
       github_commit_summaries: {
         Row: GitHubCommitSummaryRow;
         Insert: never;
+        Update: never;
+      };
+      activity_reactions: {
+        Row: ActivityReactionRow;
+        // user_id defaults to auth.uid(), and the policy insists on it.
+        Insert: Pick<ActivityReactionRow, "pull_request_url" | "emoji">;
+        // No update policy: changing a reaction is removing one and adding another.
         Update: never;
       };
       oss_contributions: {
