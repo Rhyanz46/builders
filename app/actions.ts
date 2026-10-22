@@ -58,6 +58,8 @@ export type CreateState = {
     seatBrief?: string;
     seatCommitment?: string;
     openForGitHubContributions?: string;
+    /** Neither kind of help was asked for, so the directory would not list it. */
+    help?: string;
   };
   values: Record<string, string>;
 };
@@ -180,7 +182,8 @@ export async function importGitHubReadme(repoUrl: string): Promise<GitHubImportR
  * not punished for being quick.
  */
 export async function previewProjectLink(rawLink: string): Promise<LinkPreviewResult> {
-  const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
+  // Only whether they are signed in; the profile row would be one more trip.
+  const [viewer, locale] = await Promise.all([viewerId(), currentLocale()]);
   if (!viewer) return { ok: false, error: tx(locale, "Masuk sebelum menambahkan proyek.", "Sign in before adding a project.") };
 
   const link = normaliseLink(rawLink);
@@ -201,16 +204,6 @@ export async function previewProjectLink(rawLink: string): Promise<LinkPreviewRe
     },
   };
 }
-
-/** The detail fields an idea has to answer itself, having no page to be read. */
-const REQUIRED_FOR_IDEA = ["tagline", "problem", "solution", "audience"] as const;
-
-const IDEA_PROMPTS: Record<(typeof REQUIRED_FOR_IDEA)[number], (locale: Locale) => string> = {
-  tagline: (locale) => tx(locale, "Tuliskan ringkasan satu kalimat tentang idemu.", "Write a one-line summary of your idea."),
-  problem: (locale) => tx(locale, "Jelaskan masalah yang ingin kamu selesaikan.", "Describe the problem you want to solve."),
-  solution: (locale) => tx(locale, "Jelaskan apa yang sedang atau akan kamu buat.", "Describe what you are making, or plan to make."),
-  audience: (locale) => tx(locale, "Sebutkan untuk siapa proyek ini.", "Say who this project is for."),
-};
 
 /**
  * Adds a project from either an existing link or the owner's description.
@@ -270,9 +263,11 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
   const repoUrl = values.repoUrl || (repoLink ? link : "");
   const liveUrl = values.liveUrl || (link && !repoLink ? link : "");
 
-  // Only read the page when the person has not already named the project — for
-  // anybody who filled the details in themselves there is nothing left to find.
-  const metadata = !link || (values.title && values.tagline && values.logoUrl)
+  // Only read the page when nothing has read it yet. The form's preview already
+  // did, and its name, summary and logo arrive with the submit; reading the
+  // page again would add up to the whole fetch timeout to every submit.
+  const alreadyRead = Boolean(link && values.title && text(formData, "previewedLink") === values.link);
+  const metadata = !link || alreadyRead || (values.title && values.tagline && values.logoUrl)
     ? null
     : await fetchLinkMetadata(link);
   const title = values.title || metadata?.title || (link ? titleFromLink(link) : "");
@@ -292,17 +287,20 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     errors.highlight = tx(locale, "Tuliskan deskripsi singkat agar orang memahami idenya.", "Write a short description so people can understand the idea.");
   }
   /*
-   * The brief an idea cannot borrow from anywhere else.
+   * What the project is asking for.
    *
-   * A link submission is allowed to leave every detail blank because its page
-   * answers the same questions; a description-only idea has no page, so the
-   * second step is where it becomes readable to a stranger rather than a name
-   * and a sentence.
+   * The directory lists a product on the code path when it has a GitHub
+   * repository and on the role path when it has an open role — and nowhere
+   * otherwise. A project asking for neither would be saved and then shown to
+   * nobody, so one of the two is required. The rest of the brief can be
+   * written later from the project's edit page.
    */
-  if (entryMethod === "description") {
-    for (const field of REQUIRED_FOR_IDEA) {
-      if (!values[field].trim()) errors[field] = IDEA_PROMPTS[field](locale);
-    }
+  if (values.openSeat !== "yes" && values.openForGitHubContributions !== "yes") {
+    errors.help = tx(
+      locale,
+      "Pilih minimal satu: terima PR di GitHub, atau cari orang untuk sebuah peran. Tanpa itu proyekmu tidak tampil di direktori.",
+      "Choose at least one: take pull requests on GitHub, or look for someone for a role. Without one, your project does not show in the directory.",
+    );
   }
   if (values.openSeat === "yes") {
     if (!isRole(values.seatRole)) errors.seatRole = tx(locale, "Pilih peran yang sedang kamu cari.", "Choose the role you are looking for.");
@@ -394,9 +392,13 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     return { errors: { form: messageOf(error, locale) }, values };
   }
 
-  seatsChanged(slug);
+  // Tags, not revalidatePath("/"): the directory's project list is tagged
+  // `projects`, and clearing the whole path would also throw away the
+  // catalogue, repository signals and member records it reads, none of which
+  // a new project changes, so the next visit to Home rebuilt all of them.
+  if (values.openSeat === "yes") seatsChanged(slug);
+  else projectChanged(slug);
   trailChanged(viewer, slug);
-  revalidatePath("/");
   redirect(`/projects/${slug}`);
 }
 
