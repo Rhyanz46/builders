@@ -13,18 +13,6 @@ import { isLocale, LANGUAGE_COOKIE, LANGUAGE_PARAM } from "./app/lib/locale";
  * people would get signed out mid-visit.
  */
 export async function proxy(request: NextRequest) {
-  // The discovery board moved off the landing page. Redirect its old query
-  // URLs before a Server Component starts streaming, so bookmarks and shared
-  // links land on the real collaboration page with an actual HTTP redirect.
-  if (request.nextUrl.pathname === "/") {
-    // Not `q`: the directory that replaced the board searches with it, and an
-    // old `/?q=` link is a search either way.
-    const boardKeys = ["stage", "lane", "tag", "role", "cari", "needs"];
-    if (boardKeys.some((key) => request.nextUrl.searchParams.has(key))) {
-      return sameOriginRedirect(`/explore${request.nextUrl.search}`, browserOrigin(request));
-    }
-  }
-
   // An OAuth code that landed anywhere but /auth/callback. Supabase falls back
   // to the Site URL when a redirect target is not on its allow list, so a
   // missing entry there drops the code on the home page, where nothing spends

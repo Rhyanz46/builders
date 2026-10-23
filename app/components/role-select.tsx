@@ -1,6 +1,6 @@
 "use client";
 
-import { ROLE_GROUPS, ROLES, roleBlurb, roleGroupLabel, roleLabel, roleMeta, type Role } from "../lib/roles";
+import { ROLE_GROUPS, ROLES, roleBlurb, roleGroupLabel, roleLabel, roleMeta } from "../lib/roles";
 import { useLanguage } from "./language-provider";
 
 /** One shared picker so every project opens positions from the same catalogue. */
@@ -37,5 +37,3 @@ export function RoleSelect({
     </select>
   );
 }
-
-export const DEFAULT_ROLE: Role = "product-manager";

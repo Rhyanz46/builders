@@ -5,12 +5,15 @@ import {
   badgeCounts,
   directoryFacets,
   filterDirectory,
+  isNew,
+  isQuiet,
   openingCounts,
   paginate,
   prTier,
   prTierCounts,
   productEntries,
   repoEntry,
+  stageCounts,
 } from "../app/lib/directory.ts";
 // Fixtures, not the catalogue: the catalogue lives in the database now.
 const repo = (over = {}) => ({
@@ -177,7 +180,7 @@ test("a product taking both PRs and people says so on both paths, and can be fil
   const entries = [...both, ...codeOnly, ...rolesOnly];
 
   assert.ok(both.every((entry) => entry.welcomesPRs && entry.hasOpenRoles && entry.kind === "product"));
-  const none = { source: "", badge: "", facet: "", q: "" };
+  const none = { source: "", badge: "", facet: [], q: "" };
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github", open: "prs" }).map((e) => e.name), ["Tool"]);
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github", open: "roles" }).map((e) => e.name), ["Tool"]);
   assert.deepEqual(filterDirectory(entries, { ...none, track: "role", open: "prs" }).map((e) => e.name), ["Tool"]);
@@ -215,10 +218,10 @@ test("the code path ranks by PR tier and offers the tiers as a filter", () => {
     make(3, "waiting", { openForGitHubContributions: true, repoStats: pushed(3), repoActivity: asked(0) }),
     make(4, "busy", { openForGitHubContributions: true, repoStats: pushed(3), repoActivity: asked(4) }),
   ];
-  const none = { source: "", badge: "", facet: "", q: "" };
+  const none = { source: "", badge: "", facet: [], q: "" };
 
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github" }).map((e) => e.name), ["busy", "waiting", "closed", "dead"]);
-  assert.deepEqual(filterDirectory(entries, { ...none, track: "github", pr: "first" }).map((e) => e.name), ["waiting"]);
+  assert.deepEqual(filterDirectory(entries, { ...none, track: "github", pr: ["first"] }).map((e) => e.name), ["waiting"]);
   assert.deepEqual(prTierCounts(entries).map(({ tier }) => tier), ["active", "first", "unopened", "inactive"]);
   assert.deepEqual(prTierCounts([entries[0]]), [], "one tier for everything is no filter");
 
@@ -253,15 +256,15 @@ test("one path at a time, narrowed by its chip and by search, keeping the given 
     ...OPEN_SOURCE_REPOS.map((repo) => repoEntry(repo, "en")),
     ...productEntries(product({ openSeatCount: 1, openRoles: ["design"] }), describe, roleName, "en"),
   ];
-  const none = { source: "", badge: "", facet: "", q: "" };
+  const none = { source: "", badge: "", facet: [], q: "" };
   assert.deepEqual(filterDirectory(entries, { ...none, track: "role" }).map((entry) => entry.name), ["Tool"]);
   assert.deepEqual(
     filterDirectory(entries, { ...none, track: "github" }).map((entry) => entry.name),
     OPEN_SOURCE_REPOS.map((repo) => repo.repo),
   );
-  assert.deepEqual(filterDirectory(entries, { ...none, track: "github", facet: "go" }).map((entry) => entry.name), ["heimdall"]);
-  assert.deepEqual(filterDirectory(entries, { ...none, track: "role", facet: "DESIGN" }).map((entry) => entry.name), ["Tool"]);
-  assert.equal(filterDirectory(entries, { ...none, track: "role", facet: "QA" }).length, 0);
+  assert.deepEqual(filterDirectory(entries, { ...none, track: "github", facet: ["go"] }).map((entry) => entry.name), ["heimdall"]);
+  assert.deepEqual(filterDirectory(entries, { ...none, track: "role", facet: ["DESIGN"] }).map((entry) => entry.name), ["Tool"]);
+  assert.equal(filterDirectory(entries, { ...none, track: "role", facet: ["QA"] }).length, 0);
   assert.ok(filterDirectory(entries, { ...none, track: "github", q: "bahasa" }).length > 0);
   assert.equal(filterDirectory(entries, { ...none, track: "github", q: "nothing like this" }).length, 0);
   assert.deepEqual(
@@ -294,7 +297,7 @@ test("badges come from the catalogue row and members' records, are filtered on, 
   const entries = repos.map((entry) => repoEntry(entry, "en", members));
   assert.deepEqual(entries[0].badges, [{ kind: "indonesian" }]);
 
-  const none = { source: "", badge: "", facet: "", q: "" };
+  const none = { source: "", badge: "", facet: [], q: "" };
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github", badge: "indonesian" }).map((e) => e.name), ["a", "b"]);
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github", badge: "friend-contributed" }).map((e) => e.name), ["b"]);
   assert.deepEqual(badgeCounts(entries, "github"), [
@@ -336,4 +339,53 @@ test("paginate slices by page and clamps pages that do not exist", () => {
   for (const junk of ["", "0", "-2", "abc", "1.5"]) assert.equal(paginate(items, junk, 20).page, 1);
   // An empty list is still one (empty) page.
   assert.deepEqual(paginate([], "2", 20), { items: [], page: 1, pages: 1 });
+});
+
+test("the code path sorts by last push, stars or listing date when asked, unknowns last", () => {
+  const make = (id, slug, stats, createdAt) => repoEntry(repo({ id, repo: slug, createdAt, stats }), "en");
+  const stats = (stars, pushedAt) => ({ stars, description: "", openIssues: 0, language: "Go", pushedAt, archived: false });
+  const entries = [
+    make(1, "old", stats(50, "2026-01-01T00:00:00Z"), "2026-10-01T00:00:00Z"),
+    make(2, "fresh", stats(5, "2026-10-20T00:00:00Z"), "2026-09-01T00:00:00Z"),
+    make(3, "unknown", null, ""),
+  ];
+  const none = { track: "github", source: "", badge: "", facet: [], q: "" };
+  const names = (sort) => filterDirectory(entries, { ...none, sort }).map((entry) => entry.name);
+  assert.deepEqual(names("updated"), ["fresh", "old", "unknown"]);
+  assert.deepEqual(names("stars"), ["old", "fresh", "unknown"]);
+  assert.deepEqual(names("newest"), ["old", "fresh", "unknown"]);
+  // Stars mean nothing on the role path: its own order stands.
+  const roles = [product({ id: 1, title: "A", openSeatCount: 1 }), product({ id: 2, title: "B", openSeatCount: 1 })].flatMap((p) =>
+    productEntries(p, describe, roleName, "en"),
+  );
+  assert.deepEqual(filterDirectory(roles, { ...none, track: "role", sort: "stars" }).map((entry) => entry.name), ["A", "B"]);
+});
+
+test("chips in one group widen, groups narrow, and stages filter the role path", () => {
+  const make = (id, title, stage, roles) =>
+    productEntries(product({ id, title, stage, openSeatCount: 1, openRoles: roles }), describe, roleName, "en")[0];
+  const entries = [make(1, "A", "idea", ["design"]), make(2, "B", "live", ["product"]), make(3, "C", "live", ["design"])];
+  const none = { track: "role", source: "", badge: "", facet: [], q: "" };
+  const names = (extra) => filterDirectory(entries, { ...none, ...extra }).map((entry) => entry.name);
+  assert.deepEqual(names({ facet: ["DESIGN", "PRODUCT"] }), ["A", "B", "C"]);
+  assert.deepEqual(names({ stage: ["live"] }), ["B", "C"]);
+  assert.deepEqual(names({ stage: ["live"], facet: ["DESIGN"] }), ["C"]);
+  assert.deepEqual(stageCounts(entries, "role"), [{ stage: "idea", count: 1 }, { stage: "live", count: 2 }]);
+  assert.deepEqual(stageCounts(entries, "github"), []);
+});
+
+test("a role card knows how fresh it is, and when it is new to the directory", () => {
+  const now = Date.parse("2026-10-23T00:00:00Z");
+  const [entry] = productEntries(
+    product({ openSeatCount: 2, createdAt: "2026-10-15T00:00:00Z", lastActivityAt: "2026-10-20T00:00:00Z" }),
+    describe,
+    roleName,
+    "en",
+  );
+  assert.equal(entry.openSeats, 2);
+  assert.equal(isNew(entry, now), true);
+  assert.equal(isQuiet(entry, now), false);
+  const later = Date.parse("2027-01-01T00:00:00Z");
+  assert.equal(isNew(entry, later), false);
+  assert.equal(isQuiet(entry, later), true, "two months and more without activity recedes");
 });

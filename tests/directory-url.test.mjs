@@ -4,7 +4,7 @@ import test from "node:test";
 import { pathFor, readFilters, readPage } from "../app/lib/directory-url.ts";
 
 test("an empty address is the GitHub track with nothing applied", () => {
-  assert.deepEqual(readFilters({}), { track: "github", source: "", open: "", pr: "", badge: "", facet: "", q: "" });
+  assert.deepEqual(readFilters({}), { track: "github", source: "", open: "", pr: [], badge: "", facet: [], stage: [], sort: "", q: "" });
   assert.equal(pathFor(readFilters({})), "/");
 });
 
@@ -27,4 +27,16 @@ test("a filtered address survives a round trip, and the page only rides along wh
 test("unknown values are dropped rather than trusted", () => {
   const filters = readFilters(new URLSearchParams("track=nope&badge=nope&pr=nope&open=nope&source=nope"));
   assert.equal(pathFor(filters), "/");
+});
+
+test("several chips in a group, and the order, survive a round trip", () => {
+  const filters = readFilters(new URLSearchParams("facet=TypeScript&facet=Go&facet=Go&pr=active&pr=nope&phase=live&phase=nope&sort=stars"));
+  assert.deepEqual(filters.facet, ["TypeScript", "Go"]);
+  assert.deepEqual(filters.pr, ["active"]);
+  assert.deepEqual(filters.stage, ["live"]);
+  assert.equal(filters.sort, "stars");
+  assert.equal(pathFor(filters), "/?pr=active&facet=TypeScript&facet=Go&phase=live&sort=stars");
+  // The server's query object carries repeats as an array.
+  assert.deepEqual(readFilters({ facet: ["TypeScript", "Go"] }).facet, ["TypeScript", "Go"]);
+  assert.equal(readFilters(new URLSearchParams("sort=nope")).sort, "");
 });
