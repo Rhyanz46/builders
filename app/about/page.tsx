@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Kontribusi dan bawa dampak, bareng-bareng. Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
-    "Contribute and deliver impact, together. Projects open to contributors—open source repos and products from Indonesian builders.",
+    "Kontribusi dan bawa dampak, bareng-bareng. Repo open source lokal maupun global, dan produk dari builder Indonesia, butuh kamu untuk tumbuh.",
+    "Contribute and deliver impact, together. Local and global open source repos, and products from Indonesian builders, need you to help them grow.",
   );
   return {
     title,
@@ -200,8 +200,8 @@ export default async function AboutPage() {
               <strong>
                 {tx(
                   locale,
-                  "Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
-                  "Projects open to contributors—open source repos and products from Indonesian builders.",
+                  "Repo open source lokal maupun global, dan produk dari builder Indonesia, butuh kamu untuk tumbuh.",
+                  "Local and global open source repos, and products from Indonesian builders, need you to help them grow.",
                 )}
               </strong>
             </p>
