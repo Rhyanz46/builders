@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Tempat software yang butuh bantuan ketemu orang yang mau bantu. Builder ngedaftarin software-nya, kontributor—utamanya engineer—tinggal pilih dan mulai.",
-    "Where software that needs help meets people who want to help. Builders list their software; contributors—engineers first—pick one and start.",
+    "Cari tempat kontribusi berikutnya: repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran.",
+    "Find your next contribution: open source repos ready for your PR, and products from local builders opening roles.",
   );
   return {
     title,
@@ -105,24 +105,25 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
 
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
+/** Who the place is for: contributors first — engineers, then every other role — and builders listing a product. */
 const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
-  [
-    "Builder",
-    "Builders",
-    "Punya software yang butuh bantuan—repo open source atau produk yang kamu kembangin? Daftarin di sini, tulis bantuan apa yang dibutuhin, dan biar kontributor yang datang.",
-    "Have software that needs help—an open source repo, or a product you are building? List it here, say what help it needs, and let contributors come to it.",
-  ],
   [
     "Engineer",
     "Engineers",
-    "Kontribusi yang paling diutamakan. Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
-    "The contribution that comes first. Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
+    "Yang paling diutamakan. Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
+    "First in line. Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
   ],
   [
     "Peran lain",
     "Every other role",
-    "Desain, produk, riset, penulisan, marketing, QA—software juga butuh semua itu. Lihat produk yang lagi nyari peranmu.",
-    "Design, product, research, writing, marketing, QA—software needs all of it too. See which products are looking for your role.",
+    "Desain, produk, riset, penulisan, marketing, QA—produk builder lokal juga nyari semua itu. Lihat mana yang lagi buka peranmu.",
+    "Design, product, research, writing, marketing, QA—local builders' products look for all of it. See which are opening your role.",
+  ],
+  [
+    "Builder",
+    "Builders",
+    "Punya produk, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
+    "Building a product, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
   ],
 ];
 
@@ -130,8 +131,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Tempat software yang butuh bantuan ketemu orang yang mau bantu. Builder ngedaftarin software-nya dan bantuan yang dibutuhin; kontributor—utamanya engineer, peran lain juga disambut—tinggal pilih dan mulai.",
-    "Where software that needs help meets people who want to help. Builders list their software and the help it needs; contributors—engineers first, every other role welcome—pick one and start.",
+    "Tempat buat nyari kontribusi berikutnya: repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran. Utamanya kode, peran lain juga disambut.",
+    "A place to find your next contribution: open source repos ready for your PR, and products from local builders opening roles. Code first, every other role welcome.",
   ],
   [
     "Siapa yang ngelola?",
@@ -193,49 +194,45 @@ export default async function AboutPage() {
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
-          <h1 id="about-title">
-            {tx(locale, "Tempat software yang butuh bantuan ketemu orang yang mau bantu.", "Where software that needs help meets people who want to help.")}
-          </h1>
+          <h1 id="about-title">{tx(locale, "Cari tempat kontribusi berikutnya.", "Find your next contribution.")}</h1>
           <div className="ab-story">
             <p className="ab-quote">
               <strong>
                 {tx(
                   locale,
-                  "Builder ngedaftarin software-nya dan bantuan yang dibutuhin. Kontributor—utamanya engineer—tinggal pilih dan mulai.",
-                  "Builders list their software and the help it needs. Contributors—engineers first—pick one and start.",
+                  "Repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran. Utamanya kode, peran lain juga disambut.",
+                  "Open source repos ready for your PR, and products from local builders opening roles. Code first, every other role welcome.",
                 )}
               </strong>
             </p>
             <p>
               {tx(
                 locale,
-                "Setiap software butuh bantuan. Repo open source yang nungguin kontributor, produk yang dikerjain satu-dua orang—semuanya bakal jalan lebih jauh kalau ada yang ikut turun tangan.",
-                "Every piece of software needs help. An open source repo waiting for contributors, a product built by one or two people—each goes further when someone pitches in.",
+                "Langkah pertama kontribusi sering yang paling bikin bingung: repo mana yang bakal baca PR-mu, project mana yang beneran terbuka. Di sini tiap kartu nunjukin status PR yang jujur, isu pemula, dan peran yang lagi dicari.",
+                "The first step is often the most confusing: which repo will read your PR, which project is genuinely open. Here every card shows an honest PR status, starter issues, and the roles it is looking for.",
               )}
             </p>
             <p>
               {tx(
                 locale,
-                "Builders ngedaftarin software-software itu dan bukain jalan buat siapa pun yang mau kontribusi: status PR yang jujur, isu pemula, dan peran yang lagi dicari.",
-                "Builders lists that software and opens the way for anyone who wants to contribute: an honest PR status, starter issues, and the roles each one is looking for.",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Kontribusi yang diutamakan adalah kode, karena di situ software paling sering butuh tangan. Tapi desain, produk, riset, dan peran lain juga disambut.",
-                "Code comes first, because that is where software most often needs hands. But design, product, research and every other role are welcome too.",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
-                "It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
+                "Selain repo open source, builder lokal juga bisa ngedaftarin produknya—open source atau bukan—dan buka peran buat kontributor. Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
+                "Beyond open source repos, local builders can list their products—open source or not—and open roles for contributors. It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
               )}
             </p>
           </div>
         </header>
+
+        <section className="ab-section" aria-labelledby="audience-title">
+          <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
+          <ul className="ab-cards">
+            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn]) => (
+              <li key={titleEn} className="ab-card">
+                <h3>{tx(locale, titleId, titleEn)}</h3>
+                <p>{tx(locale, bodyId, bodyEn)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className="ab-section" aria-labelledby="directory-title">
           <h2 id="directory-title">{tx(locale, "Cara pakai direktorinya", "How the directory works")}</h2>
@@ -347,18 +344,6 @@ export default async function AboutPage() {
           </Link>
         </section>
 
-        <section className="ab-section" aria-labelledby="audience-title">
-          <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
-          <ul className="ab-cards">
-            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
-                <h3>{tx(locale, titleId, titleEn)}</h3>
-                <p>{tx(locale, bodyId, bodyEn)}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <section className="ab-section" aria-labelledby="faq-title">
           <h2 id="faq-title">{tx(locale, "Pertanyaan yang sering muncul", "Frequently asked questions")}</h2>
 
@@ -373,12 +358,12 @@ export default async function AboutPage() {
         </section>
 
         <section className="ab-cta" aria-labelledby="about-cta-title">
-          <h2 id="about-cta-title">{tx(locale, "Daftarin software-mu, atau mulai kontribusi.", "List your software, or start contributing.")}</h2>
+          <h2 id="about-cta-title">{tx(locale, "Mulai dari satu kontribusi.", "Start with one contribution.")}</h2>
           <p>
             {tx(
               locale,
-              "Cari software yang bisa kamu bantu di direktori, atau daftarin punyamu sendiri biar kontributor bisa datang.",
-              "Find software you can help in the directory, or list your own so contributors can come to it.",
+              "Cari repo atau produk yang pas di direktori. Punya produk sendiri? Daftarin juga.",
+              "Find a repo or a product that fits in the directory. Building one yourself? List it too.",
             )}
           </p>
           <div className="ab-cta-actions">
