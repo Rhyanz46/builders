@@ -1702,6 +1702,9 @@ form button[aria-busy="true"]::after,
    as a way in: green is for pull requests, blue for roles. */
 .dx-badge { background: light-dark(#fffbeb, #231d11); border-color: light-dark(#fde68a, #4f3d19); color: light-dark(#92400e, #d4a34a); }
 .dx-badge-icon { fill: none; flex: none; height: 13px; stroke: currentColor; stroke-width: 2.2; width: 13px; }
+/* An admin's pick reads as a stamp, apart from the amber signals about people. */
+.dx-badge.dx-badge-admin-pick { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#ffffff, #09090b); }
+.dx-badge-admin-pick .dx-badge-icon { fill: currentColor; stroke: none; }
 .dx-flag { border-radius: 2px; height: 10px; stroke: none; width: 14px; }
 .dx-badge-faces { display: inline-flex; margin-left: 2px; }
 .dx-badge-faces img {
@@ -2285,6 +2288,7 @@ form button[aria-busy="true"]::after,
 .adm-status-approved { background: light-dark(#ecfdf3, #131d17); color: light-dark(#047857, #6dbe9d); }
 .adm-status-rejected { background: light-dark(#fef2f2, #1c1616); color: light-dark(#b91c1c, #fc8174); }
 .adm-list-tag { border: 1px solid var(--dx-line); border-radius: 5px; color: var(--dx-muted); font-size: 11px; padding: 2px 6px; }
+.adm-list-tag.adm-pick-tag { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#ffffff, #09090b); }
 .adm-why { color: var(--dx-text); font-size: 14px; line-height: 1.5; margin: 8px 0 0; }
 .adm-summary { color: var(--dx-muted); font-size: 13px; margin: 4px 0 0; }
 .adm-meta { color: var(--dx-faint); font-size: 12px; margin: 6px 0 0; }

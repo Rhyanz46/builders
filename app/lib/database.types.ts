@@ -247,6 +247,15 @@ export type GitHubContributionRow = {
 };
 
 /** 20261025000000_activity_reactions.sql — one emoji, by one member, on one pull request or commit summary. */
+export type AdminPickRow = {
+  id: number;
+  /** Exactly one of repo_id and project_id is set. */
+  repo_id: number | null;
+  project_id: number | null;
+  picked_by: string | null;
+  created_at: string;
+};
+
 export type ActivityReactionRow = {
   id: number;
   pull_request_url: string;
@@ -398,6 +407,13 @@ export type Database = {
         // user_id defaults to auth.uid(), and the policy insists on it.
         Insert: Pick<ActivityReactionRow, "pull_request_url" | "emoji">;
         // No update policy: changing a reaction is removing one and adding another.
+        Update: never;
+      };
+      admin_picks: {
+        Row: AdminPickRow;
+        // picked_by defaults to auth.uid(); only admins may insert.
+        Insert: Pick<AdminPickRow, "repo_id"> | Pick<AdminPickRow, "project_id">;
+        // No update policy: unpicking is deleting the row.
         Update: never;
       };
       oss_contributions: {

@@ -6,7 +6,7 @@ import { shareCard, waCommunityUrl } from "../content";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
-import { listOssMembers, listProjects, listRepoSignals } from "../lib/data";
+import { listAdminPicks, listOssMembers, listProjects, listRepoSignals } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
 import { productEntries, repoEntry, type DirectoryEntry } from "../lib/directory";
@@ -103,22 +103,30 @@ async function readDirectory(locale: Locale) {
   // Only the catalogue waits for the signals; the products and the members'
   // records start at the same time, rather than queueing behind them.
   const signalsRead = readPublicly("repository signals in the directory", () => listRepoSignals(), {});
-  const [reposResult, projectsResult, membersResult, signalsResult] = await Promise.all([
+  const [reposResult, projectsResult, membersResult, signalsResult, picksResult] = await Promise.all([
     signalsRead.then(({ value }) =>
       readPublicly("open source repos in the directory", () => listOpenSourceRepos(value), []),
     ),
     readPublicly("products in the directory", () => listProjects({ lane: "active" }), []),
     readPublicly("members' open source records in the directory", () => listOssMembers(), []),
     signalsRead,
+    readPublicly("admin picks in the directory", () => listAdminPicks(), { repoIds: [], projectIds: [] }),
   ]);
+  const pickedRepos = new Set(picksResult.value.repoIds);
+  const pickedProjects = new Set(picksResult.value.projectIds);
   const signals = signalsResult.value;
 
-  const repos = reposResult.value;
+  const repos = reposResult.value.map((repo) => ({ ...repo, adminPick: pickedRepos.has(repo.id) }));
   const members = membersResult.value;
   const products = projectsResult.value.map((project) => {
     const repository = parseGitHubRepositoryUrl(project.repoUrl);
     const found = repository ? signalsFor(signals, repository.owner, repository.repo) : null;
-    return { ...project, repoStats: found?.stats ?? null, repoActivity: found?.activity ?? null };
+    return {
+      ...project,
+      repoStats: found?.stats ?? null,
+      repoActivity: found?.activity ?? null,
+      adminPick: pickedProjects.has(project.id),
+    };
   });
   const entries: DirectoryEntry[] = [
     ...repos.filter((repo) => repo.list === "internal").map((repo) => repoEntry(repo, locale, members)),
