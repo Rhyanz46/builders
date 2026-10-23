@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Rumah buat builder mengembangkan software-nya, dan buat kontributor menyalurkan kontribusinya—utamanya lewat kode, peran lain juga disambut.",
-    "A home where builders grow their software and contributors put their help to work—code first, every other role welcome.",
+    "Tempat software yang butuh bantuan ketemu orang yang mau bantu. Builder ngedaftarin software-nya, kontributor—utamanya engineer—tinggal pilih dan mulai.",
+    "Where software that needs help meets people who want to help. Builders list their software; contributors—engineers first—pick one and start.",
   );
   return {
     title,
@@ -130,8 +130,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Rumah buat builder mengembangkan software-nya, dan buat kontributor menyalurkan kontribusinya. Kami daftarin software yang lagi butuh bantuan dan bukain jalan buat yang mau kontribusi—utamanya lewat kode, peran lain juga disambut.",
-    "A home where builders grow their software and contributors put their help to work. We list software that needs help and open the way for anyone who wants to contribute—code first, every other role welcome.",
+    "Tempat software yang butuh bantuan ketemu orang yang mau bantu. Builder ngedaftarin software-nya dan bantuan yang dibutuhin; kontributor—utamanya engineer, peran lain juga disambut—tinggal pilih dan mulai.",
+    "Where software that needs help meets people who want to help. Builders list their software and the help it needs; contributors—engineers first, every other role welcome—pick one and start.",
   ],
   [
     "Siapa yang ngelola?",
@@ -194,13 +194,18 @@ export default async function AboutPage() {
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
           <h1 id="about-title">
-            {tx(
-              locale,
-              "Rumah buat builder mengembangkan software-nya, dan kontributor menyalurkan kontribusinya.",
-              "A home where builders grow their software, and contributors put their help to work.",
-            )}
+            {tx(locale, "Tempat software yang butuh bantuan ketemu orang yang mau bantu.", "Where software that needs help meets people who want to help.")}
           </h1>
           <div className="ab-story">
+            <p className="ab-quote">
+              <strong>
+                {tx(
+                  locale,
+                  "Builder ngedaftarin software-nya dan bantuan yang dibutuhin. Kontributor—utamanya engineer—tinggal pilih dan mulai.",
+                  "Builders list their software and the help it needs. Contributors—engineers first—pick one and start.",
+                )}
+              </strong>
+            </p>
             <p>
               {tx(
                 locale,
