@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Kontribusi, dan bawa dampak. Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
-    "Contribute and deliver impact. Projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
+    "Kontribusi dan bawa dampak, bareng-bareng. Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
+    "Contribute and deliver impact, together. Projects open to contributors—open source repos and products from Indonesian builders.",
   );
   return {
     title,
@@ -110,8 +110,8 @@ const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
     "Engineer",
     "Engineers",
-    "Yang paling diutamakan. Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
-    "First in line. Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
+    "Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
+    "Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
   ],
   [
     "Peran lain",
@@ -131,8 +131,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Tempat buat kontribusi ke project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
-    "A place to contribute to projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
+    "Tempat buat kontribusi ke project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
+    "A place to contribute to projects open to contributors—open source repos and products from Indonesian builders.",
   ],
   [
     "Siapa yang ngelola?",
@@ -194,22 +194,22 @@ export default async function AboutPage() {
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
-          <h1 id="about-title">{tx(locale, "Kontribusi, dan bawa dampak.", "Contribute and deliver impact.")}</h1>
+          <h1 id="about-title">{tx(locale, "Kontribusi dan bawa dampak, bareng-bareng.", "Contribute and deliver impact, together.")}</h1>
           <div className="ab-story">
             <p className="ab-quote">
               <strong>
                 {tx(
                   locale,
-                  "Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
-                  "Projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
+                  "Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
+                  "Projects open to contributors—open source repos and products from Indonesian builders.",
                 )}
               </strong>
             </p>
             <p>
               {tx(
                 locale,
-                "Tiap kartu nunjukin status PR, isu pemula, dan peran yang lagi dicari, jadi kamu tahu project mana yang siap nerima kontribusimu. Punya project sendiri? Daftarin juga. Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
-                "Every card shows the PR status, starter issues and the roles being looked for, so you know which project is ready for your contribution. Have a project of your own? List it too. It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
+                "Tiap kartu nunjukin status PR, isu pemula, dan peran yang lagi dicari, jadi kamu tahu project mana yang siap nerima kontribusimu. Punya project sendiri? Daftarin juga.",
+                "Every card shows the PR status, starter issues and the roles being looked for, so you know which project is ready for your contribution. Have a project of your own? List it too.",
               )}
             </p>
           </div>
@@ -318,8 +318,8 @@ export default async function AboutPage() {
           <p className="ab-lead">
             {tx(
               locale,
-              "Kode yang utama, tapi sebuah project juga butuh hal lain supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
-              "Code comes first, but a project needs more before people can use it. Every role sees something different, and all of it can be a contribution.",
+              "Sebuah project juga butuh hal lain selain kode supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
+              "A project needs more than code before people can use it. Every role sees something different, and all of it can be a contribution.",
             )}
           </p>
 
