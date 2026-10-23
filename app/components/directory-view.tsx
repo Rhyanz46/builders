@@ -320,30 +320,34 @@ export function DirectoryView({
               <input type="search" name="q" value={q} onChange={(event) => search(event.target.value)} placeholder={tx(locale, "Cari project…", "Search projects…")} />
             </label>
           </form>
-          {/* A real GET form, like the search: without JavaScript the button
-              beside the select sends it; with it, picking is enough. */}
-          <form className="dx-sort" action="/">
-            <HiddenFilters filters={filters} except="sort" />
-            <label>
-              <span className="sr-only">{tx(locale, "Urutkan", "Sort by")}</span>
-              <select
-                name="sort"
-                value={filters.sort ?? ""}
-                onChange={(event) => navigate(pathFor({ ...filters, sort: sorts.find((sort) => sort === event.target.value) ?? "" }))}
-              >
-                {(["", ...sorts] as const).map((sort) => (
-                  <option key={sort} value={sort}>{sortLabel(sort, filters.track, locale)}</option>
-                ))}
-              </select>
-            </label>
-            <noscript>
-              <button type="submit">{tx(locale, "Urutkan", "Sort")}</button>
-            </noscript>
-          </form>
-          <p className="dx-count" role="status">
-            <strong>{matched.length}</strong> {tx(locale, "project", matched.length === 1 ? "project" : "projects")}
-            {filtered ? <> · <InstantLink href={reset}>{tx(locale, "reset", "reset")}</InstantLink></> : null}
-          </p>
+          {/* How many, and in what order: together at the row's end, above
+              the cards' own buttons. */}
+          <div className="dx-toolbar-end">
+            <p className="dx-count" role="status">
+              <strong>{matched.length}</strong> {tx(locale, "project", matched.length === 1 ? "project" : "projects")}
+              {filtered ? <> · <InstantLink href={reset}>{tx(locale, "reset", "reset")}</InstantLink></> : null}
+            </p>
+            {/* A real GET form, like the search: without JavaScript the button
+                beside the select sends it; with it, picking is enough. */}
+            <form className="dx-sort" action="/">
+              <HiddenFilters filters={filters} except="sort" />
+              <label>
+                <span className="sr-only">{tx(locale, "Urutkan", "Sort by")}</span>
+                <select
+                  name="sort"
+                  value={filters.sort ?? ""}
+                  onChange={(event) => navigate(pathFor({ ...filters, sort: sorts.find((sort) => sort === event.target.value) ?? "" }))}
+                >
+                  {(["", ...sorts] as const).map((sort) => (
+                    <option key={sort} value={sort}>{sortLabel(sort, filters.track, locale)}</option>
+                  ))}
+                </select>
+              </label>
+              <noscript>
+                <button type="submit">{tx(locale, "Urutkan", "Sort")}</button>
+              </noscript>
+            </form>
+          </div>
         </div>
 
         {unavailable ? (

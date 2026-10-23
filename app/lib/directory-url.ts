@@ -51,8 +51,8 @@ export function readFilters(query: Query): DirectoryFilters {
     pr: readAll(query, "pr").filter(isPRTier),
     badge: isBadgeKind(badge) ? badge : "",
     facet: readAll(query, "facet").map((value) => value.slice(0, 60)),
-    // `phase`, not `stage`: an old `/?stage=` link is the board that moved to
-    // /explore, and proxy.ts sends it there.
+    // `phase`, not `stage`: `/?stage=` was the old board's address, and links
+    // to it are still out there meaning something else.
     stage: readAll(query, "phase").filter(isStage),
     sort: isDirectorySort(sort) ? sort : "",
     q: read(query, "q").slice(0, 100),
