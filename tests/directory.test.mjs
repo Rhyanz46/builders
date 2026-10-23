@@ -326,7 +326,7 @@ test("members' records reach a repo's row through the directory", () => {
   const next = OPEN_SOURCE_REPOS.find((entry) => entry.repo === "next.js");
   const members = [{ username: "ana", name: "Ana", handle: "ana", contributions: [{ repo: "vercel/next.js", relation: "contributor" }] }];
   const badge = repoEntry(next, "en", members).badges.find((entry) => entry.kind === "friend-contributed");
-  assert.deepEqual(badge, { kind: "friend-contributed", people: ["ana"], count: 1, profiles: ["ana"] });
+  assert.deepEqual(badge, { kind: "friend-contributed", people: ["ana"], count: 1, profiles: ["ana"], members: [{ username: "ana", name: "Ana", handle: "ana" }] });
 });
 
 test("paginate slices by page and clamps pages that do not exist", () => {

@@ -42,7 +42,15 @@ export type Badge = {
    * the badge can link to their profile here rather than to GitHub.
    */
   profiles?: string[];
+  /**
+   * The members behind the badge, when it comes from their own records, so
+   * that a badge naming several people can list each of them — including
+   * those with no GitHub username, who have no face to show.
+   */
+  members?: BadgeMember[];
 };
+
+export type BadgeMember = { username: string; name: string; handle: string };
 
 /**
  * Badges for products listed on Builders, keyed by the product's slug (the

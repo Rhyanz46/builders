@@ -43,24 +43,24 @@ test("members' records become a repo's badges", () => {
   ];
   assert.deepEqual(memberBadges("Vercel/Next.js", members), [
     // Budi has no GitHub on his profile: counted and linked, but no face.
-    { kind: "friend-contributed", people: ["ana-gh"], count: 2, profiles: ["ana", "budi"] },
-    { kind: "in-our-group", people: ["citra"], count: 1, profiles: ["citra"] },
+    { kind: "friend-contributed", people: ["ana-gh"], count: 2, profiles: ["ana", "budi"], members: [{ username: "ana", name: "ana", handle: "ana-gh" }, { username: "budi", name: "budi", handle: "" }] },
+    { kind: "in-our-group", people: ["citra"], count: 1, profiles: ["citra"], members: [{ username: "citra", name: "citra", handle: "citra" }] },
   ]);
   assert.deepEqual(memberBadges("nobody/here", members), []);
 });
 
 test("owning the repository on GitHub is being its maintainer, listed or not", () => {
   const badges = memberBadges("zikrulihsan/builders", [member("zikrul", "ZikrulIhsan")]);
-  assert.deepEqual(badges, [{ kind: "in-our-group", people: ["ZikrulIhsan"], count: 1, profiles: ["zikrul"] }]);
+  assert.deepEqual(badges, [{ kind: "in-our-group", people: ["ZikrulIhsan"], count: 1, profiles: ["zikrul"], members: [{ username: "zikrul", name: "zikrul", handle: "ZikrulIhsan" }] }]);
 });
 
 test("hand-set and member badges merge per kind without counting a person twice", () => {
   const merged = mergeBadges(
     [{ kind: "in-our-group", people: ["zikrulihsan"] }, { kind: "indonesian" }],
-    [{ kind: "in-our-group", people: ["zikrulihsan"], count: 1, profiles: ["zikrul"] }],
+    [{ kind: "in-our-group", people: ["zikrulihsan"], count: 1, profiles: ["zikrul"], members: [{ username: "zikrul", name: "Zikrul", handle: "zikrulihsan" }] }],
   );
   assert.deepEqual(merged, [
-    { kind: "in-our-group", people: ["zikrulihsan"], profiles: ["zikrul"], count: 1 },
+    { kind: "in-our-group", people: ["zikrulihsan"], profiles: ["zikrul"], members: [{ username: "zikrul", name: "Zikrul", handle: "zikrulihsan" }], count: 1 },
     { kind: "indonesian" },
   ]);
   assert.deepEqual(mergeBadges([], []), []);

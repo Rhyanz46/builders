@@ -1714,6 +1714,31 @@ form button[aria-busy="true"]::after,
   background: light-dark(#fff, #1f1f1f); border: 1.5px solid light-dark(#fff, #383838); border-radius: 50%; height: 18px; margin-left: -5px; width: 18px;
 }
 .dx-badge-faces img:first-child { margin-left: 0; }
+/* A badge naming several people opens a list of them all. */
+.dx-badge-menu { position: relative; }
+.dx-badge-menu > summary,
+.dx-badge-menu[open] > summary {
+  align-items: center; border: 0; border-radius: 0; cursor: pointer; display: inline-flex; font: inherit;
+  gap: 5px; list-style: none; margin: 0; padding: 0;
+}
+.dx-badge-menu > summary::-webkit-details-marker { display: none; }
+.dx-badge-menu > summary:hover span:not(.dx-badge-faces) { text-decoration: underline; text-underline-offset: 2px; }
+.dx-badge-people {
+  background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 10px;
+  box-shadow: 0 12px 32px light-dark(rgba(41, 41, 41, .14), rgba(0, 0, 0, .32)); color: var(--dx-ink);
+  left: -8px; list-style: none; margin: 0; min-width: 200px; padding: 4px; position: absolute; top: calc(100% + 8px); z-index: 30;
+}
+.dx-badge-people a {
+  align-items: center; border-radius: 6px; color: inherit; display: flex; font-size: 13px; font-weight: 600; gap: 9px; padding: 7px 8px;
+}
+.dx-badge-people a:hover, .dx-badge-people a:focus-visible { background: var(--dx-soft); }
+.dx-badge-people a > span { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.dx-badge-people small { color: var(--dx-muted); font-size: 12px; font-weight: 500; }
+.dx-badge-people img, .dx-badge-initial { border-radius: 50%; flex: none; height: 24px; width: 24px; }
+.dx-badge-initial {
+  align-items: center; background: var(--dx-soft); color: var(--dx-muted); display: inline-flex;
+  font-size: 12px; font-weight: 700; justify-content: center; text-transform: uppercase;
+}
 .dx-facet-link .dx-badge-icon { height: 15px; width: 15px; }
 .dx-facet-link .dx-flag { height: 11px; width: 15px; }
 
@@ -2350,11 +2375,16 @@ form.rf label { margin-bottom: 0; }
   background: light-dark(#fff, #1f1f1f); color: var(--dx-ink);
   padding: 48px max(var(--gutter), calc((100% - 760px) / 2)) 80px; width: 100%;
 }
-.ab-kicker { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 10px; }
 .ab-intro h1 { font-size: 34px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; margin: 0; }
 .ab-story { color: var(--dx-text); display: grid; font-size: 15.5px; gap: 14px; line-height: 1.7; margin-top: 24px; }
 .ab-story p { margin: 0; }
-.ab-story .ab-quote { color: var(--dx-ink); font-size: 17px; }
+/* The answer to the problem above, set as a quote. */
+.ab-story .ab-quote {
+  border-left: 3px solid var(--dx-ink);
+  color: var(--dx-ink); font-size: 18px; line-height: 1.5; margin: 8px 0; padding: 2px 0 2px 20px;
+}
+/* What leads from the problem into the answer. */
+.ab-story .ab-quote-lead { color: var(--dx-muted); display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .ab-section { border-top: 1px solid var(--dx-line); margin-top: 48px; padding-top: 40px; }
 .ab-section h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 10px; }
 .ab-subhead { font-size: 16px; font-weight: 650; margin: 32px 0 6px; }

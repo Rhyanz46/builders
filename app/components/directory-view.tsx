@@ -6,6 +6,7 @@ import Link from "./responsive-link";
 import { InstantLink, InstantNav } from "./instant-link";
 import { FilterPanel, type ActiveFilter } from "./filter-panel";
 import { ProjectLogo } from "./project-logo";
+import { HeaderMenu } from "./header-menu";
 import { LinkIcon } from "./link-icons";
 import { StarCount, StarLink } from "./star-button";
 import { RelativeTime } from "./relative-time";
@@ -534,9 +535,10 @@ export function FacetLink({
 
 /**
  * One badge on a row. When it names people, their GitHub avatars ride along —
- * a face is what makes "a friend has been here" believable — and the badge
- * links to the first of them: their profile here when the badge comes from
- * members' own records, their GitHub otherwise.
+ * a face is what makes "a friend has been here" believable. With one person
+ * the badge links to them: their profile here when the badge comes from
+ * members' own records, their GitHub otherwise. With several, it opens a list
+ * of them all, so nobody stands in for the rest.
  */
 function BadgeChip({ badge, locale }: { badge: Badge; locale: Locale }) {
   const people = badgePeople(badge);
@@ -548,16 +550,52 @@ function BadgeChip({ badge, locale }: { badge: Badge; locale: Locale }) {
       <span>{label}</span>
       {people.length > 0 ? (
         <span className="dx-badge-faces" aria-hidden="true">
-          {people.slice(0, 3).map((person) => (
-            // GitHub serves a small avatar at this address for any username;
-            // next/image would need the host allow-listed for a 20px picture.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={person} src={`https://github.com/${person}.png?size=40`} alt="" width={18} height={18} loading="lazy" />
-          ))}
+          {people.slice(0, 3).map((person) => <BadgeFace key={person} person={person} />)}
         </span>
       ) : null}
     </>
   );
+
+  // Members first, as they link here; hand-named people only on GitHub after.
+  const members = badge.members ?? [];
+  const named = new Set(members.map((member) => member.handle.toLowerCase()).filter(Boolean));
+  const everyone = [
+    ...members.map((member) => ({ key: member.username, name: member.name, handle: member.handle, href: `/u/${member.username}` })),
+    ...people
+      .filter((person) => !named.has(person.toLowerCase()))
+      .map((person) => ({ key: person, name: `@${person}`, handle: person, href: `https://github.com/${person}` })),
+  ];
+
+  if (everyone.length > 1) {
+    return (
+      <li className={`dx-badge dx-badge-${badge.kind}`}>
+        <HeaderMenu className="dx-badge-menu" summaryLabel={label} summary={content}>
+          <ul className="dx-badge-people" aria-label={label}>
+            {everyone.map((person) => {
+              const inner = (
+                <>
+                  {person.handle ? <BadgeFace person={person.handle} /> : <span className="dx-badge-initial" aria-hidden="true">{person.name.slice(0, 1)}</span>}
+                  <span>
+                    {person.name}
+                    {person.handle && person.name !== `@${person.handle}` ? <small>@{person.handle}</small> : null}
+                  </span>
+                </>
+              );
+              return (
+                <li key={person.key}>
+                  {person.href.startsWith("/") ? (
+                    <Link href={person.href}>{inner}</Link>
+                  ) : (
+                    <a href={person.href} target="_blank" rel="noopener noreferrer">{inner}</a>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </HeaderMenu>
+      </li>
+    );
+  }
 
   const profile = badge.profiles?.[0];
 
@@ -572,6 +610,13 @@ function BadgeChip({ badge, locale }: { badge: Badge; locale: Locale }) {
       )}
     </li>
   );
+}
+
+function BadgeFace({ person }: { person: string }) {
+  // GitHub serves a small avatar at this address for any username;
+  // next/image would need the host allow-listed for a 20px picture.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`https://github.com/${person}.png?size=40`} alt="" width={18} height={18} loading="lazy" />;
 }
 
 function BadgeIcon({ kind }: { kind: BadgeKind }) {
