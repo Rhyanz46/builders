@@ -1586,6 +1586,17 @@ form button[aria-busy="true"]::after,
 .dx-search label:focus-within { border-color: var(--dx-ink); box-shadow: 0 0 0 3px light-dark(rgba(9, 9, 11, .06), rgba(0, 0, 0, .12)); }
 .dx-search svg { fill: none; flex: none; height: 15px; stroke: var(--dx-muted); stroke-width: 2; width: 15px; }
 .dx-search input { background: none; border: 0; font-size: 14px; margin: 0; min-width: 0; outline: none; padding: 0; width: 100%; }
+.dx-sort { flex: none; margin: 0 0 0 auto; }
+.dx-sort label { display: block; }
+.dx-sort select {
+  appearance: none; background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 10px center / 14px 14px;
+  border: 1px solid var(--dx-line); border-radius: 8px; color: var(--dx-ink); cursor: pointer; font: inherit; font-size: 13.5px;
+  height: 38px; padding: 0 32px 0 12px;
+}
+.dx-sort select:hover, .dx-sort select:focus-visible { border-color: var(--dx-ink); outline: none; }
+.dx-sort noscript button {
+  background: var(--dx-soft); border: 1px solid var(--dx-line); border-radius: 8px; font-size: 13px; height: 38px; margin-left: 6px; padding: 0 12px;
+}
 .dx-count { color: var(--dx-muted); flex: none; font-size: 13px; margin: 0; }
 .dx-count strong { color: var(--dx-ink); font-variant-numeric: tabular-nums; }
 .dx-count a, .dx-empty a { color: var(--dx-ink); text-decoration: underline; text-underline-offset: 3px; }
@@ -1637,6 +1648,18 @@ form button[aria-busy="true"]::after,
 .dx-tier-dot-active { background: #059669; }
 .dx-tier-dot-first, .dx-tier-dot-open { border: 2px solid #059669; }
 .dx-tier-dot-unopened, .dx-tier-dot-inactive { background: var(--dx-faint); }
+/* A product's stage, as a dot like the PR tiers: filled once others can use it. */
+.dx-stage-dot { border-radius: 50%; box-sizing: border-box; display: inline-block; flex: none; height: 9px; width: 9px; }
+.dx-stage-dot-idea { border: 2px solid #c2410c; }
+.dx-stage-dot-building { background: #c2410c; }
+.dx-stage-dot-live { background: #059669; }
+.dx-stage-dot-resting { background: var(--dx-faint); }
+.dx-stage { align-items: center; color: var(--dx-text); display: inline-flex; gap: 6px; }
+/* Listed in the last two weeks. */
+.dx-new {
+  align-self: center; background: var(--dx-warm-soft); border-radius: 999px; color: var(--dx-warm);
+  font-size: 11px; font-weight: 650; letter-spacing: .02em; line-height: 1; padding: 4px 8px;
+}
 .dx-row-quiet .dx-name a { color: var(--dx-text); }
 .dx-row-quiet .dx-logo { filter: grayscale(1); opacity: .6; }
 .dx-row-quiet .dx-action { background: transparent; border: 1px solid var(--dx-line); color: var(--dx-text); }
@@ -1828,6 +1851,8 @@ form button[aria-busy="true"]::after,
   .dx-head h1 { font-size: 22px; }
   .dx-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
   .dx-search { max-width: none; }
+  .dx-sort { margin: 0; }
+  .dx-sort select { width: 100%; }
 }
 
 /* The rows answer to the width of the results column, not of the screen:

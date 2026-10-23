@@ -15,21 +15,53 @@ import {
   badgeCounts,
   directoryFacets,
   filterDirectory,
+  isNew,
+  isQuiet,
   openingCounts,
   openingLabel,
   paginate,
   prTierCounts,
   prTierLabel,
+  sortLabel,
+  sortsFor,
   sourceLabel,
+  stageCounts,
   type DirectoryEntry,
+  type DirectoryFilters,
   type DirectoryTrack,
 } from "../lib/directory";
 import { badgeKindLabel, badgeLabel, badgePeople, type Badge, type BadgeKind } from "../lib/badges";
 import { pathFor, readFilters, readPage } from "../lib/directory-url";
 import { tx, type Locale } from "../lib/locale";
+import { stageLabel, stageMeta } from "../lib/stages";
 
 /** How long typing rests before the address catches up. Browsers throttle history writes. */
 const SEARCH_SETTLE_MS = 300;
+
+/** `list` with `value` added, or taken out if it was there: a chip in a group that takes several. */
+function toggled<T>(list: readonly T[] | undefined, value: T): T[] {
+  const current = list ?? [];
+  return current.includes(value) ? current.filter((each) => each !== value) : [...current, value];
+}
+
+/**
+ * The filters as hidden fields, for a GET form that changes one of them — the
+ * search box, or the sort without JavaScript — and must keep the rest.
+ */
+function HiddenFilters({ filters, except }: { filters: DirectoryFilters; except: "q" | "sort" }) {
+  const fields: [string, string][] = [
+    ...(filters.track !== "github" ? [["track", filters.track] as [string, string]] : []),
+    ...(filters.source ? [["source", filters.source] as [string, string]] : []),
+    ...(filters.open ? [["open", filters.open] as [string, string]] : []),
+    ...(filters.pr ?? []).map((tier) => ["pr", tier] as [string, string]),
+    ...(filters.badge ? [["badge", filters.badge] as [string, string]] : []),
+    ...filters.facet.map((facet) => ["facet", facet] as [string, string]),
+    ...(filters.stage ?? []).map((stage) => ["phase", stage] as [string, string]),
+    ...(except !== "q" && filters.q ? [["q", filters.q] as [string, string]] : []),
+    ...(except !== "sort" && filters.sort ? [["sort", filters.sort] as [string, string]] : []),
+  ];
+  return fields.map(([name, value]) => <input key={`${name}=${value}`} type="hidden" name={name} value={value} />);
+}
 
 /**
  * The directory's list, filtered where it is shown.
@@ -58,6 +90,14 @@ export function DirectoryView({
   const [q, setQ] = useState(fromUrl.q);
   const settle = useRef<number | undefined>(undefined);
   const results = useRef<HTMLElement>(null);
+  // "New" and a quiet role card depend on today, which the server's render
+  // cannot know without giving up its cache: read the clock once hydrated, as
+  // RelativeTime does. Until then neither shows.
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setNow(Date.now()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Back and Forward make the address the truth again.
   useEffect(() => {
@@ -93,7 +133,9 @@ export function DirectoryView({
   const filters = { ...fromUrl, q: q.slice(0, 100) };
   // A search still settling has already left the page it started on.
   const requestedPage = q === fromUrl.q ? readPage(searchParams) : "1";
-  const matched = useMemo(() => filterDirectory(entries, filters), [entries, filters.track, filters.source, filters.open, filters.pr, filters.badge, filters.facet, filters.q]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The address is the filters' identity: the arrays in them are new on every render.
+  const filterKey = pathFor(filters);
+  const matched = useMemo(() => filterDirectory(entries, filters), [entries, filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const shown = paginate(matched, requestedPage);
   const onTrack = entries.filter((entry) => entry.track === filters.track);
   const facets = directoryFacets(entries, filters.track);
@@ -104,18 +146,26 @@ export function DirectoryView({
   const badges = badgeCounts(entries, filters.track);
   const openings = openingCounts(entries, filters.track);
   const tiers = filters.track === "github" ? prTierCounts(entries) : [];
+  const stages = stageCounts(entries, filters.track);
+  const sorts = sortsFor(filters.track);
   const code = filters.track === "github";
-  const filtered = Boolean(filters.source || filters.open || filters.pr || filters.badge || filters.facet || filters.q);
-  const reset = pathFor({ track: filters.track, source: "", open: "", pr: "", badge: "", facet: "", q: "" });
+  const filtered = Boolean(
+    filters.source || filters.open || filters.pr?.length || filters.badge || filters.facet.length || filters.stage?.length || filters.q,
+  );
+  // Reset drops what narrows the list; the order asked for stays.
+  const reset = pathFor({ track: filters.track, source: "", open: "", pr: [], badge: "", facet: [], stage: [], sort: filters.sort, q: "" });
   // What a phone's filter bar shows as chips, each one a link that drops it.
   const active: ActiveFilter[] = [
-    ...(filters.pr ? [{ label: prTierLabel(filters.pr, locale), href: pathFor({ ...filters, pr: "" }) }] : []),
+    ...(filters.pr ?? []).map((tier) => ({ label: prTierLabel(tier, locale), href: pathFor({ ...filters, pr: toggled(filters.pr, tier) }) })),
+    ...(filters.stage ?? []).map((stage) => ({ label: stageLabel(stage, locale), href: pathFor({ ...filters, stage: toggled(filters.stage, stage) }) })),
     ...(filters.open ? [{ label: openingLabel(filters.open, locale), href: pathFor({ ...filters, open: "" }) }] : []),
     ...(filters.badge ? [{ label: badgeKindLabel(filters.badge, locale), href: pathFor({ ...filters, badge: "" }) }] : []),
     ...(filters.source ? [{ label: sourceLabel(filters.source, locale), href: pathFor({ ...filters, source: "" }) }] : []),
-    ...(filters.facet ? [{ label: filters.facet, href: pathFor({ ...filters, facet: "" }) }] : []),
+    ...filters.facet.map((facet) => ({ label: facet, href: pathFor({ ...filters, facet: toggled(filters.facet, facet) }) })),
   ];
-  const trackHref = (track: DirectoryTrack) => pathFor({ track, source: "", open: "", pr: "", badge: "", facet: "", q: filters.q });
+  // A new path starts plain: its groups and its orders are not this one's.
+  const trackHref = (track: DirectoryTrack) =>
+    pathFor({ track, source: "", open: "", pr: [], badge: "", facet: [], stage: [], sort: "", q: filters.q });
 
   return (
     <InstantNav navigate={navigate}>
@@ -157,12 +207,28 @@ export function DirectoryView({
             {tiers.map(({ tier, count }) => (
               <FacetLink
                 key={tier}
-                active={filters.pr === tier}
-                href={pathFor({ ...filters, pr: filters.pr === tier ? "" : tier })}
+                active={filters.pr?.includes(tier) ?? false}
+                href={pathFor({ ...filters, pr: toggled(filters.pr, tier) })}
                 count={count}
                 icon={<span className={`dx-tier-dot dx-tier-dot-${tier}`} aria-hidden="true" />}
               >
                 {prTierLabel(tier, locale)}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
+
+        {stages.length > 0 ? (
+          <FacetGroup title={tx(locale, "Tahap produk", "Product stage")}>
+            {stages.map(({ stage, count }) => (
+              <FacetLink
+                key={stage}
+                active={filters.stage?.includes(stage) ?? false}
+                href={pathFor({ ...filters, stage: toggled(filters.stage, stage) })}
+                count={count}
+                icon={<span className={`dx-stage-dot dx-stage-dot-${stage}`} aria-hidden="true" />}
+              >
+                {stageLabel(stage, locale)}
               </FacetLink>
             ))}
           </FacetGroup>
@@ -219,13 +285,13 @@ export function DirectoryView({
           <FacetGroup
             title={code ? tx(locale, "Bahasa", "Languages") : tx(locale, "Peran yang dicari", "Roles wanted")}
             more={code ? tx(locale, "Bahasa lainnya…", "More languages…") : tx(locale, "Peran lainnya…", "More roles…")}
-            openMore={facets.findIndex(({ value }) => value === filters.facet) >= FACETS_SHOWN}
+            openMore={facets.some(({ value }, index) => index >= FACETS_SHOWN && filters.facet.includes(value))}
           >
             {facets.map(({ value, count }) => (
               <FacetLink
                 key={value}
-                active={filters.facet === value}
-                href={pathFor({ ...filters, facet: filters.facet === value ? "" : value })}
+                active={filters.facet.includes(value)}
+                href={pathFor({ ...filters, facet: toggled(filters.facet, value) })}
                 count={count}
                 icon={code ? <LanguageDot language={value} /> : undefined}
               >
@@ -247,17 +313,32 @@ export function DirectoryView({
               search(q, true);
             }}
           >
-            {filters.track !== "github" ? <input type="hidden" name="track" value={filters.track} /> : null}
-            {filters.source ? <input type="hidden" name="source" value={filters.source} /> : null}
-            {filters.open ? <input type="hidden" name="open" value={filters.open} /> : null}
-            {filters.pr ? <input type="hidden" name="pr" value={filters.pr} /> : null}
-            {filters.badge ? <input type="hidden" name="badge" value={filters.badge} /> : null}
-            {filters.facet ? <input type="hidden" name="facet" value={filters.facet} /> : null}
+            <HiddenFilters filters={filters} except="q" />
             <label>
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
               <span className="sr-only">{tx(locale, "Cari project", "Search projects")}</span>
               <input type="search" name="q" value={q} onChange={(event) => search(event.target.value)} placeholder={tx(locale, "Cari project…", "Search projects…")} />
             </label>
+          </form>
+          {/* A real GET form, like the search: without JavaScript the button
+              beside the select sends it; with it, picking is enough. */}
+          <form className="dx-sort" action="/">
+            <HiddenFilters filters={filters} except="sort" />
+            <label>
+              <span className="sr-only">{tx(locale, "Urutkan", "Sort by")}</span>
+              <select
+                name="sort"
+                value={filters.sort ?? ""}
+                onChange={(event) => navigate(pathFor({ ...filters, sort: sorts.find((sort) => sort === event.target.value) ?? "" }))}
+              >
+                {(["", ...sorts] as const).map((sort) => (
+                  <option key={sort} value={sort}>{sortLabel(sort, filters.track, locale)}</option>
+                ))}
+              </select>
+            </label>
+            <noscript>
+              <button type="submit">{tx(locale, "Urutkan", "Sort")}</button>
+            </noscript>
           </form>
           <p className="dx-count" role="status">
             <strong>{matched.length}</strong> {tx(locale, "project", matched.length === 1 ? "project" : "projects")}
@@ -279,7 +360,7 @@ export function DirectoryView({
           </div>
 
           {matched.length > 0 ? (
-            shown.items.map((entry) => <DirectoryRow key={entry.key} entry={entry} locale={locale} />)
+            shown.items.map((entry) => <DirectoryRow key={entry.key} entry={entry} locale={locale} now={now} />)
           ) : (
             <div className="dx-empty" role="row">
               <p role="cell">
@@ -529,7 +610,7 @@ function TrackIcon({ track }: { track: DirectoryTrack }) {
   );
 }
 
-function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale }) {
+function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: Locale; now: number | null }) {
   const external = { target: "_blank", rel: "noopener noreferrer" };
   const owner = entry.kind === "product" ? tx(locale, `oleh ${entry.owner}`, `by ${entry.owner}`) : entry.owner;
   const code = entry.track === "github";
@@ -540,10 +621,12 @@ function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale
   const slug = entry.links.find((link) => link.kind === "github")?.label ?? `${entry.owner}/${entry.name}`;
   const title = code ? slug : entry.name;
   const avatar = code ? `https://github.com/${encodeURIComponent(slug.split("/")[0])}.png?size=80` : entry.logoUrl;
+  // A repository not taking PRs, or a product nobody has touched in a while,
+  // stays findable but recedes.
+  const quiet = code ? Boolean(entry.prTier && !entry.welcomesPRs) : now !== null && isQuiet(entry, now);
 
   return (
-    // A repository not taking PRs stays findable for its code, but recedes.
-    <div className={`dx-row ${entry.prTier && !entry.welcomesPRs && entry.track === "github" ? "dx-row-quiet" : ""}`} role="row">
+    <div className={`dx-row ${quiet ? "dx-row-quiet" : ""}`} role="row">
       <div className="dx-cell-main" role="cell">
         <ProjectLogo
           className={`dx-logo ${code ? "dx-logo-avatar" : ""}`}
@@ -572,6 +655,7 @@ function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale
               </span>
             ) : null}
             {code ? null : <span className="dx-owner">{owner}</span>}
+            {now !== null && isNew(entry, now) ? <span className="dx-new">{tx(locale, "Baru", "New")}</span> : null}
           </p>
           {!code && entry.links.length > 0 ? (
             <p className="dx-links">
@@ -603,9 +687,11 @@ function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale
             <p className="dx-meta">
               {entry.language ? <span className="dx-lang"><LanguageDot language={entry.language} />{entry.language}</span> : null}
               {entry.stars !== null && entry.repo ? <StarCount stars={entry.stars} /> : null}
+              {/* A push, not a reply: bots push too, so this says when the
+                  code last moved and nothing about who answers. */}
               {entry.updatedAt ? (
-                <span>
-                  {tx(locale, "Diperbarui ", "Updated ")}
+                <span title={tx(locale, "Push terakhir ke repo, termasuk dari bot", "The repo's last push, bots included")}>
+                  {tx(locale, "Push terakhir ", "Last push ")}
                   <RelativeTime value={entry.updatedAt} locale={locale} />
                 </span>
               ) : null}
@@ -617,6 +703,28 @@ function DirectoryRow({ entry, locale }: { entry: DirectoryEntry; locale: Locale
                   </svg>
                   {entry.kind === "repo" ? tx(locale, "Isu pemula", "Starter issues") : tx(locale, "Isu", "Issues")}
                 </a>
+              ) : null}
+            </p>
+          ) : null}
+          {/* The role path's own footer line: how far along the product is,
+              how many seats are still open, and when anything last happened —
+              a card with no date cannot tell a waiting team from a gone one. */}
+          {!code && (entry.stage || entry.openSeats > 0 || entry.activeAt) ? (
+            <p className="dx-meta">
+              {entry.stage ? (
+                <span className="dx-stage" title={tx(locale, stageMeta[entry.stage].blurbId, stageMeta[entry.stage].blurb)}>
+                  <span className={`dx-stage-dot dx-stage-dot-${entry.stage}`} aria-hidden="true" />
+                  {stageLabel(entry.stage, locale)}
+                </span>
+              ) : null}
+              {entry.openSeats > 0 ? (
+                <span>{tx(locale, `${entry.openSeats} posisi terbuka`, entry.openSeats === 1 ? "1 open seat" : `${entry.openSeats} open seats`)}</span>
+              ) : null}
+              {entry.activeAt ? (
+                <span>
+                  {tx(locale, "Aktif ", "Active ")}
+                  <RelativeTime value={entry.activeAt} locale={locale} />
+                </span>
               ) : null}
             </p>
           ) : null}
