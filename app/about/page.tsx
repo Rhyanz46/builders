@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Wadah buat software builder dan kontributor di Indonesia: project yang lagi butuh bantuan, dan cara yang jelas buat mulai kontribusi.",
-    "A home for software builders and contributors in Indonesia: projects that need a hand, and a clear way to start contributing.",
+    "Ekosistem yang saling dukung buat software builder Indonesia—maintainer open source dan solo builder—dan buat siapa pun yang mau bantu.",
+    "A supportive ecosystem for Indonesia's software builders—open source maintainers and solo builders—and for anyone who wants to help.",
   );
   return {
     title,
@@ -109,22 +109,22 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
-    "Yang lagi bikin",
-    "If you are building",
-    "Taruh projectmu—side project, produk kecil, atau repo open source. Tulis apa yang lagi dikerjain dan bantuan apa yang dibutuhin, biar orang yang pas bisa nemu.",
-    "Put your project here—a side project, a small product, an open source repo. Say what you are working on and what help you need, so the right people can find it.",
+    "Maintainer open source",
+    "Open source maintainers",
+    "Repo-mu terbuka, tapi kontributornya belum datang. Taruh di sini, tandai isu pemulanya, dan biar orang yang pengin mulai kontribusi nemu repo-mu.",
+    "Your repo is open, but contributors have not shown up. List it here, label its starter issues, and let people looking for a first contribution find it.",
   ],
   [
-    "Yang mau kontribusi",
-    "If you want to contribute",
-    "Cari repo dan produk yang beneran lagi nerima bantuan, lokal maupun global. Tiap kartu jujur soal peluang PR-mu dibaca, jadi kamu tahu harus mulai dari mana.",
-    "Find repos and products that genuinely take help, local or global. Every card is honest about the odds your PR gets read, so you know where to start.",
+    "Solo builder",
+    "Solo builders",
+    "Ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama. Bilang bantuan apa yang kamu butuhin, biar yang punya keahlian itu bisa ikut turun tangan.",
+    "Doing it all yourself—the code, the design, finding the first users. Say what help you need, so people with those skills can pitch in.",
   ],
   [
-    "Yang ngelola komunitas",
-    "If you run a community",
-    "Ajak member-mu naruh project dan saling bantu di sini. Nggak ada biaya, nggak ada syarat—cukup kabarin kami.",
-    "Bring your members in to share their projects and help each other here. No fee, no conditions—just let us know.",
+    "Yang mau bantu",
+    "Anyone who wants to help",
+    "Cari project yang pas sama keahlianmu, lokal maupun global. Kontribusi bisa lewat kode, desain, feedback, atau sekadar kasih bintang dan nyebarin.",
+    "Find a project that fits what you do, local or global. Help can be code, design, feedback, or simply a star and a word to friends.",
   ],
 ];
 
@@ -132,8 +132,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Wadah buat software builder dan kontributor di Indonesia. Isinya direktori project yang lagi butuh bantuan—repo open source dan produk member—plus profil yang nyatet kontribusimu.",
-    "A home for software builders and contributors in Indonesia: a directory of projects that need a hand—open source repos and members' products—and a profile that keeps track of what you contribute.",
+    "Ekosistem yang saling dukung buat software builder Indonesia. Maintainer open source dan solo builder bisa bilang bantuan apa yang dibutuhin, dan siapa pun yang mau bantu bisa nemu project yang pas di direktori.",
+    "A supportive ecosystem for Indonesia's software builders. Open source maintainers and solo builders can say what help they need, and anyone who wants to help can find a project that fits in the directory.",
   ],
   [
     "Siapa yang ngelola?",
@@ -196,28 +196,37 @@ export default async function AboutPage() {
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
           <h1 id="about-title">
-            {tx(locale, "Wadah buat software builder dan kontributor di Indonesia.", "A home for software builders and contributors in Indonesia.")}
+            {tx(locale, "Ekosistem yang saling dukung buat software builder Indonesia.", "A supportive ecosystem for Indonesia's software builders.")}
           </h1>
           <div className="ab-story">
+            <p className="ab-quote">
+              <strong>
+                {tx(
+                  locale,
+                  "Buat maintainer open source dan solo builder yang lagi bikin sesuatu—dan buat siapa pun yang mau bantu.",
+                  "For open source maintainers and solo builders making something—and for anyone who wants to help.",
+                )}
+              </strong>
+            </p>
             <p>
               {tx(
                 locale,
-                "Banyak orang di sini yang lagi bikin software: side project, produk kecil, repo open source. Banyak juga yang pengin mulai kontribusi, tapi bingung mulai dari mana—repo mana yang bakal baca PR-nya, project mana yang beneran butuh bantuan.",
-                "Plenty of people here are building software: side projects, small products, open source repos. Plenty more want to start contributing but do not know where—which repo will read their PR, which project actually needs help.",
+                "Bikin software sendirian itu berat. Maintainer open source nungguin kontributor yang nggak kunjung datang. Solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+                "Building software alone is hard. Open source maintainers wait for contributors who never come. Solo builders do it all themselves—the code, the design, finding the first users.",
               )}
             </p>
             <p>
               {tx(
                 locale,
-                "Builders nyatuin keduanya di satu tempat. Yang lagi bikin bisa ngasih tahu bantuan apa yang dibutuhin. Yang mau kontribusi bisa nemu project yang pas, lengkap dengan sinyal jujur soal peluang kontribusinya diterima.",
-                "Builders puts both in one place. People building can say what help they need. People contributing can find a project that fits, with an honest signal of whether their work will be taken.",
+                "Di sisi lain, banyak yang pengin bantu, tapi nggak tahu siapa yang lagi butuh dan harus mulai dari mana.",
+                "Meanwhile, plenty of people want to help but do not know who needs it, or where to start.",
               )}
             </p>
             <p>
               {tx(
                 locale,
-                "Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
-                "It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
+                "Builders nyambungin keduanya. Hari ini kamu bantu project orang, besok orang bantu projectmu—lewat kode, desain, feedback, atau sekadar kasih bintang dan nyebarin. Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
+                "Builders connects the two. Today you help someone's project; tomorrow someone helps yours—with code, design, feedback, or simply a star and a word to friends. It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
               )}
             </p>
           </div>
@@ -363,12 +372,12 @@ export default async function AboutPage() {
         </section>
 
         <section className="ab-cta" aria-labelledby="about-cta-title">
-          <h2 id="about-cta-title">{tx(locale, "Mulai dari satu kontribusi.", "Start with one contribution.")}</h2>
+          <h2 id="about-cta-title">{tx(locale, "Saling bantu, mulai dari satu kontribusi.", "Help each other, starting with one contribution.")}</h2>
           <p>
             {tx(
               locale,
-              "Cari project yang pas di direktori, atau taruh projectmu sendiri biar orang lain bisa bantu.",
-              "Find a project that fits in the directory, or put your own here so others can help.",
+              "Cari project yang bisa kamu bantu di direktori, atau taruh projectmu sendiri biar orang lain bisa ikut bantu.",
+              "Find a project you can help in the directory, or put your own here so others can pitch in.",
             )}
           </p>
           <div className="ab-cta-actions">
