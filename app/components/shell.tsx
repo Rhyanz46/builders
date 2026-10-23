@@ -198,7 +198,7 @@ export async function HeaderShell({ active = "" }: { active?: Section }) {
           <div className="header-actions header-shell-actions header-account-skeleton" aria-busy="true">
             <SourceLink locale={locale} />
             <Skeleton height={36} width={36} round />
-            <Skeleton height={40} width={116} style={{ borderRadius: 999 }} />
+            <Skeleton height={32} width={150} style={{ borderRadius: 6 }} />
             <span className="sr-only">{tx(locale, "Memuat kontrol akun…", "Loading account controls…")}</span>
           </div>
         </div>
@@ -405,10 +405,10 @@ function MobileHeaderMenu({
       }
     >
       <div className="mobile-nav">
-        {/* The two places are in the bottom bar; this sheet keeps the rest. */}
-        <nav className="mobile-nav-primary" aria-label={tx(locale, "Tentang situs", "About the site")}>
-          <p className="mobile-menu-label">{tx(locale, "Lainnya", "More")}</p>
-          {SECONDARY_LINKS.map((link) => (
+        {/* Every page, the two places included: the bottom bar is a shortcut, not the only way there. */}
+        <nav className="mobile-nav-primary" aria-label={tx(locale, "Menu seluler", "Mobile menu")}>
+          <p className="mobile-menu-label">{tx(locale, "Menu", "Menu")}</p>
+          {[...PRIMARY_LINKS, ...SECONDARY_LINKS].map((link) => (
             <Link
               key={link.href}
               aria-current={active === link.key ? "page" : undefined}

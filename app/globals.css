@@ -256,7 +256,8 @@ nav form { display: flex; margin: 0; }
 }
 @keyframes signout-spin { to { transform: rotate(360deg); } }
 
-.mobile-menu[open] > summary { border-color: light-dark(#ababab, #525252); background: light-dark(#f7f7f7, #191919); }
+/* Margin 0: the site-wide `details[open] summary` margin would lift the close button out of line. */
+.mobile-menu[open] > summary { margin: 0; border-color: light-dark(#ababab, #525252); background: light-dark(#f7f7f7, #191919); }
 .mobile-menu[open] > summary i:first-child { transform: translateY(2.75px) rotate(45deg); }
 .mobile-menu[open] > summary i:last-child { transform: translateY(-2.75px) rotate(-45deg); }
 .mobile-menu > summary i { transition: transform .18s ease; }
@@ -1987,11 +1988,23 @@ footer .theme-row .theme-switch { height: 16px; width: 27px; }
 footer .theme-row .theme-switch::after { height: 12px; width: 12px; }
 footer .theme-row[aria-checked="true"] .theme-switch::after { transform: translateX(11px); }
 .primary-action {
-  background: light-dark(#09090b, #eaeaed); border-radius: 8px; box-shadow: none; font-size: 13px; font-weight: 600;
-  gap: 6px; min-height: 36px; padding: 8px 14px;
+  background: light-dark(#09090b, #eaeaed); border-radius: 6px; box-shadow: none; font-size: 13px; font-weight: 600;
+  gap: 6px; height: 32px; min-height: 0; padding: 0 12px;
 }
 .primary-action:hover { background: light-dark(#27272a, #dfdfe3); }
 .primary-action > span:first-child { font-size: 16px; }
+/* Signing in: a quiet outlined button beside the main one, both the size of
+   the directory's WhatsApp button. */
+.nav-login {
+  align-items: center; border: 1px solid light-dark(#e4e4e7, #383839); border-radius: 6px; color: light-dark(#09090b, #eaeaed);
+  display: inline-flex; font-size: 13px; font-weight: 600; height: 32px; padding: 0 12px;
+}
+.nav-login:hover { background: light-dark(#f4f4f5, #29292c); border-color: light-dark(#d4d4d8, #52525b); }
+.mobile-guest-actions { border-top: 0; padding-top: 0; }
+.mobile-nav .mobile-guest-actions a {
+  border: 1px solid light-dark(#e4e4e7, #383839); border-radius: 6px; color: light-dark(#09090b, #eaeaed);
+  font-size: 14px; font-weight: 650; justify-content: center; min-height: 48px;
+}
 .icon-button, .avatar-button { border-color: light-dark(#e4e4e7, #383839); }
 .avatar-button { background: light-dark(#f4f4f5, #171717); }
 
