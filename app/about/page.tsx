@@ -193,19 +193,27 @@ export default async function AboutPage() {
 
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
-          <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
-          {/* The problem first, set apart; the invitation that answers it is the headline beneath. */}
-          <p className="ab-problem">
-            <strong>{tx(locale, "Bikin project sendirian itu melelahkan.", "Building a project alone is exhausting.")}</strong>{" "}
-            {tx(
-              locale,
-              "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
-              "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
-            )}
-          </p>
           <h1 id="about-title">{tx(locale, "Kontribusi dan bawa dampak, bareng-bareng.", "Contribute and deliver impact, together.")}</h1>
+          {/* The problem from both sides, told as the story, then what the place does about it. */}
           <div className="ab-story">
+            <p>
+              <strong>{tx(locale, "Bikin project sendirian itu melelahkan.", "Building a project alone is exhausting.")}</strong>{" "}
+              {tx(
+                locale,
+                "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+                "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
+              )}
+            </p>
+            <p>
+              <strong>{tx(locale, "Mau kontribusi juga nggak gampang.", "Contributing isn't easy either.")}</strong>{" "}
+              {tx(
+                locale,
+                "Banyak yang pengin nyalurin kemampuannya, tapi nggak tahu project mana yang terbuka, dan harus mulai dari mana.",
+                "Plenty of people want to put their skills to use, but don't know which projects are open, or where to start.",
+              )}
+            </p>
             <p className="ab-quote">
+              <span className="ab-quote-lead">{tx(locale, "Builders hadir buat nyambungin keduanya.", "Builders is here to bring the two together.")}</span>
               <strong>
                 {tx(
                   locale,
