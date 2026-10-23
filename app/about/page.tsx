@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Cari tempat kontribusi berikutnya: repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran.",
-    "Find your next contribution: open source repos ready for your PR, and products from local builders opening roles.",
+    "Kontribusi, dan bawa dampak. Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
+    "Contribute and deliver impact. Projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
   );
   return {
     title,
@@ -105,7 +105,7 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
 
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
-/** Who the place is for: contributors first — engineers, then every other role — and builders listing a product. */
+/** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
 const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
     "Engineer",
@@ -116,14 +116,14 @@ const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
     "Peran lain",
     "Every other role",
-    "Desain, produk, riset, penulisan, marketing, QA—produk builder lokal juga nyari semua itu. Lihat mana yang lagi buka peranmu.",
-    "Design, product, research, writing, marketing, QA—local builders' products look for all of it. See which are opening your role.",
+    "Desain, produk, riset, penulisan, marketing, QA—project dari builder Indonesia juga nyari semua itu. Lihat mana yang lagi buka peranmu.",
+    "Design, product, research, writing, marketing, QA—projects from Indonesian builders look for all of it. See which are opening your role.",
   ],
   [
     "Builder",
     "Builders",
-    "Punya produk, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
-    "Building a product, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
+    "Punya project, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
+    "Building a project, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
   ],
 ];
 
@@ -131,8 +131,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Tempat buat nyari kontribusi berikutnya: repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran. Utamanya kode, peran lain juga disambut.",
-    "A place to find your next contribution: open source repos ready for your PR, and products from local builders opening roles. Code first, every other role welcome.",
+    "Tempat buat kontribusi ke project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
+    "A place to contribute to projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
   ],
   [
     "Siapa yang ngelola?",
@@ -143,8 +143,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Saya bukan programmer. Masih bisa kontribusi?",
     "I am not a programmer. Can I still contribute?",
-    "Bisa. Produk member sering butuh desainer, PM, peneliti, penulis, atau marketing—lihat tab “Peran lain” di direktori.",
-    "Yes. Members' products often need designers, PMs, researchers, writers or marketers—see the “Other roles” tab in the directory.",
+    "Bisa. Project member sering nyari desainer, PM, peneliti, penulis, atau marketing—lihat tab “Peran lain” di direktori.",
+    "Yes. Members' projects often look for designers, PMs, researchers, writers or marketers—see the “Other roles” tab in the directory.",
   ],
   [
     "Project saya masih ide dan berantakan. Boleh ditaruh?",
@@ -194,29 +194,22 @@ export default async function AboutPage() {
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
-          <h1 id="about-title">{tx(locale, "Cari tempat kontribusi berikutnya.", "Find your next contribution.")}</h1>
+          <h1 id="about-title">{tx(locale, "Kontribusi, dan bawa dampak.", "Contribute and deliver impact.")}</h1>
           <div className="ab-story">
             <p className="ab-quote">
               <strong>
                 {tx(
                   locale,
-                  "Repo open source yang siap nerima PR, dan produk dari builder lokal yang lagi buka peran. Utamanya kode, peran lain juga disambut.",
-                  "Open source repos ready for your PR, and products from local builders opening roles. Code first, every other role welcome.",
+                  "Project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia. Utamanya kode, peran lain juga disambut.",
+                  "Projects open to contributors—open source repos and products from Indonesian builders. Code first, every other role welcome.",
                 )}
               </strong>
             </p>
             <p>
               {tx(
                 locale,
-                "Langkah pertama kontribusi sering yang paling bikin bingung: repo mana yang bakal baca PR-mu, project mana yang beneran terbuka. Di sini tiap kartu nunjukin status PR yang jujur, isu pemula, dan peran yang lagi dicari.",
-                "The first step is often the most confusing: which repo will read your PR, which project is genuinely open. Here every card shows an honest PR status, starter issues, and the roles it is looking for.",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Selain repo open source, builder lokal juga bisa ngedaftarin produknya—open source atau bukan—dan buka peran buat kontributor. Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
-                "Beyond open source repos, local builders can list their products—open source or not—and open roles for contributors. It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
+                "Tiap kartu nunjukin status PR, isu pemula, dan peran yang lagi dicari, jadi kamu tahu project mana yang siap nerima kontribusimu. Punya project sendiri? Daftarin juga. Dikelola komunitas Software Engineer Growth, gratis, dan kodenya sendiri juga open source.",
+                "Every card shows the PR status, starter issues and the roles being looked for, so you know which project is ready for your contribution. Have a project of your own? List it too. It is run by the Software Engineer Growth community, it is free, and its own code is open source too.",
               )}
             </p>
           </div>
@@ -250,8 +243,8 @@ export default async function AboutPage() {
               <p>
                 {tx(
                   locale,
-                  "Repo open source dan produk member yang punya repo GitHub. Pilih Lokal untuk yang dikelola komunitas atau maintainer Indonesia, Global untuk sisanya. Tiap kartu nunjukin bahasa, bintang, isu pemula, dan status PR-nya.",
-                  "Open source repos and members' products with a GitHub repo. Pick Local for those run by the community or by Indonesian maintainers, Global for the rest. Each card shows the language, stars, starter issues, and PR status.",
+                  "Repo open source dan project member yang punya repo GitHub. Pilih Lokal untuk yang dikelola komunitas atau maintainer Indonesia, Global untuk sisanya. Tiap kartu nunjukin bahasa, bintang, isu pemula, dan status PR-nya.",
+                  "Open source repos and members' projects with a GitHub repo. Pick Local for those run by the community or by Indonesian maintainers, Global for the rest. Each card shows the language, stars, starter issues, and PR status.",
                 )}
               </p>
             </Link>
@@ -260,8 +253,8 @@ export default async function AboutPage() {
               <p>
                 {tx(
                   locale,
-                  "Produk member yang lagi cari desainer, PM, peneliti, marketing, QA, dan peran lain. Klik “Tawarkan bantuan” di peran yang cocok, dan admin bakal nyambungin kamu ke pemilik project lewat WhatsApp.",
-                  "Members' products looking for designers, PMs, researchers, marketers, QA, and more. Press “Offer to help” on the role that fits, and an admin connects you with the project's owner on WhatsApp.",
+                  "Project member yang lagi cari desainer, PM, peneliti, marketing, QA, dan peran lain. Klik “Tawarkan bantuan” di peran yang cocok, dan admin bakal nyambungin kamu ke pemilik project lewat WhatsApp.",
+                  "Members' projects looking for designers, PMs, researchers, marketers, QA, and more. Press “Offer to help” on the role that fits, and an admin connects you with the project's owner on WhatsApp.",
                 )}
               </p>
             </Link>
@@ -325,8 +318,8 @@ export default async function AboutPage() {
           <p className="ab-lead">
             {tx(
               locale,
-              "Kode yang utama, tapi software juga butuh hal lain supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
-              "Code comes first, but software needs more before people can use it. Every role sees something different, and all of it can be a contribution.",
+              "Kode yang utama, tapi sebuah project juga butuh hal lain supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
+              "Code comes first, but a project needs more before people can use it. Every role sees something different, and all of it can be a contribution.",
             )}
           </p>
 
@@ -362,8 +355,8 @@ export default async function AboutPage() {
           <p>
             {tx(
               locale,
-              "Cari repo atau produk yang pas di direktori. Punya produk sendiri? Daftarin juga.",
-              "Find a repo or a product that fits in the directory. Building one yourself? List it too.",
+              "Cari project yang pas di direktori. Punya project sendiri? Daftarin juga.",
+              "Find a project that fits in the directory. Have one of your own? List it too.",
             )}
           </p>
           <div className="ab-cta-actions">
