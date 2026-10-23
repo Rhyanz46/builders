@@ -4,6 +4,7 @@ import type { GitHubRepositoryStats } from "./github";
 import { parseGitHubRepositoryUrl } from "./github";
 import { tx, type Locale } from "./locale";
 import { isHttpUrl } from "./brief";
+import { STAGES, type Stage } from "./stages";
 import {
   reasonLabel,
   repoBadges,
@@ -80,8 +81,20 @@ export type DirectoryEntry = {
   badges: Badge[];
   language: string;
   stars: number | null;
-  /** When GitHub last saw a push — the card's "Updated …". Null when unknown. */
+  /** When GitHub last saw a push — the card's "Last push …". Null when unknown. */
   updatedAt: string | null;
+  /** When it joined the directory: its catalogue row, or the product. Null when unknown. */
+  listedAt: string | null;
+  /**
+   * A product's last sign of life here — an update, a comment, a seat filled.
+   * What a role card dates itself by, since a product may have no repository
+   * to push to. Null for a catalogue repo.
+   */
+  activeAt: string | null;
+  /** A product's stage. Null for a catalogue repo. */
+  stage: Stage | null;
+  /** How many seats a product has open; 0 for a catalogue repo. */
+  openSeats: number;
   /** Its GitHub repository as `owner/name`, lower-cased — what the Star button stars. Null without one. */
   repo: string | null;
   /** Where the name links — the repo, or the product's page here. */
@@ -166,6 +179,9 @@ export type DirectoryProduct = {
   /** Filled seats — people who have already joined and helped. */
   activeMemberCount: number;
   owner: { name: string };
+  stage?: Stage;
+  createdAt?: string;
+  lastActivityAt?: string;
   /** GitHub's numbers for `repoUrl`, when it is a GitHub repository that answered. */
   repoStats?: GitHubRepositoryStats | null;
   /** Who gets merged on that repository. */
@@ -211,6 +227,10 @@ export function repoEntry(
     language: repo.stats?.language ?? "",
     stars: repo.stats ? repo.stats.stars : null,
     updatedAt: repo.stats?.pushedAt ?? null,
+    listedAt: repo.createdAt || null,
+    activeAt: null,
+    stage: null,
+    openSeats: 0,
     repo: `${repo.owner}/${repo.repo}`.toLowerCase(),
     href: repoUrl(repo),
     actionHref: open ? starterIssuesUrl(repo) : repoUrl(repo),
@@ -260,6 +280,10 @@ export function productEntries<P extends DirectoryProduct>(
     language: "",
     stars: null,
     updatedAt: null,
+    listedAt: project.createdAt || null,
+    activeAt: project.lastActivityAt || null,
+    stage: project.stage ?? null,
+    openSeats: project.openSeatCount,
     repo: repository ? `${repository.owner}/${repository.repo}`.toLowerCase() : null,
     href: page,
     // A filled seat is somebody from here who already joined: the product's
@@ -321,18 +345,48 @@ function isOpenFor(entry: DirectoryEntry, opening: DirectoryOpening): boolean {
   return opening === "prs" ? entry.welcomesPRs : entry.hasOpenRoles;
 }
 
+/**
+ * The orders a visitor can ask for. Empty is the path's own: PR tier on the
+ * code path, last activity on the role path (the order the page builds it in).
+ */
+export const DIRECTORY_SORTS = ["updated", "stars", "newest"] as const;
+export type DirectorySort = (typeof DIRECTORY_SORTS)[number];
+
+export function isDirectorySort(value: string): value is DirectorySort {
+  return (DIRECTORY_SORTS as readonly string[]).includes(value);
+}
+
+/**
+ * The orders that mean something on a path. A role card has no push and no
+ * stars, and its own order is already the most recently active first.
+ */
+export function sortsFor(track: DirectoryTrack): DirectorySort[] {
+  return track === "github" ? ["updated", "stars", "newest"] : ["newest"];
+}
+
+export function sortLabel(sort: DirectorySort | "", track: DirectoryTrack, locale: Locale): string {
+  if (sort === "updated") return tx(locale, "Push terbaru", "Recently pushed");
+  if (sort === "stars") return tx(locale, "Bintang terbanyak", "Most stars");
+  if (sort === "newest") return tx(locale, "Baru masuk direktori", "Newest listed");
+  return track === "github" ? tx(locale, "Paling siap menerima PR", "Most ready for PRs") : tx(locale, "Aktivitas terbaru", "Recently active");
+}
+
 export type DirectoryFilters = {
   track: DirectoryTrack;
   /** Whether the maintainers are in the community, or recommended from outside. Empty for any. */
   source: DirectorySource | "";
   /** Only entries taking this kind of help. Empty for any. */
   open?: DirectoryOpening | "";
-  /** Only entries at this PR tier. Empty for any. */
-  pr?: PRTier | "";
+  /** Only entries at one of these PR tiers. Empty for any. */
+  pr?: PRTier[];
   /** Only entries carrying this badge. Empty for any. */
   badge: BadgeKind | "";
-  /** A language on the GitHub path, a role on the role path. Empty for any. */
-  facet: string;
+  /** Languages on the GitHub path, roles on the role path; an entry with any of them. Empty for any. */
+  facet: string[];
+  /** Only products at one of these stages. Empty for any. */
+  stage?: Stage[];
+  /** Empty for the path's own order. */
+  sort?: DirectorySort | "";
   q: string;
 };
 
@@ -342,9 +396,11 @@ function facetsOf(entry: DirectoryEntry): string[] {
 }
 
 /**
- * One path, narrowed by its chip and the search box. On the code path entries
- * are ranked by PR tier — merging outsiders first, not taking PRs last — and
- * within a tier, and on the role path, the order is kept as the caller built it.
+ * One path, narrowed by its chips and the search box. Within a group the
+ * chips widen (TypeScript or Go); across groups they narrow. Unless another
+ * order is asked for, entries on the code path are ranked by PR tier —
+ * merging outsiders first, not taking PRs last — and within a tier, and on
+ * the role path, the order is kept as the caller built it.
  */
 /** How many cards one page of the directory shows. */
 export const PAGE_SIZE = 20;
@@ -365,20 +421,66 @@ export function paginate<T>(items: T[], requested: string | number, size = PAGE_
 
 export function filterDirectory(entries: DirectoryEntry[], filters: DirectoryFilters): DirectoryEntry[] {
   const query = searchable(filters.q);
-  const facet = searchable(filters.facet);
+  const facets = filters.facet.map(searchable);
+  const tiers = filters.pr ?? [];
+  const stages = filters.stage ?? [];
   const matched = entries.filter((entry) => {
     if (entry.track !== filters.track) return false;
     if (filters.source && entry.source !== filters.source) return false;
     if (filters.open && !isOpenFor(entry, filters.open)) return false;
-    if (filters.pr && entry.prTier !== filters.pr) return false;
+    if (tiers.length > 0 && !(entry.prTier && tiers.includes(entry.prTier))) return false;
+    if (stages.length > 0 && !(entry.stage && stages.includes(entry.stage))) return false;
     if (filters.badge && !entry.badges.some((badge) => badge.kind === filters.badge)) return false;
-    if (facet && !facetsOf(entry).some((value) => searchable(value) === facet)) return false;
+    if (facets.length > 0 && !facetsOf(entry).some((value) => facets.includes(searchable(value)))) return false;
     if (!query) return true;
     return searchable(
       [entry.name, entry.owner, ...entry.links.map((link) => link.label), entry.description, entry.language, ...entry.labels].join(" "),
     ).includes(query);
   });
+
+  const sort = filters.sort && sortsFor(filters.track).includes(filters.sort) ? filters.sort : "";
+  // Whatever is unknown — no push seen, no stars counted — goes last, not first.
+  if (sort === "updated") return matched.toSorted((a, b) => latestFirst(a.updatedAt, b.updatedAt));
+  if (sort === "newest") return matched.toSorted((a, b) => latestFirst(a.listedAt, b.listedAt));
+  if (sort === "stars") return matched.toSorted((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
   return filters.track === "github" ? matched.toSorted((a, b) => tierRank(a) - tierRank(b)) : matched;
+}
+
+function latestFirst(a: string | null, b: string | null): number {
+  const left = a ? Date.parse(a) : NaN;
+  const right = b ? Date.parse(b) : NaN;
+  return (Number.isFinite(right) ? right : -Infinity) - (Number.isFinite(left) ? left : -Infinity) || 0;
+}
+
+/** How long an entry counts as new to the directory. */
+export const NEW_DAYS = 14;
+
+/** Listed in the last `NEW_DAYS` days. */
+export function isNew(entry: DirectoryEntry, now = Date.now()): boolean {
+  const listed = entry.listedAt ? Date.parse(entry.listedAt) : NaN;
+  return Number.isFinite(listed) && now - listed <= NEW_DAYS * 86_400_000;
+}
+
+/**
+ * How long a product may go without any activity here before its role card
+ * recedes, the way an inactive repository does on the code path: still
+ * listed, but not presented as somebody waiting for help.
+ */
+export const QUIET_DAYS = 60;
+
+export function isQuiet(entry: DirectoryEntry, now = Date.now()): boolean {
+  const active = entry.activeAt ? Date.parse(entry.activeAt) : NaN;
+  return Number.isFinite(active) && now - active > QUIET_DAYS * 86_400_000;
+}
+
+/** How many products on the role path sit at each stage, in stage order. Empty when they all share one. */
+export function stageCounts(entries: DirectoryEntry[], track: DirectoryTrack): { stage: Stage; count: number }[] {
+  if (track !== "role") return [];
+  const counts = STAGES.map((stage) => ({
+    stage,
+    count: entries.filter((entry) => entry.track === track && entry.stage === stage).length,
+  })).filter(({ count }) => count > 0);
+  return counts.length > 1 ? counts : [];
 }
 
 function tierRank(entry: DirectoryEntry): number {

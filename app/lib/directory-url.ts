@@ -1,11 +1,13 @@
 import { isBadgeKind } from "./badges";
 import {
   isDirectoryOpening,
+  isDirectorySort,
   isDirectorySource,
   isDirectoryTrack,
   isPRTier,
   type DirectoryFilters,
 } from "./directory";
+import { isStage } from "./stages";
 
 /**
  * The directory's address, both ways: what a URL asks for, and the URL for a
@@ -23,6 +25,15 @@ function read(query: Query, key: string): string {
   return query instanceof URLSearchParams ? one(query.get(key)) : one(query[key]);
 }
 
+/** How many values one group may carry: more than anybody picks, few enough to bound a hand-made URL. */
+const MAX_VALUES = 10;
+
+/** A group that takes several values, each its own `key=` in the URL; repeats dropped. */
+function readAll(query: Query, key: string): string[] {
+  const raw = query instanceof URLSearchParams ? query.getAll(key) : [query[key] ?? []].flat();
+  return [...new Set(raw.filter(Boolean))].slice(0, MAX_VALUES);
+}
+
 /**
  * What the URL asks for. Software engineers are who the site is for first,
  * so with no choice made the GitHub path is the one showing.
@@ -32,14 +43,18 @@ export function readFilters(query: Query): DirectoryFilters {
   const source = read(query, "source");
   const badge = read(query, "badge");
   const open = read(query, "open");
-  const pr = read(query, "pr");
+  const sort = read(query, "sort");
   return {
     track: isDirectoryTrack(track) ? track : "github",
     source: isDirectorySource(source) ? source : "",
     open: isDirectoryOpening(open) ? open : "",
-    pr: isPRTier(pr) ? pr : "",
+    pr: readAll(query, "pr").filter(isPRTier),
     badge: isBadgeKind(badge) ? badge : "",
-    facet: read(query, "facet").slice(0, 60),
+    facet: readAll(query, "facet").map((value) => value.slice(0, 60)),
+    // `phase`, not `stage`: an old `/?stage=` link is the board that moved to
+    // /explore, and proxy.ts sends it there.
+    stage: readAll(query, "phase").filter(isStage),
+    sort: isDirectorySort(sort) ? sort : "",
     q: read(query, "q").slice(0, 100),
   };
 }
@@ -54,10 +69,12 @@ export function pathFor(filters: DirectoryFilters, page = 1): string {
   if (filters.track !== "github") params.set("track", filters.track);
   if (filters.source) params.set("source", filters.source);
   if (filters.open) params.set("open", filters.open);
-  if (filters.pr) params.set("pr", filters.pr);
+  for (const tier of filters.pr ?? []) params.append("pr", tier);
   if (filters.badge) params.set("badge", filters.badge);
-  if (filters.facet) params.set("facet", filters.facet);
+  for (const facet of filters.facet) params.append("facet", facet);
+  for (const stage of filters.stage ?? []) params.append("phase", stage);
   if (filters.q) params.set("q", filters.q);
+  if (filters.sort) params.set("sort", filters.sort);
   if (page > 1) params.set("page", String(page));
   const search = params.toString();
   return `/${search ? `?${search}` : ""}`;
