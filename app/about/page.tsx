@@ -114,12 +114,6 @@ const BENEFITS: readonly (readonly [string, string, string, string])[] = [
     "Every project and finished contribution lands on the profile. One link that grows on its own, with nothing to deploy.",
   ],
   [
-    "Masuk talent pool",
-    "A place in the talent pool",
-    "Profil bisa ditemukan recruiter, hiring manager, dan tim tech lewat peran, keahlian, dan status peluangnya.",
-    "Recruiters, hiring managers, and tech teams can find the profile by role, skills, and opportunity status.",
-  ],
-  [
     "Kolaborator lintas peran",
     "Collaborators across roles",
     "Member komunitasmu ketemu orang dengan keahlian yang beda dari mereka—dan itu yang bikin produknya jalan.",
@@ -161,8 +155,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Apa untungnya buat saya?",
     "What do I get out of it?",
-    "Profil yang jalan sebagai web portfolio pribadi, plus tempat di talent pool biar recruiter dan tim tech bisa nilai keahlianmu dari karya yang nyata—bukan dari klaim di CV.",
-    "A profile that doubles as your personal portfolio site, plus a place in the talent pool so recruiters and tech teams can judge your skills from real work rather than claims on a CV.",
+    "Profil yang jalan sebagai web portfolio pribadi, biar orang bisa nilai keahlianmu dari karya yang nyata—bukan dari klaim di CV.",
+    "A profile that doubles as your personal portfolio site, so people can judge your skills from real work rather than claims on a CV.",
   ],
   [
     "Komunitas saya mau jadi community partner. Gimana caranya?",

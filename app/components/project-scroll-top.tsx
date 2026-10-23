@@ -30,8 +30,3 @@ function ScrollToTopOnNavigation() {
 
   return null;
 }
-
-/** Kept as the project-page API while other destination pages share the behavior. */
-export function ProjectScrollTop() {
-  return <PageScrollTop />;
-}

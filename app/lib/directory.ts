@@ -436,12 +436,6 @@ export function sourceLabel(source: DirectorySource, locale: Locale): string {
   return source === "community" ? tx(locale, "Dari komunitas", "From the community") : tx(locale, "Rekomendasi", "Recommended");
 }
 
-export function trackLabel(track: DirectoryTrack, locale: Locale): string {
-  return track === "github"
-    ? tx(locale, "Open source di GitHub", "Open source on GitHub")
-    : tx(locale, "Peran lain", "Other roles");
-}
-
 /**
  * The tile's image: the product's own logo, else (left empty) its website's
  * favicon, which the tile fetches itself, else its GitHub owner's avatar.

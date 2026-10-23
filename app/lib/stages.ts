@@ -138,19 +138,6 @@ export function settleStage(current: Stage, project: StageInput): Stage {
   return earned.length > 0 ? earned[earned.length - 1] : "idea";
 }
 
-/**
- * The three rungs a project climbs, for the journey rail.
- *
- * Deliberately not a percentage and not four segments of a bar: a project is
- * not 75% done, and a bar that says so makes this look like a tracker. Three
- * dots say where it is and nothing more.
- */
-export const RUNGS = ["idea", "building", "live"] as const satisfies readonly Stage[];
-
-export function rungIndex(stage: Stage): number {
-  return (RUNGS as readonly Stage[]).indexOf(stage);
-}
-
 /** Parses the comma-separated tag field people type into a clean list. */
 export function tagList(tags: string): string[] {
   return tags
