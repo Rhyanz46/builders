@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Kontribusi dan bawa dampak, bareng-bareng. Repo open source lokal maupun global, dan produk dari builder Indonesia, butuh kamu untuk tumbuh.",
-    "Contribute and deliver impact, together. Local and global open source repos, and products from Indonesian builders, need you to help them grow.",
+    "Kontribusi dan bawa dampak, bareng-bareng. Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+    "Contribute and deliver impact, together. Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
   );
   return {
     title,
@@ -200,16 +200,16 @@ export default async function AboutPage() {
               <strong>
                 {tx(
                   locale,
-                  "Repo open source lokal maupun global, dan produk dari builder Indonesia, butuh kamu untuk tumbuh.",
-                  "Local and global open source repos, and products from Indonesian builders, need you to help them grow.",
+                  "Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+                  "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
                 )}
               </strong>
             </p>
             <p>
               {tx(
                 locale,
-                "Tiap kartu nunjukin status PR, isu pemula, dan peran yang lagi dicari, jadi kamu tahu project mana yang siap nerima kontribusimu. Punya project sendiri? Daftarin juga.",
-                "Every card shows the PR status, starter issues and the roles being looked for, so you know which project is ready for your contribution. Have a project of your own? List it too.",
+                "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
+                "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
               )}
             </p>
           </div>
