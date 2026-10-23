@@ -194,6 +194,15 @@ export default async function AboutPage() {
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
           <p className="ab-kicker">{tx(locale, "Tentang", "About")}</p>
+          {/* The problem first, set apart; the invitation that answers it is the headline beneath. */}
+          <p className="ab-problem">
+            <strong>{tx(locale, "Bikin project sendirian itu melelahkan.", "Building a project alone is exhausting.")}</strong>{" "}
+            {tx(
+              locale,
+              "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+              "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
+            )}
+          </p>
           <h1 id="about-title">{tx(locale, "Kontribusi dan bawa dampak, bareng-bareng.", "Contribute and deliver impact, together.")}</h1>
           <div className="ab-story">
             <p className="ab-quote">
@@ -204,13 +213,6 @@ export default async function AboutPage() {
                   "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
                 )}
               </strong>
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Bikin project sendirian itu melelahkan. Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
-                "Building a project alone is exhausting. Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
-              )}
             </p>
             <p>
               {tx(

@@ -2351,6 +2351,12 @@ form.rf label { margin-bottom: 0; }
   padding: 48px max(var(--gutter), calc((100% - 760px) / 2)) 80px; width: 100%;
 }
 .ab-kicker { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 10px; }
+/* The problem the page answers, set apart above the headline. */
+.ab-problem {
+  background: var(--dx-warm-soft); border-left: 3px solid var(--dx-warm); border-radius: 0 10px 10px 0;
+  color: var(--dx-text); font-size: 17px; line-height: 1.6; margin: 0 0 28px; padding: 16px 20px;
+}
+.ab-problem strong { color: light-dark(#c2410c, #fb923c); display: block; font-size: 20px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 4px; }
 .ab-intro h1 { font-size: 34px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; margin: 0; }
 .ab-story { color: var(--dx-text); display: grid; font-size: 15.5px; gap: 14px; line-height: 1.7; margin-top: 24px; }
 .ab-story p { margin: 0; }
@@ -2403,6 +2409,8 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 @media (max-width: 640px) {
   .ab-page { padding-top: 32px; }
   .ab-intro h1 { font-size: 27px; }
+  .ab-problem { font-size: 15.5px; padding: 14px 16px; }
+  .ab-problem strong { font-size: 18px; }
   .ab-cta { padding: 24px 20px; }
 }
 
