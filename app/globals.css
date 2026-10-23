@@ -1586,9 +1586,12 @@ form button[aria-busy="true"]::after,
 .dx-search label:focus-within { border-color: var(--dx-ink); box-shadow: 0 0 0 3px light-dark(rgba(9, 9, 11, .06), rgba(0, 0, 0, .12)); }
 .dx-search svg { fill: none; flex: none; height: 15px; stroke: var(--dx-muted); stroke-width: 2; width: 15px; }
 .dx-search input { background: none; border: 0; font-size: 14px; margin: 0; min-width: 0; outline: none; padding: 0; width: 100%; }
-.dx-sort { flex: none; margin: 0 0 0 auto; }
-.dx-sort label { display: block; }
+.dx-toolbar-end { align-items: center; display: flex; flex: none; gap: 14px; }
+.dx-sort { align-items: center; display: flex; margin: 0; }
+/* Not a data-entry field: out from under `form label` and `form select`. */
+.dx-sort label { display: block; margin: 0; }
 .dx-sort select {
+  line-height: normal; margin: 0; width: auto;
   appearance: none; background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 10px center / 14px 14px;
   border: 1px solid var(--dx-line); border-radius: 8px; color: var(--dx-ink); cursor: pointer; font: inherit; font-size: 13.5px;
   height: 38px; padding: 0 32px 0 12px;
@@ -1851,8 +1854,7 @@ form button[aria-busy="true"]::after,
   .dx-head h1 { font-size: 22px; }
   .dx-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
   .dx-search { max-width: none; }
-  .dx-sort { margin: 0; }
-  .dx-sort select { width: 100%; }
+  .dx-toolbar-end { justify-content: space-between; }
 }
 
 /* The rows answer to the width of the results column, not of the screen:
