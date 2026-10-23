@@ -8,11 +8,11 @@ import { prTierLabel, type PRTier } from "../lib/directory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Tentang Kami — Builders", "About Us — Builders");
+  const title = tx(locale, "Tentang — Builders", "About — Builders");
   const description = tx(
     locale,
-    "Bukan cuma open source. Builders terbuka buat semua peran—engineer, PM, desainer, marketing, data—supaya sebuah project bisa benar-benar berdampak.",
-    "Not just open source. Builders is open to every role—engineers, PMs, designers, marketers, data people—so a project can actually make an impact.",
+    "Kontribusi dan bawa dampak, bareng-bareng. Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+    "Contribute and deliver impact, together. Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
   );
   return {
     title,
@@ -21,9 +21,6 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: shareCard({ title, description, url: "/about" }),
   };
 }
-
-/** The profile that takes both invitations: a new project, or a partner community. */
-const CONTACT_PATH = "/u/zikrul-ihsan";
 
 /**
  * Who contributes what.
@@ -106,18 +103,27 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
   ],
 ];
 
-const BENEFITS: readonly (readonly [string, string, string, string])[] = [
+/** Who the place is for. Plain on purpose: what each gets, not a pitch. */
+/** Who the place is for: the builder, then contributors — engineers first. */
+/** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
+const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
-    "Jadi web portfolio pribadi",
-    "A personal portfolio site",
-    "Setiap project dan kontribusi yang selesai nempel di profil. Satu tautan yang tumbuh sendiri, tanpa perlu deploy apa pun.",
-    "Every project and finished contribution lands on the profile. One link that grows on its own, with nothing to deploy.",
+    "Engineer",
+    "Engineers",
+    "Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
+    "Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
   ],
   [
-    "Kolaborator lintas peran",
-    "Collaborators across roles",
-    "Member komunitasmu ketemu orang dengan keahlian yang beda dari mereka—dan itu yang bikin produknya jalan.",
-    "Your members meet people whose skills are nothing like their own—which is what moves a product forward.",
+    "Peran lain",
+    "Every other role",
+    "Desain, produk, riset, penulisan, marketing, QA—project dari builder Indonesia juga nyari semua itu. Lihat mana yang lagi buka peranmu.",
+    "Design, product, research, writing, marketing, QA—projects from Indonesian builders look for all of it. See which are opening your role.",
+  ],
+  [
+    "Builder",
+    "Builders",
+    "Punya project, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
+    "Building a project, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
   ],
 ];
 
@@ -125,20 +131,20 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Ruang publik buat naruh project tech kamu, nunjukin karya nyatanya, dan cari orang yang mau bantu ngembangin. Dari yang masih ide sampai yang sudah live.",
-    "A public place to put your tech project, show the real work behind it, and find people who want to help it grow. From a raw idea to something already live.",
+    "Tempat buat kontribusi ke project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
+    "A place to contribute to projects open to contributors—open source repos and products from Indonesian builders.",
   ],
   [
-    "Bedanya open contribution sama open source apa?",
-    "How is open contribution different from open source?",
-    "Open source biasanya berhenti di kode. Open contribution kebuka buat semua peran—riset, produk, desain, copy, marketing, data—karena produk nggak bertumbuh cuma dari pull request.",
-    "Open source usually stops at the code. Open contribution is open to every role—research, product, design, copy, marketing, data—because a product does not grow on pull requests alone.",
+    "Siapa yang ngelola?",
+    "Who runs it?",
+    "Komunitas Software Engineer Growth (swegrowth). Kodenya juga open source—kalau nemu yang kurang, kamu bisa langsung kontribusi ke situs ini.",
+    "The Software Engineer Growth (swegrowth) community. The code is open source too—if something is missing, you can contribute to this site directly.",
   ],
   [
     "Saya bukan programmer. Masih bisa kontribusi?",
     "I am not a programmer. Can I still contribute?",
-    "Justru itu intinya. Nulis ulang value proposition, mendekin alur daftar, atau ngerapiin distribusi itu kontribusi yang sama nyatanya dengan nge-fix bug.",
-    "That is exactly the point. Rewriting a value proposition, shortening a sign-up flow, or fixing distribution is as real a contribution as fixing a bug.",
+    "Bisa. Project member sering nyari desainer, PM, peneliti, penulis, atau marketing—lihat tab “Peran lain” di direktori.",
+    "Yes. Members' projects often look for designers, PMs, researchers, writers or marketers—see the “Other roles” tab in the directory.",
   ],
   [
     "Project saya masih ide dan berantakan. Boleh ditaruh?",
@@ -153,16 +159,10 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
     "No. A project can stay a public build log for as long as you like, and you can open a role whenever you are ready for help.",
   ],
   [
-    "Apa untungnya buat saya?",
-    "What do I get out of it?",
-    "Profil yang jalan sebagai web portfolio pribadi, biar orang bisa nilai keahlianmu dari karya yang nyata—bukan dari klaim di CV.",
-    "A profile that doubles as your personal portfolio site, so people can judge your skills from real work rather than claims on a CV.",
-  ],
-  [
-    "Komunitas saya mau jadi community partner. Gimana caranya?",
-    "My community wants to be a community partner. How?",
-    "Hubungi lewat kontak di profil ini. Ceritain komunitasmu dan member-nya siapa aja—sisanya kita obrolin bareng.",
-    "Reach out through the contact links on this profile. Tell us about your community and who your members are—we will work out the rest together.",
+    "Komunitas saya mau ikut. Gimana caranya?",
+    "My community wants to join in. How?",
+    "Gabung ke WA Community lewat tombol di bawah, lalu kabarin admin. Ceritain komunitasmu, nanti kita obrolin bareng.",
+    "Join the WA Community with the button below, then let the admin know. Tell us about your community, and we will work it out together.",
   ],
   [
     "Repo yang saya tahu belum ada. Bisa diusulin?",
@@ -193,45 +193,56 @@ export default async function AboutPage() {
 
       <main id="main-content" className="ab-page">
         <header className="ab-intro" aria-labelledby="about-title">
-          <p className="ab-kicker">{tx(locale, "Tentang kami", "About us")}</p>
-          <h1 id="about-title">
-            {tx(locale, "Bukan cuma open source. Tapi open contribution.", "Not just open source. But open contribution.")}
-          </h1>
+          <h1 id="about-title">{tx(locale, "Kontribusi dan bawa dampak, bareng-bareng.", "Contribute and deliver impact, together.")}</h1>
+          {/* The problem from both sides, told as the story, then what the place does about it. */}
           <div className="ab-story">
+            <p>
+              <strong>{tx(locale, "Bikin project sendirian itu melelahkan.", "Building a project alone is exhausting.")}</strong>{" "}
+              {tx(
+                locale,
+                "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+                "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
+              )}
+            </p>
+            <p>
+              <strong>{tx(locale, "Mau kontribusi juga nggak gampang.", "Contributing isn't easy either.")}</strong>{" "}
+              {tx(
+                locale,
+                "Banyak yang pengin nyalurin kemampuannya, tapi nggak tahu project mana yang terbuka, dan harus mulai dari mana.",
+                "Plenty of people want to put their skills to use, but don't know which projects are open, or where to start.",
+              )}
+            </p>
             <p className="ab-quote">
-              <strong>{tx(locale, "“Oke, kamu bisa bikin softwarenya. Tapi bisa nggak jualinnya?”", "“Sure, you can build the software. But can you sell it?”")}</strong>{" "}
-              {tx(locale, "Celetuk orang yang paham bisnis, tepat setelah seorang programmer launch produknya.", "That is the business-minded one talking, right after a programmer ships their product.")}
+              <span className="ab-quote-lead">{tx(locale, "Builders hadir buat nyambungin keduanya.", "Builders is here to bring the two together.")}</span>
+              <strong>
+                {tx(
+                  locale,
+                  "Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+                  "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
+                )}
+              </strong>
             </p>
             <p>
               {tx(
                 locale,
-                "Giliran orang bisnis yang tiba-tiba vibe coding, programmernya balik nyeletuk: “Coba aja terus. Tapi kalau nanti ada user beneran, bisa nggak tuh maintain-nya?”",
-                "Then the business person tries vibe coding, and the programmer fires back: “Keep at it. But once there are real users, can you maintain it?”",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Dua-duanya punya concern yang mungkin ada benernya. Valid. Tapi dua-duanya juga nggak nolong siapa-siapa kalau berhenti di komentar.",
-                "Both concerns have a point. Both are valid. And neither one helps anybody if it stops at a comment.",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Padahal kalau dilihat lagi, masing-masing justru megang bagian yang dibutuhin sama yang satunya.",
-                "Look again, though, and each of them is holding exactly the piece the other is missing.",
-              )}
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Jadi kenapa nggak kita buka aja jadi open contribution? Bukan cuma kodenya yang open source, tapi terbuka buat semua peran—dikembangin bareng sampai produknya bisa ngasih impact beneran.",
-                "So why not open it up as open contribution? Not just open source code, but open to every role—built together until the product actually makes an impact.",
+                "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
+                "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
               )}
             </p>
           </div>
         </header>
+
+        <section className="ab-section" aria-labelledby="audience-title">
+          <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
+          <ul className="ab-cards">
+            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn]) => (
+              <li key={titleEn} className="ab-card">
+                <h3>{tx(locale, titleId, titleEn)}</h3>
+                <p>{tx(locale, bodyId, bodyEn)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className="ab-section" aria-labelledby="directory-title">
           <h2 id="directory-title">{tx(locale, "Cara pakai direktorinya", "How the directory works")}</h2>
@@ -249,8 +260,8 @@ export default async function AboutPage() {
               <p>
                 {tx(
                   locale,
-                  "Repo open source—usulan komunitas, rekomendasi, dan produk member yang punya repo GitHub. Tiap kartu nunjukin bahasa, jumlah bintang, isu pemula, dan status PR-nya, jadi kamu tahu mana yang paling mungkin nerima PR pertamamu.",
-                  "Open source repositories—community suggestions, recommendations, and members' products with a GitHub repo. Each card shows the language, stars, starter issues, and PR status, so you know which is most likely to take your first PR.",
+                  "Repo open source dan project member yang punya repo GitHub. Pilih Lokal untuk yang dikelola komunitas atau maintainer Indonesia, Global untuk sisanya. Tiap kartu nunjukin bahasa, bintang, isu pemula, dan status PR-nya.",
+                  "Open source repos and members' projects with a GitHub repo. Pick Local for those run by the community or by Indonesian maintainers, Global for the rest. Each card shows the language, stars, starter issues, and PR status.",
                 )}
               </p>
             </Link>
@@ -259,8 +270,8 @@ export default async function AboutPage() {
               <p>
                 {tx(
                   locale,
-                  "Produk member yang lagi cari desainer, PM, peneliti, marketing, QA, dan peran lain. Klik “Ajukan diri”, pilih perannya, dan pemilik project yang memutuskan.",
-                  "Members' products looking for designers, PMs, researchers, marketers, QA, and more. Press “Offer to help”, pick the role, and the project's owner decides.",
+                  "Project member yang lagi cari desainer, PM, peneliti, marketing, QA, dan peran lain. Klik “Tawarkan bantuan” di peran yang cocok, dan admin bakal nyambungin kamu ke pemilik project lewat WhatsApp.",
+                  "Members' projects looking for designers, PMs, researchers, marketers, QA, and more. Press “Offer to help” on the role that fits, and an admin connects you with the project's owner on WhatsApp.",
                 )}
               </p>
             </Link>
@@ -303,6 +314,13 @@ export default async function AboutPage() {
               </div>
             </li>
             <li>
+              <span className="ab-sign" aria-hidden="true">🇮🇩</span>
+              <div>
+                <strong>{tx(locale, "Maintainer Indonesia", "Indonesian maintainers")}</strong>
+                <p>{tx(locale, "Repo-nya dikelola orang Indonesia. Masuk hitungan Lokal, walaupun bukan buatan komunitas kita.", "The repo is maintained by Indonesians. It counts as Local, even when it is not one of the community's own.")}</p>
+              </div>
+            </li>
+            <li>
               <span className="ab-sign" aria-hidden="true">☆</span>
               <div>
                 <strong>Star</strong>
@@ -313,12 +331,12 @@ export default async function AboutPage() {
         </section>
 
         <section className="ab-section" aria-labelledby="roles-title">
-          <h2 id="roles-title">{tx(locale, "Kontribusi nggak cuma soal kode", "Contribution is not only about code")}</h2>
+          <h2 id="roles-title">{tx(locale, "Selain kode", "Beyond code")}</h2>
           <p className="ab-lead">
             {tx(
               locale,
-              "Bahkan nggak cuma dari programmer ke orang bisnis. Tiap peran ngelihat hal yang beda, dan tiap penglihatan itu bisa jadi kontribusi.",
-              "And it is not only programmer-to-business. Every role sees something different, and every one of those views can become a contribution.",
+              "Sebuah project juga butuh hal lain selain kode supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
+              "A project needs more than code before people can use it. Every role sees something different, and all of it can be a contribution.",
             )}
           </p>
 
@@ -336,45 +354,6 @@ export default async function AboutPage() {
           </Link>
         </section>
 
-        <section className="ab-section" aria-labelledby="partner-title">
-          <h2 id="partner-title">{tx(locale, "Terbuka juga buat community partner", "Open to community partners, too")}</h2>
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Platform ini dibuat buat bangun personal project sekaligus cari teman kolaborasi, biar projectnya bisa impactful beneran. Targetnya lintas peran di ekosistem tech: engineer, PM, UI/UX, copywriter, marketing, data, dan siapa pun yang bisa bikin produk bertumbuh.",
-              "This platform exists so people can build personal projects and find collaborators, so those projects can actually become impactful. It is aimed across the whole tech ecosystem: engineers, PMs, UI/UX, copywriters, marketers, data people, and anyone else who can make a product grow.",
-            )}
-          </p>
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Kalau kamu ngelola komunitas tech, kami terbuka buat jadi community partner. Perannya sederhana: bagikan info ke member biar mereka bisa naruh projectnya di sini dan saling kontribusi.",
-              "If you run a tech community, we are open to partnering. The role is simple: share the word with your members so they can put their projects here and contribute to each other's.",
-            )}
-          </p>
-
-          <ul className="ab-cards">
-            {BENEFITS.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
-                <h3>{tx(locale, titleId, titleEn)}</h3>
-                <p>{tx(locale, bodyId, bodyEn)}</p>
-              </li>
-            ))}
-          </ul>
-
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Harapannya makin banyak project yang beneran berdampak—buat masyarakat yang pakai, sekaligus buat karier orang yang ngerjain.",
-              "The hope is straightforward: more projects that genuinely matter—for the people who use them, and for the careers of the people who build them.",
-            )}
-          </p>
-
-          <Link className="ab-more" href={CONTACT_PATH}>
-            {tx(locale, "Ajak komunitasmu jadi community partner", "Bring your community in as a partner")} <Arrow />
-          </Link>
-        </section>
-
         <section className="ab-section" aria-labelledby="faq-title">
           <h2 id="faq-title">{tx(locale, "Pertanyaan yang sering muncul", "Frequently asked questions")}</h2>
 
@@ -389,16 +368,19 @@ export default async function AboutPage() {
         </section>
 
         <section className="ab-cta" aria-labelledby="about-cta-title">
-          <h2 id="about-cta-title">{tx(locale, "Gas aja kita saling kontribusi.", "Let's just contribute to each other.")}</h2>
+          <h2 id="about-cta-title">{tx(locale, "Mulai dari satu kontribusi.", "Start with one contribution.")}</h2>
           <p>
             {tx(
               locale,
-              "Usulkan projectmu atau repo yang layak dikontribusiin, atau ajak komunitasmu jadi community partner. Gratis untuk komunitas.",
-              "Suggest your project or a repo worth contributing to, or bring your community in as a partner. Free for the community.",
+              "Cari project yang pas di direktori. Punya project sendiri? Daftarin juga.",
+              "Find a project that fits in the directory. Have one of your own? List it too.",
             )}
           </p>
           <div className="ab-cta-actions">
-            <Link className="ab-button ab-button-primary" href="/submit">
+            <Link className="ab-button ab-button-primary" href="/">
+              {tx(locale, "Lihat direktori", "Browse the directory")}
+            </Link>
+            <Link className="ab-button" href="/submit">
               <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
             </Link>
             {waCommunityUrl ? (
@@ -406,9 +388,6 @@ export default async function AboutPage() {
                 Join WA Community
               </a>
             ) : null}
-            <Link className="ab-button" href={CONTACT_PATH}>
-              {tx(locale, "Jadi community partner", "Become a community partner")}
-            </Link>
           </div>
         </section>
       </main>

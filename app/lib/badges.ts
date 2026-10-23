@@ -15,12 +15,14 @@ import { isGitHubHandle } from "./oss";
  *   - members' own records — the repos they list on their profile as
  *     contributor or maintainer (`app/lib/oss.ts`), which is where most
  *     badges should come from;
+ *   - an admin's pick (`admin_picks`), which puts the entry first in the
+ *     directory's own order and says why it is there;
  *   - hand-set ones, for what no member can say for themselves: a catalogue
  *     repo's "maintainers are Indonesian" is ticked on its suggestion form
  *     (`oss_repos.indonesian`), and builders' products carry theirs in
  *     `PRODUCT_BADGES` below, by slug.
  */
-export const BADGE_KINDS = ["friend-contributed", "in-our-group", "indonesian"] as const;
+export const BADGE_KINDS = ["admin-pick", "friend-contributed", "in-our-group", "indonesian"] as const;
 export type BadgeKind = (typeof BADGE_KINDS)[number];
 
 export type Badge = {
@@ -40,7 +42,15 @@ export type Badge = {
    * the badge can link to their profile here rather than to GitHub.
    */
   profiles?: string[];
+  /**
+   * The members behind the badge, when it comes from their own records, so
+   * that a badge naming several people can list each of them — including
+   * those with no GitHub username, who have no face to show.
+   */
+  members?: BadgeMember[];
 };
+
+export type BadgeMember = { username: string; name: string; handle: string };
 
 /**
  * Badges for products listed on Builders, keyed by the product's slug (the
@@ -57,6 +67,7 @@ export function isBadgeKind(value: string): value is BadgeKind {
 
 /** The badge's name, as the sidebar filter shows it. */
 export function badgeKindLabel(kind: BadgeKind, locale: Locale): string {
+  if (kind === "admin-pick") return tx(locale, "Pilihan admin", "Admin's pick");
   if (kind === "friend-contributed") return tx(locale, "Teman kita pernah kontribusi", "Friends have contributed");
   if (kind === "in-our-group") return tx(locale, "Ada di grup kita", "In our group");
   return tx(locale, "Maintainer Indonesia", "Indonesian maintainers");

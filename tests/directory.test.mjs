@@ -326,7 +326,7 @@ test("members' records reach a repo's row through the directory", () => {
   const next = OPEN_SOURCE_REPOS.find((entry) => entry.repo === "next.js");
   const members = [{ username: "ana", name: "Ana", handle: "ana", contributions: [{ repo: "vercel/next.js", relation: "contributor" }] }];
   const badge = repoEntry(next, "en", members).badges.find((entry) => entry.kind === "friend-contributed");
-  assert.deepEqual(badge, { kind: "friend-contributed", people: ["ana"], count: 1, profiles: ["ana"] });
+  assert.deepEqual(badge, { kind: "friend-contributed", people: ["ana"], count: 1, profiles: ["ana"], members: [{ username: "ana", name: "Ana", handle: "ana" }] });
 });
 
 test("paginate slices by page and clamps pages that do not exist", () => {
@@ -388,4 +388,25 @@ test("a role card knows how fresh it is, and when it is new to the directory", (
   const later = Date.parse("2027-01-01T00:00:00Z");
   assert.equal(isNew(entry, later), false);
   assert.equal(isQuiet(entry, later), true, "two months and more without activity recedes");
+});
+
+test("an admin's pick comes first in the path's own order, but only while it takes PRs", () => {
+  const make = (id, slug, extra) =>
+    productEntries(product({ id, slug, title: slug, repoUrl: `https://github.com/ana/${slug}`, ...extra }), describe, roleName, "en")[0];
+  const entries = [
+    make(1, "busy", { openForGitHubContributions: true, repoStats: pushed(3), repoActivity: asked(4) }),
+    make(2, "picked", { openForGitHubContributions: true, repoStats: pushed(3), repoActivity: asked(0), adminPick: true }),
+    make(3, "picked-closed", { adminPick: true }),
+  ];
+  const none = { track: "github", source: "", badge: "", facet: [], q: "" };
+  assert.deepEqual(filterDirectory(entries, none).map((e) => e.name), ["picked", "busy", "picked-closed"]);
+  // An order the visitor asked for is theirs, picks or not.
+  assert.equal(filterDirectory(entries, { ...none, sort: "stars" })[0].name, "busy");
+  assert.deepEqual(entries[1].badges.map((badge) => badge.kind), ["admin-pick"]);
+  assert.deepEqual(filterDirectory(entries, { ...none, badge: "admin-pick" }).map((e) => e.name), ["picked", "picked-closed"]);
+
+  const roles = [product({ id: 4, title: "A", openSeatCount: 1 }), product({ id: 5, title: "B", openSeatCount: 1, adminPick: true })].flatMap((p) =>
+    productEntries(p, describe, roleName, "en"),
+  );
+  assert.deepEqual(filterDirectory(roles, { ...none, track: "role" }).map((e) => e.name), ["B", "A"]);
 });

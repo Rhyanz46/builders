@@ -256,7 +256,8 @@ nav form { display: flex; margin: 0; }
 }
 @keyframes signout-spin { to { transform: rotate(360deg); } }
 
-.mobile-menu[open] > summary { border-color: light-dark(#ababab, #525252); background: light-dark(#f7f7f7, #191919); }
+/* Margin 0: the site-wide `details[open] summary` margin would lift the close button out of line. */
+.mobile-menu[open] > summary { margin: 0; border-color: light-dark(#ababab, #525252); background: light-dark(#f7f7f7, #191919); }
 .mobile-menu[open] > summary i:first-child { transform: translateY(2.75px) rotate(45deg); }
 .mobile-menu[open] > summary i:last-child { transform: translateY(-2.75px) rotate(-45deg); }
 .mobile-menu > summary i { transition: transform .18s ease; }
@@ -643,8 +644,13 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
   font-family: inherit; font-size: 13px; font-weight: 650; padding: 12px 20px;
 }
 .feedback-sent button:hover { background: var(--paper); }
+/* The other way in, right under the lede: an issue on GitHub. */
+.feedback-page .lede { margin-bottom: 12px; }
+.feedback-github { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0 0 32px; }
+.feedback-github a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 600; }
+.feedback-github svg { display: inline-block; height: 15px; margin-right: 5px; vertical-align: -2px; width: 15px; }
+.feedback-github a:hover { border-color: var(--ink); }
 .feedback-elsewhere { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 28px; }
-.feedback-elsewhere h2 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 12px; }
 .feedback-elsewhere p { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; }
 .feedback-elsewhere a { border-bottom: 1px solid var(--line-2); }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
@@ -1297,19 +1303,26 @@ body:has(main.discovery-page), body:has(main.people-page) { background: light-da
   .how-it-works { padding-left: 34px; padding-right: 34px; }
 }
 
-/*
- * Five routes need more room than three did.
- *
- * Between this width and 860px the account cluster stays where it is — the
- * "tambah proyek" button is the whole point of the header — and only the main
- * menu folds into the mobile sheet, which carries the same five links. Below
- * 860px the block after this one takes the actions in with it.
- */
-@media (max-width: 1024px) {
-  .topbar-inner { display: flex; }
-  .desktop-nav { display: none; }
-  .mobile-menu { display: block; }
-  .header-actions { margin-left: auto; }
+/* The phone's main menu: the two places, and the visitor's own, at the
+   thumb — a floating box clear of the screen's edges. Only below 860px, where
+   the header's own menu is gone. */
+.bottom-nav { display: none; }
+@media (max-width: 860px) {
+  .bottom-nav {
+    background: light-dark(rgba(255, 255, 255, .97), rgba(31, 31, 31, .97)); border: 1px solid light-dark(#e4e4e7, #383839);
+    border-radius: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 10px 30px light-dark(rgba(24, 24, 27, .14), rgba(0, 0, 0, .45));
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; left: 12px; margin: 0 auto; max-width: 480px;
+    padding: 6px; position: fixed; right: 12px; z-index: 50;
+  }
+  .bottom-nav > a, .bottom-nav-placeholder {
+    align-items: center; border-radius: 12px; color: light-dark(#71717a, #a3a3ab); display: flex; flex-direction: column;
+    font-size: 11px; font-weight: 500; gap: 3px; justify-content: center; min-height: 50px;
+  }
+  .bottom-nav > a:active { background: light-dark(#f4f4f5, #29292c); }
+  .bottom-nav > a.is-active { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); font-weight: 600; }
+  .bottom-nav .menu-icon { height: 22px; width: 22px; }
+  /* Room for the bar, so the last of every page is not hidden under it. */
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 860px) {
@@ -1468,8 +1481,6 @@ form button[aria-busy="true"]::after,
 @keyframes action-spin { to { transform: rotate(360deg); } }
 
 .generic-route-loading { min-height: 72vh; padding-top: 78px; }
-.generic-loading-nav { align-items: center; display: flex; gap: 26px; }
-.generic-loading-nav .skeleton { flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .route-pending-indicator::after,
@@ -1517,12 +1528,10 @@ form button[aria-busy="true"]::after,
   height: 32px; padding: 0 14px;
 }
 .dx-wa-cta:hover { background: light-dark(#1a7f37, #2ea043); }
-/* WhatsApp's own logo, the file from Meta's brand resources via Simple
-   Icons (public/whatsapp.svg), painted in the button's text colour. */
-.dx-wa-icon {
-  background: currentColor; flex: none; height: 16px; width: 16px;
-  mask: url("/whatsapp.svg") center / contain no-repeat;
-}
+/* WhatsApp's own logo, from Meta's brand resources via Simple Icons
+   (public/whatsapp.svg), inlined so it paints with the button rather than
+   after a second request; drawn in the button's text colour. */
+.dx-wa-icon { fill: currentColor; flex: none; height: 16px; width: 16px; }
 .dx-head-powered a { display: inline-flex; }
 .dx-head-powered img { border-radius: 5px; display: block; }
 .dx-head-stats { display: flex; flex: none; gap: 28px; margin: 0; }
@@ -1586,9 +1595,12 @@ form button[aria-busy="true"]::after,
 .dx-search label:focus-within { border-color: var(--dx-ink); box-shadow: 0 0 0 3px light-dark(rgba(9, 9, 11, .06), rgba(0, 0, 0, .12)); }
 .dx-search svg { fill: none; flex: none; height: 15px; stroke: var(--dx-muted); stroke-width: 2; width: 15px; }
 .dx-search input { background: none; border: 0; font-size: 14px; margin: 0; min-width: 0; outline: none; padding: 0; width: 100%; }
-.dx-sort { flex: none; margin: 0 0 0 auto; }
-.dx-sort label { display: block; }
+.dx-toolbar-end { align-items: center; display: flex; flex: none; gap: 14px; }
+.dx-sort { align-items: center; display: flex; margin: 0; }
+/* Not a data-entry field: out from under `form label` and `form select`. */
+.dx-sort label { display: block; margin: 0; }
 .dx-sort select {
+  line-height: normal; margin: 0; width: auto;
   appearance: none; background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 10px center / 14px 14px;
   border: 1px solid var(--dx-line); border-radius: 8px; color: var(--dx-ink); cursor: pointer; font: inherit; font-size: 13.5px;
   height: 38px; padding: 0 32px 0 12px;
@@ -1702,12 +1714,40 @@ form button[aria-busy="true"]::after,
    as a way in: green is for pull requests, blue for roles. */
 .dx-badge { background: light-dark(#fffbeb, #231d11); border-color: light-dark(#fde68a, #4f3d19); color: light-dark(#92400e, #d4a34a); }
 .dx-badge-icon { fill: none; flex: none; height: 13px; stroke: currentColor; stroke-width: 2.2; width: 13px; }
+/* An admin's pick reads as a stamp, apart from the amber signals about people. */
+.dx-badge.dx-badge-admin-pick { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#ffffff, #09090b); }
+.dx-badge-admin-pick .dx-badge-icon { fill: currentColor; stroke: none; }
 .dx-flag { border-radius: 2px; height: 10px; stroke: none; width: 14px; }
 .dx-badge-faces { display: inline-flex; margin-left: 2px; }
 .dx-badge-faces img {
   background: light-dark(#fff, #1f1f1f); border: 1.5px solid light-dark(#fff, #383838); border-radius: 50%; height: 18px; margin-left: -5px; width: 18px;
 }
 .dx-badge-faces img:first-child { margin-left: 0; }
+/* A badge naming several people opens a list of them all. */
+.dx-badge-menu { position: relative; }
+.dx-badge-menu > summary,
+.dx-badge-menu[open] > summary {
+  align-items: center; border: 0; border-radius: 0; cursor: pointer; display: inline-flex; font: inherit;
+  gap: 5px; list-style: none; margin: 0; padding: 0;
+}
+.dx-badge-menu > summary::-webkit-details-marker { display: none; }
+.dx-badge-menu > summary:hover span:not(.dx-badge-faces) { text-decoration: underline; text-underline-offset: 2px; }
+.dx-badge-people {
+  background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 10px;
+  box-shadow: 0 12px 32px light-dark(rgba(41, 41, 41, .14), rgba(0, 0, 0, .32)); color: var(--dx-ink);
+  left: -8px; list-style: none; margin: 0; min-width: 200px; padding: 4px; position: absolute; top: calc(100% + 8px); z-index: 30;
+}
+.dx-badge-people a {
+  align-items: center; border-radius: 6px; color: inherit; display: flex; font-size: 13px; font-weight: 600; gap: 9px; padding: 7px 8px;
+}
+.dx-badge-people a:hover, .dx-badge-people a:focus-visible { background: var(--dx-soft); }
+.dx-badge-people a > span { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.dx-badge-people small { color: var(--dx-muted); font-size: 12px; font-weight: 500; }
+.dx-badge-people img, .dx-badge-initial { border-radius: 50%; flex: none; height: 24px; width: 24px; }
+.dx-badge-initial {
+  align-items: center; background: var(--dx-soft); color: var(--dx-muted); display: inline-flex;
+  font-size: 12px; font-weight: 700; justify-content: center; text-transform: uppercase;
+}
 .dx-facet-link .dx-badge-icon { height: 15px; width: 15px; }
 .dx-facet-link .dx-flag { height: 11px; width: 15px; }
 
@@ -1851,8 +1891,7 @@ form button[aria-busy="true"]::after,
   .dx-head h1 { font-size: 22px; }
   .dx-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
   .dx-search { max-width: none; }
-  .dx-sort { margin: 0; }
-  .dx-sort select { width: 100%; }
+  .dx-toolbar-end { justify-content: space-between; }
 }
 
 /* The rows answer to the width of the results column, not of the screen:
@@ -1896,12 +1935,76 @@ form button[aria-busy="true"]::after,
 .desktop-nav a.is-active { border-color: light-dark(#09090b, #eaeaed); color: light-dark(#09090b, #eaeaed); }
 .nav-login { color: light-dark(#3f3f46, #cdcdd4); font-weight: 550; }
 .nav-login:hover { color: light-dark(#09090b, #eaeaed); }
+/* The brand with the menu right beside it on the left; the source link and
+   the account controls on the right. */
+.topbar-inner { display: flex; }
+.desktop-nav { gap: 4px; justify-self: auto; margin-left: 20px; }
+.desktop-nav > a {
+  border: 0; border-radius: 8px; color: light-dark(#52525b, #bcbcc5); font-size: 14px; font-weight: 500;
+  margin: 0; padding: 8px 12px; white-space: nowrap;
+}
+.desktop-nav > a:hover { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); }
+.desktop-nav > a.is-active { color: light-dark(#09090b, #eaeaed); }
+.header-actions { margin-left: auto; }
+/* The site's own repository: GitHub's mark and, quietly, its stars. */
+.source-link {
+  align-items: center; border-radius: 8px; color: light-dark(#52525b, #bcbcc5); display: inline-flex; font-size: 14px;
+  font-weight: 500; gap: 4px; margin-right: -6px; padding: 8px;
+}
+.source-link:hover { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); }
+.source-link svg { fill: currentColor; flex: none; height: 19px; width: 19px; }
+.source-link-count { font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 400; }
+@media (max-width: 860px) {
+  .source-link { margin-right: 0; padding: 8px; }
+  .source-link-count { display: none; }
+}
+
+/* The theme, kept where preferences live — the account menu, the phone's
+   menu, the footer — as a labelled row with a switch. */
+.theme-row {
+  align-items: center; background: none; border: 0; border-radius: 8px; color: inherit; cursor: pointer; display: flex;
+  font: inherit; gap: 11px; text-align: left; width: 100%;
+}
+.theme-row > span:first-of-type { flex: 1; }
+.theme-switch {
+  background: light-dark(#d4d4d8, #52525b); border-radius: 99px; flex: none; height: 18px; position: relative;
+  transition: background .15s; width: 30px;
+}
+.theme-switch::after {
+  background: light-dark(#ffffff, #e4e4e7); border-radius: 50%; content: ""; height: 14px; left: 2px; position: absolute; top: 2px;
+  transition: transform .15s; width: 14px;
+}
+.theme-row[aria-checked="true"] .theme-switch { background: light-dark(#09090b, #eaeaed); }
+.theme-row[aria-checked="true"] .theme-switch::after { background: light-dark(#fff, #18181b); transform: translateX(12px); }
+.menu-theme-row { border-top: 1px solid var(--line-soft); margin-top: 4px; padding-top: 4px; }
+.menu-theme-row .theme-row, .mobile-nav .mobile-nav-primary .theme-row {
+  color: var(--ink-soft); font-size: 13px; font-weight: 620; min-height: 44px; padding: 10px 11px;
+}
+.mobile-nav .mobile-nav-primary .theme-row { color: light-dark(#616161, #b1b1b1); font-size: 14px; font-weight: 650; gap: 12px; min-height: 46px; }
+.menu-theme-row .theme-row:hover, .mobile-nav .mobile-nav-primary .theme-row:hover { background: light-dark(#f3f3f3, #171717); }
+footer .theme-row { color: inherit; font-size: inherit; gap: 8px; padding: 0; width: auto; }
+footer .theme-row .menu-icon { display: none; }
+footer .theme-row .theme-switch { height: 16px; width: 27px; }
+footer .theme-row .theme-switch::after { height: 12px; width: 12px; }
+footer .theme-row[aria-checked="true"] .theme-switch::after { transform: translateX(11px); }
 .primary-action {
-  background: light-dark(#09090b, #eaeaed); border-radius: 8px; box-shadow: none; font-size: 13px; font-weight: 600;
-  gap: 6px; min-height: 36px; padding: 8px 14px;
+  background: light-dark(#09090b, #eaeaed); border-radius: 6px; box-shadow: none; font-size: 13px; font-weight: 600;
+  gap: 6px; height: 32px; min-height: 0; padding: 0 12px;
 }
 .primary-action:hover { background: light-dark(#27272a, #dfdfe3); }
 .primary-action > span:first-child { font-size: 16px; }
+/* Signing in: a quiet outlined button beside the main one, both the size of
+   the directory's WhatsApp button. */
+.nav-login {
+  align-items: center; border: 1px solid light-dark(#e4e4e7, #383839); border-radius: 6px; color: light-dark(#09090b, #eaeaed);
+  display: inline-flex; font-size: 13px; font-weight: 600; height: 32px; padding: 0 12px;
+}
+.nav-login:hover { background: light-dark(#f4f4f5, #29292c); border-color: light-dark(#d4d4d8, #52525b); }
+.mobile-guest-actions { border-top: 0; padding-top: 0; }
+.mobile-nav .mobile-guest-actions a {
+  border: 1px solid light-dark(#e4e4e7, #383839); border-radius: 6px; color: light-dark(#09090b, #eaeaed);
+  font-size: 14px; font-weight: 650; justify-content: center; min-height: 48px;
+}
 .icon-button, .avatar-button { border-color: light-dark(#e4e4e7, #383839); }
 .avatar-button { background: light-dark(#f4f4f5, #171717); }
 
@@ -2285,6 +2388,7 @@ form button[aria-busy="true"]::after,
 .adm-status-approved { background: light-dark(#ecfdf3, #131d17); color: light-dark(#047857, #6dbe9d); }
 .adm-status-rejected { background: light-dark(#fef2f2, #1c1616); color: light-dark(#b91c1c, #fc8174); }
 .adm-list-tag { border: 1px solid var(--dx-line); border-radius: 5px; color: var(--dx-muted); font-size: 11px; padding: 2px 6px; }
+.adm-list-tag.adm-pick-tag { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#ffffff, #09090b); }
 .adm-why { color: var(--dx-text); font-size: 14px; line-height: 1.5; margin: 8px 0 0; }
 .adm-summary { color: var(--dx-muted); font-size: 13px; margin: 4px 0 0; }
 .adm-meta { color: var(--dx-faint); font-size: 12px; margin: 6px 0 0; }
@@ -2344,11 +2448,16 @@ form.rf label { margin-bottom: 0; }
   background: light-dark(#fff, #1f1f1f); color: var(--dx-ink);
   padding: 48px max(var(--gutter), calc((100% - 760px) / 2)) 80px; width: 100%;
 }
-.ab-kicker { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 10px; }
 .ab-intro h1 { font-size: 34px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; margin: 0; }
 .ab-story { color: var(--dx-text); display: grid; font-size: 15.5px; gap: 14px; line-height: 1.7; margin-top: 24px; }
 .ab-story p { margin: 0; }
-.ab-story .ab-quote { color: var(--dx-ink); font-size: 17px; }
+/* The answer to the problem above, set as a quote. */
+.ab-story .ab-quote {
+  border-left: 3px solid var(--dx-ink);
+  color: var(--dx-ink); font-size: 18px; line-height: 1.5; margin: 8px 0; padding: 2px 0 2px 20px;
+}
+/* What leads from the problem into the answer. */
+.ab-story .ab-quote-lead { color: var(--dx-muted); display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .ab-section { border-top: 1px solid var(--dx-line); margin-top: 48px; padding-top: 40px; }
 .ab-section h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 10px; }
 .ab-subhead { font-size: 16px; font-weight: 650; margin: 32px 0 6px; }

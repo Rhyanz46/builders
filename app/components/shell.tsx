@@ -5,8 +5,10 @@ import { Logo } from "../logo";
 import { signOut } from "../auth-actions";
 import { signInPath } from "../lib/urls";
 import { currentViewer, type Viewer } from "../lib/session";
-import { countIncomingApplications, countUnseenNotices, isSiteAdmin } from "../lib/data";
+import { countIncomingApplications, countUnseenNotices, isSiteAdmin, listRepoSignals } from "../lib/data";
+import { sourceRepo } from "../content";
 import { readPublicly } from "../lib/public-read";
+import { GitHubMark } from "./github-mark";
 import { HeaderMenu } from "./header-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { SignOutButton } from "./sign-out-button";
@@ -29,29 +31,37 @@ export function Brand({ footer = false, locale }: { footer?: boolean; locale: Lo
   return (
     <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label={tx(locale, "Beranda Builders", "Builders home")}>
       <Logo className="brand-mark" />
-      <span><strong>builders</strong><span className="brand-alt">.swegrowth</span></span>
+      {/* The header keeps the name short beside the menu; the footer credits the community in full. */}
+      <span><strong>builders</strong>{footer ? <span className="brand-alt">.swegrowth</span> : null}</span>
     </Link>
   );
 }
 
+type NavLink = { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName };
+
 /*
  * The main menu.
  *
- * The directory is the site, so the menu is short: the directory itself, what
- * members are doing in open source, then the two pages that answer for the
- * site — what this is, and where to say it is broken. Adding to the directory is the header's one button, "Suggest a
- * project", which asks whether it is a repo or a product.
+ * The directory is the site, so the menu is short: the directory itself and
+ * what members are doing in open source, first in the menu on a laptop and
+ * given the bottom bar on a phone. Adding to the directory is the
+ * header's one button, "Suggest a project", which asks whether it is a repo
+ * or a product.
  */
-const LINKS: { href: string; label: string; labelId: string; key: Section; icon: HeaderIconName }[] = [
-  { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "home" },
-  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "activity" },
+const PRIMARY_LINKS: NavLink[] = [
+  { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "directory" },
+  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "pull-request" },
+];
+
+/* The two pages that answer for the site — what this is, and where to say it is broken. */
+const SECONDARY_LINKS: NavLink[] = [
   { href: "/about", label: "About", labelId: "Tentang", key: "about", icon: "about" },
   { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
 
 type HeaderIconName =
-  | "home"
-  | "activity"
+  | "directory"
+  | "pull-request"
   | "about"
   | "feedback"
   | "profile"
@@ -65,8 +75,8 @@ type HeaderIconName =
 
 function HeaderIcon({ name }: { name: HeaderIconName }) {
   const paths: Record<HeaderIconName, React.ReactNode> = {
-    home: <><path d="m3 11 9-7 9 7" /><path d="M5.5 10v10h13V10M9 20v-6h6v6" /></>,
-    activity: <path d="M3 12h4l3-7 4 14 3-7h4" />,
+    directory: <><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></>,
+    "pull-request": <><circle cx="6" cy="6" r="2.5" /><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M6 8.5v7M18 15.5V10a3 3 0 0 0-3-3h-4M13 4.5 10.5 7 13 9.5" /></>,
     about: <><circle cx="12" cy="12" r="9" /><path d="M12 11.5v5M12 7.8h.01" /></>,
     feedback: <><path d="M4 5h16v11H10l-4 4v-4H4z" /><path d="M8 9h8M8 12.5h5" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
@@ -85,7 +95,7 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
 function MainNav({ active, locale }: { active: Section; locale: Locale }) {
   return (
     <nav className="desktop-nav" aria-label={tx(locale, "Navigasi utama", "Primary navigation")}>
-      {LINKS.map((link) => (
+      {[...PRIMARY_LINKS, ...SECONDARY_LINKS].map((link) => (
         <Link
           key={link.href}
           aria-current={active === link.key ? "page" : undefined}
@@ -100,6 +110,77 @@ function MainNav({ active, locale }: { active: Section; locale: Locale }) {
 }
 
 /**
+ * The phone's bottom bar: the two places, then the visitor's own — their
+ * profile, or the way in. `viewer` is undefined while the visitor is still
+ * being worked out, and the third place waits as a placeholder rather than
+ * flash the wrong one.
+ */
+function BottomNav({
+  active,
+  viewer,
+  returnTo = "/",
+  locale,
+}: {
+  active: Section;
+  viewer?: Viewer | null;
+  returnTo?: string;
+  locale: Locale;
+}) {
+  return (
+    <nav className="bottom-nav" aria-label={tx(locale, "Navigasi utama seluler", "Mobile primary navigation")}>
+      {PRIMARY_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          aria-current={active === link.key ? "page" : undefined}
+          className={active === link.key ? "is-active" : ""}
+          href={link.href}
+        >
+          <HeaderIcon name={link.icon} />
+          <span>{tx(locale, link.labelId, link.label)}</span>
+        </Link>
+      ))}
+      {viewer === undefined ? (
+        <span className="bottom-nav-placeholder" aria-hidden="true">
+          <Skeleton height={20} width={20} round />
+          <Skeleton height={10} width={36} />
+        </span>
+      ) : viewer ? (
+        <Link href={`/u/${viewer.username}`}>
+          <HeaderIcon name="profile" />
+          <span>{tx(locale, "Profil", "Profile")}</span>
+        </Link>
+      ) : (
+        <Link href={signInPath(returnTo)}>
+          <HeaderIcon name="signin" />
+          <span>{tx(locale, "Masuk", "Sign in")}</span>
+        </Link>
+      )}
+    </nav>
+  );
+}
+
+/**
+ * This site's own repository, with its stars — the site is open source, and
+ * says so where open source sites usually do. The count comes from the same
+ * cached repo_signals the directory reads, so it costs no GitHub request; it
+ * stays small and light beside the mark, and on a phone the mark stands alone.
+ */
+async function SourceLink({ locale }: { locale: Locale }) {
+  const signals = await readPublicly("source stars in header", () => listRepoSignals(), {});
+  const stars = signals.value[sourceRepo.toLowerCase()]?.stats?.stars ?? 0;
+  const count = new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(stars);
+  const label = stars > 0
+    ? tx(locale, `Kode sumber di GitHub, ${stars} bintang`, `Source code on GitHub, ${stars} stars`)
+    : tx(locale, "Kode sumber di GitHub", "Source code on GitHub");
+  return (
+    <a className="source-link" href={`https://github.com/${sourceRepo}`} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+      <GitHubMark />
+      {stars > 0 ? <span className="source-link-count" aria-hidden="true">{count}</span> : null}
+    </a>
+  );
+}
+
+/**
  * The header's static frame — same brand and links, no visitor yet.
  *
  * Every loading.tsx renders this so a navigation answers instantly with the
@@ -109,17 +190,21 @@ function MainNav({ active, locale }: { active: Section; locale: Locale }) {
 export async function HeaderShell({ active = "" }: { active?: Section }) {
   const locale = await currentLocale();
   return (
-    <header className="site-header">
-      <div className="topbar-inner">
-        <Brand locale={locale} />
-        <MainNav active={active} locale={locale} />
-        <div className="header-actions header-shell-actions header-account-skeleton" aria-busy="true">
-          <Skeleton height={38} width={38} round />
-          <Skeleton height={40} width={116} style={{ borderRadius: 999 }} />
-          <span className="sr-only">{tx(locale, "Memuat kontrol akun…", "Loading account controls…")}</span>
+    <>
+      <header className="site-header">
+        <div className="topbar-inner">
+          <Brand locale={locale} />
+          <MainNav active={active} locale={locale} />
+          <div className="header-actions header-shell-actions header-account-skeleton" aria-busy="true">
+            <SourceLink locale={locale} />
+            <Skeleton height={36} width={36} round />
+            <Skeleton height={32} width={150} style={{ borderRadius: 6 }} />
+            <span className="sr-only">{tx(locale, "Memuat kontrol akun…", "Loading account controls…")}</span>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <BottomNav active={active} locale={locale} />
+    </>
   );
 }
 
@@ -186,40 +271,45 @@ async function VisitorHeader({
   const unseen = unseenResult.value;
   const waiting = incoming + unseen;
 
+  // The bottom bar sits beside the header, not in it: the header's backdrop
+  // blur would make it the containing block of anything fixed inside it.
   return (
-    <header className="site-header">
-      <div className="topbar-inner">
-        <Brand locale={locale} />
-        <MainNav active={active} locale={locale} />
+    <>
+      <header className="site-header">
+        <div className="topbar-inner">
+          <Brand locale={locale} />
+          <MainNav active={active} locale={locale} />
 
-        <div className="header-actions">
-          <ThemeToggle />
-          {viewer ? (
-            <>
-              <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
-                <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4" />
-                </svg>
-                {waiting > 0 ? <span className="notification-dot">{waiting}</span> : null}
-              </Link>
-              <AccountMenu viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
-              <Link className="primary-action" href="/submit">
-                <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link className="nav-login" href={signInPath(destination)}>{tx(locale, "Masuk", "Sign in")}</Link>
-              <Link className="primary-action" href="/submit">
-                <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
-              </Link>
-            </>
-          )}
+          <div className="header-actions">
+            <SourceLink locale={locale} />
+            {viewer ? (
+              <>
+                <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
+                  <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4" />
+                  </svg>
+                  {waiting > 0 ? <span className="notification-dot">{waiting}</span> : null}
+                </Link>
+                <AccountMenu viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
+                <Link className="primary-action" href="/submit">
+                  <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link className="nav-login" href={signInPath(destination)}>{tx(locale, "Masuk", "Sign in")}</Link>
+                <Link className="primary-action" href="/submit">
+                  <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+                </Link>
+              </>
+            )}
 
-          <MobileHeaderMenu active={active} returnTo={destination} viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
+            <MobileHeaderMenu active={active} returnTo={destination} viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <BottomNav active={active} viewer={viewer} returnTo={destination} locale={locale} />
+    </>
   );
 }
 
@@ -279,6 +369,7 @@ function AccountMenu({ viewer, waiting, admin, locale }: { viewer: Viewer; waiti
             </Link>
           ) : null}
         </nav>
+        <div className="menu-theme-row"><ThemeToggle row /></div>
         <form className="account-signout" action={signOut}>
           <SignOutButton />
         </form>
@@ -314,9 +405,10 @@ function MobileHeaderMenu({
       }
     >
       <div className="mobile-nav">
-        <nav className="mobile-nav-primary" aria-label={tx(locale, "Navigasi utama seluler", "Mobile primary navigation")}>
+        {/* Every page, the two places included: the bottom bar is a shortcut, not the only way there. */}
+        <nav className="mobile-nav-primary" aria-label={tx(locale, "Menu seluler", "Mobile menu")}>
           <p className="mobile-menu-label">{tx(locale, "Menu", "Menu")}</p>
-          {LINKS.map((link) => (
+          {[...PRIMARY_LINKS, ...SECONDARY_LINKS].map((link) => (
             <Link
               key={link.href}
               aria-current={active === link.key ? "page" : undefined}
@@ -328,6 +420,7 @@ function MobileHeaderMenu({
               {active === link.key ? <span className="mobile-active-dot" aria-hidden="true" /> : null}
             </Link>
           ))}
+          <ThemeToggle row />
         </nav>
 
         <Link className="mobile-project-action" href="/submit">
@@ -420,6 +513,8 @@ export async function SiteFooter() {
         {/* The only reach a signed-out visitor has left to change language,
             now that the header no longer carries the switcher directly. */}
         <Link href="/account/language">{tx(locale, "Bahasa", "Language")}</Link>
+        <a href={`https://github.com/${sourceRepo}`} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <ThemeToggle row />
       </nav>
       <small>© <CopyrightYear /> Builders</small>
     </footer>

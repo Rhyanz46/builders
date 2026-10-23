@@ -1730,3 +1730,31 @@ export async function listActivityReactions(): Promise<ReactionRow[]> {
     name: row.person?.name ?? "",
   }));
 }
+
+/** What a site admin has put first in the directory, by catalogue repo and by product. */
+export type AdminPicks = { repoIds: number[]; projectIds: number[] };
+
+/**
+ * Every admin pick. Arrays rather than sets: the result is cached, and a
+ * cached value has to survive being serialised.
+ */
+export async function listAdminPicks(): Promise<AdminPicks> {
+  "use cache";
+  cacheLife("board");
+  cacheTag(tags.adminPicks);
+
+  const supabase = getPublicSupabase();
+  if (!supabase) return { repoIds: [], projectIds: [] };
+
+  const { data, error } = await supabase.from("admin_picks").select("repo_id, project_id");
+  if (error) {
+    // A deploy ahead of 20261029000000_admin_picks.sql lists the directory
+    // without picks, not an error.
+    console.warn(`[ahsan] Admin picks were skipped: ${error.message}`);
+    return { repoIds: [], projectIds: [] };
+  }
+  return {
+    repoIds: (data ?? []).flatMap((row) => (row.repo_id === null ? [] : [row.repo_id])),
+    projectIds: (data ?? []).flatMap((row) => (row.project_id === null ? [] : [row.project_id])),
+  };
+}

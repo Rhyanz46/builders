@@ -20,6 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
+  // Lets the phone's bottom bar pad itself clear of the home indicator.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8f6f0" },
     { media: "(prefers-color-scheme: dark)", color: "#1a1915" },
