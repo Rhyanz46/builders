@@ -208,6 +208,13 @@ export default async function AboutPage() {
             <p>
               {tx(
                 locale,
+                "Bikin project sendirian itu melelahkan. Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+                "Building a project alone is exhausting. Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
+              )}
+            </p>
+            <p>
+              {tx(
+                locale,
                 "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
                 "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
               )}
