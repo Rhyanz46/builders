@@ -1205,6 +1205,31 @@ function repoWriteError(error: { code?: string; message: string }, locale: Local
   throw new Error(error.message);
 }
 
+/**
+ * Puts a catalogue repo or a product first in the directory, or takes it back.
+ * Only admins may; the table's policies are what enforce it.
+ */
+export async function setAdminPick(formData: FormData): Promise<void> {
+  const viewer = await viewerId();
+  if (!viewer) redirect(signInPath("/admin"));
+
+  const kind = text(formData, "kind");
+  const id = Number(text(formData, "id"));
+  const on = text(formData, "on") === "1";
+  if ((kind !== "repo" && kind !== "project") || !Number.isInteger(id)) redirect("/admin");
+
+  const column = kind === "repo" ? "repo_id" : "project_id";
+  const supabase = await requireSupabase();
+  const { error } = on
+    ? await supabase.from("admin_picks").insert(kind === "repo" ? { repo_id: id } : { project_id: id })
+    : await supabase.from("admin_picks").delete().eq(column, id);
+  // Picking twice — two tabs, a double press — leaves it picked, as asked.
+  if (error && error.code !== "23505") throw new Error(error.message);
+
+  updateTag(tags.adminPicks);
+  redirect(`/admin#${kind}-${id}`);
+}
+
 /** An admin's decision on a submission: approve or reject. */
 export async function reviewRepo(formData: FormData): Promise<void> {
   const viewer = await viewerId();

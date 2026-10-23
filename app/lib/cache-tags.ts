@@ -61,4 +61,6 @@ export const tags = {
   catalogue: "catalogue",
   /** Emoji left on pull requests on /activity. */
   reactions: "reactions",
+  /** The repos and products a site admin puts first in the directory. */
+  adminPicks: "admin-picks",
 } as const;

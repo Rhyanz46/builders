@@ -571,6 +571,13 @@ function BadgeChip({ badge, locale }: { badge: Badge; locale: Locale }) {
 }
 
 function BadgeIcon({ kind }: { kind: BadgeKind }) {
+  if (kind === "admin-pick") {
+    return (
+      <svg className="dx-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z" />
+      </svg>
+    );
+  }
   if (kind === "indonesian") {
     return (
       <svg className="dx-badge-icon dx-flag" viewBox="0 0 16 12" aria-hidden="true">
