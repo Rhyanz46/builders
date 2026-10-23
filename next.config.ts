@@ -20,8 +20,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   async redirects() {
     return [
-      { source: "/kolaborasi", destination: "/explore", permanent: true },
-      { source: "/orang", destination: "/people", permanent: true },
+      // The old board and the talent pool are gone; the directory covers both.
+      { source: "/explore", destination: "/?track=role", permanent: true },
+      { source: "/kolaborasi", destination: "/?track=role", permanent: true },
+      { source: "/people", destination: "/", permanent: true },
+      { source: "/orang", destination: "/", permanent: true },
       { source: "/mulai", destination: "/get-started", permanent: true },
       { source: "/lupa-password", destination: "/forgot-password", permanent: true },
       { source: "/akun/profil", destination: "/account/profile", permanent: true },

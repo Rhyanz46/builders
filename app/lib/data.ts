@@ -22,7 +22,6 @@ import type { GitHubRepositoryStats } from "./github";
 import type { RepoActivity } from "./directory";
 import { githubHandle, isOssRelation, mergeOssRows, type OssContribution, type OssMember, type OssRelation, type OssRow } from "./oss";
 import type { Lane } from "./feed";
-import { COLLABORATION_KINDS, PROJECT_MEMORY_KINDS } from "./activity";
 import { buildGitHubActivity, type ActivityPerson, type GitHubActivityEntry } from "./github-activity";
 import type { ReactionRow } from "./reactions";
 import { availabilityStatus, type AvailabilityStatus } from "./availability";
@@ -290,9 +289,9 @@ async function readProjects(key: string): Promise<ProjectSummary[]> {
  *
  * In the order the database gave, deliberately. Arranging the "untukmu" lane
  * for a particular visitor is `arrangeForYou`, and it belongs to the caller
- * that knows who is looking — see `app/explore/page.tsx`. Keeping it out of
- * here is what lets this read start before the session is known, instead of
- * queueing behind an auth round trip for a sort it could do afterwards.
+ * that knows who is looking. Keeping it out of here is what lets this read
+ * start before the session is known, instead of queueing behind an auth round
+ * trip for a sort it could do afterwards.
  */
 export async function listProjects(query: FeedQuery = {}): Promise<ProjectSummary[]> {
   return readProjects(projectQueryKey(query));
@@ -366,141 +365,6 @@ async function queryProjects(query: FeedQuery): Promise<ProjectSummary[]> {
   if (error) throw new Error(error.message);
 
   return (data ?? []).map(toSummary);
-}
-
-/**
- * Topics are the tags people have actually used, ordered by how many projects
- * carry each one. Count a tag at most once per project so a malformed duplicate
- * cannot inflate the rail.
- */
-export async function tagCounts(
-  query: FeedQuery = {},
-): Promise<{ tag: string; count: number }[]> {
-  return tagCountsFromProjects(await listProjects(query));
-}
-
-export function tagCountsFromProjects(
-  projects: readonly ProjectSummary[],
-): { tag: string; count: number }[] {
-  const counts = new Map<string, number>();
-
-  for (const project of projects) {
-    for (const tag of new Set(project.tags)) {
-      counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    }
-  }
-
-  return [...counts.entries()]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "id"));
-}
-
-/**
- * How many seats each project has open, per role.
- *
- * `project_overview` only carries the distinct roles a project is asking for,
- * and "Designer" against "Designer · 2" is the difference between a project
- * that wants a hand and one that wants two. Asked once for every project the
- * board is about to draw, rather than once per card.
- */
-export async function openSeatsByRole(
-  projectIds: number[],
-): Promise<Map<number, Record<string, number>>> {
-  if (projectIds.length === 0) return new Map();
-
-  // Sorted so two boards holding the same projects in a different order share
-  // one cache entry rather than two.
-  return readOpenSeatsByRole([...new Set(projectIds)].sort((a, b) => a - b));
-}
-
-async function readOpenSeatsByRole(
-  projectIds: number[],
-): Promise<Map<number, Record<string, number>>> {
-  "use cache";
-  cacheLife("board");
-  cacheTag(tags.seats);
-
-  const counts = new Map<number, Record<string, number>>();
-  const add = (projectId: number, role: string) => {
-    const perRole = counts.get(projectId) ?? {};
-    perRole[role] = (perRole[role] ?? 0) + 1;
-    counts.set(projectId, perRole);
-  };
-
-  const supabase = getPublicSupabase();
-  if (!supabase) {
-    for (const project of seedProjects) {
-      if (!projectIds.includes(project.id)) continue;
-      for (const seat of project.seats) {
-        if (seat.status === "open") add(project.id, seat.role);
-      }
-    }
-    return counts;
-  }
-
-  const { data, error } = await supabase
-    .from("seats")
-    .select("project_id, role")
-    .eq("status", "open")
-    .in("project_id", projectIds);
-  if (error) throw new Error(error.message);
-
-  for (const seat of data ?? []) add(seat.project_id, seat.role);
-  return counts;
-}
-
-export type OpenRoleSuggestion = {
-  value: string;
-  label: string;
-  count: number;
-};
-
-/**
- * Readable role names that are actually open right now. The Explore
- * autocomplete uses this instead of suggesting the whole catalogue, so every
- * recommendation can lead to at least one project.
- */
-export async function listOpenRoleSuggestions(): Promise<OpenRoleSuggestion[]> {
-  "use cache";
-  cacheLife("facets");
-  cacheTag(tags.seats);
-
-  const add = (
-    counts: Map<string, OpenRoleSuggestion>,
-    role: string,
-    customTitle = "",
-  ) => {
-    const label = roleLabel(role, customTitle);
-    const key = label.toLocaleLowerCase("id");
-    const current = counts.get(key);
-    counts.set(key, {
-      value: label,
-      label,
-      count: (current?.count ?? 0) + 1,
-    });
-  };
-
-  const counts = new Map<string, OpenRoleSuggestion>();
-  const supabase = getPublicSupabase();
-  if (!supabase) {
-    for (const project of seedProjects) {
-      for (const seat of project.seats) {
-        if (seat.status === "open") add(counts, seat.role, seat.roleTitle ?? "");
-      }
-    }
-  } else {
-    const { data, error } = await supabase
-      .from("seats")
-      .select("role, role_title")
-      .eq("status", "open")
-      .limit(2000);
-    if (error) throw new Error(error.message);
-    for (const seat of data ?? []) add(counts, seat.role, seat.role_title ?? "");
-  }
-
-  return [...counts.values()].sort(
-    (a, b) => b.count - a.count || a.label.localeCompare(b.label, "id"),
-  );
 }
 
 /**
@@ -783,88 +647,6 @@ export type PersonAtWork = {
   /** Roles held on filled seats, kept as readable labels for search/fallback. */
   roles: string[];
 };
-
-export async function listPeopleAtWork(limit = 200): Promise<PersonAtWork[]> {
-  "use cache";
-  cacheLife("board");
-  cacheTag(tags.people, tags.projects, tags.seats);
-
-  const [people, projects] = await Promise.all([listPeople(limit), listProjects({ lane: "newest" })]);
-
-  const byId = new Map(projects.map((project) => [project.id, project]));
-  const helping = new Map<string, ProjectSummary[]>();
-  const roles = new Map<string, Set<string>>();
-
-  const supabase = getPublicSupabase();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("seats")
-      // Keep the directory on the original seat shape. `role_title` arrived
-      // in migration 0012 and is presentation detail, not something /people
-      // should require merely to render a contributor.
-      .select("project_id, user_id, role")
-      .eq("status", "filled");
-
-    if (error) {
-      // Contributions enrich each result; they are not the directory's source of
-      // truth. A rollout with an older seats schema must not turn every public
-      // profile into a 500 page.
-      console.warn(`[ahsan] Contributions were skipped in the people directory: ${error.message}`);
-    } else {
-      for (const seat of data ?? []) {
-        const project = seat.user_id ? byId.get(seat.project_id) : undefined;
-        if (!project || !seat.user_id) continue;
-        if (project.owner.id === seat.user_id) continue;
-        helping.set(seat.user_id, [...(helping.get(seat.user_id) ?? []), project]);
-        const personRoles = roles.get(seat.user_id) ?? new Set<string>();
-        personRoles.add(roleLabel(seat.role));
-        roles.set(seat.user_id, personRoles);
-      }
-    }
-  } else {
-    for (const project of seedProjects) {
-      for (const seat of project.seats) {
-        const summary = seat.status === "filled" && seat.userId ? byId.get(project.id) : undefined;
-        if (!summary || !seat.userId) continue;
-        if (summary.owner.id === seat.userId) continue;
-        helping.set(seat.userId, [...(helping.get(seat.userId) ?? []), summary]);
-        const personRoles = roles.get(seat.userId) ?? new Set<string>();
-        personRoles.add(roleLabel(seat.role, seat.roleTitle ?? ""));
-        roles.set(seat.userId, personRoles);
-      }
-    }
-  }
-
-  return people.map((person) => ({
-    person,
-    building: projects.filter((project) => project.owner.id === person.id),
-    helping: helping.get(person.id) ?? [],
-    roles: [...(roles.get(person.id) ?? [])],
-  }));
-}
-
-export async function listTags(): Promise<{ tag: string; count: number }[]> {
-  "use cache";
-  cacheLife("facets");
-  cacheTag(tags.projects);
-
-  const supabase = getPublicSupabase();
-
-  const allTags = supabase
-    ? await (async () => {
-        const { data, error } = await supabase.from("projects").select("tags");
-        if (error) throw new Error(error.message);
-        return (data ?? []).flatMap((row) => row.tags);
-      })()
-    : seedProjects.flatMap((project) => project.tags);
-
-  const counts = new Map<string, number>();
-  for (const tag of allTags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-
-  return [...counts.entries()]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
-}
 
 /* ------------------------------------------------------------------ *
  * Applications
@@ -1306,123 +1088,6 @@ function statsFrom(rows: { kind: string; created_at: string }[]): PersonStats {
   return { tasksDone, rolesTaken, since };
 }
 
-/**
- * How a project got to where it is, newest first.
- *
- * Narrowed to PROJECT_MEMORY_KINDS: the page shows its own tasks, discussion
- * and support as live state a few sections up, so the trail carries only what
- * nothing else on the page can say.
- */
-export async function listProjectActivity(
-  projectId: number,
-  { slug, limit = 20, viewer }: { slug: string; limit?: number; viewer?: TrailViewer | null },
-): Promise<ActivityEvent[]> {
-  // No actor to compare against: anybody on this project may be one. A visitor
-  // who hides nothing sees the public trail, so only somebody who does gets a
-  // read of their own.
-  if (seesOwnHiddenTrail(viewer)) {
-    return queryProjectActivity(await getSupabase(), projectId, limit);
-  }
-  return readProjectActivity(projectId, slug, limit);
-}
-
-async function readProjectActivity(
-  projectId: number,
-  slug: string,
-  limit: number,
-): Promise<ActivityEvent[]> {
-  "use cache";
-  cacheLife("trail");
-
-  const events = await queryProjectActivity(getPublicSupabase(), projectId, limit);
-
-  // Also filed under each person who appears here. Somebody hiding a kind of
-  // entry from their own trail has to take it off the projects it happened on
-  // too, and this is what lets one `updateTag` on them reach all of those
-  // without knowing which projects they were.
-  const actors = [...new Set(events.map((event) => event.actor?.id).filter(Boolean))];
-  cacheTag(tags.projectTrail(slug), ...actors.map((id) => tags.trail(id as string)));
-
-  return events;
-}
-
-async function queryProjectActivity(
-  supabase: Supabase | null,
-  projectId: number,
-  limit: number,
-): Promise<ActivityEvent[]> {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("events")
-    .select("*, actor:profiles(id, username, name)")
-    .eq("project_id", projectId)
-    .in("kind", [...PROJECT_MEMORY_KINDS])
-    .order("id", { ascending: false })
-    .limit(limit);
-  if (error) {
-    if (!isMissingTable(error)) throw new Error(error.message);
-    warnMissingTable("events");
-    return [];
-  }
-
-  return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
-}
-
-/**
- * What has been happening across the whole site, newest first.
- *
- * Home and Explore both lead with this: a board of projects says what exists,
- * and this says whether anybody is actually working on them together. Narrowed
- * to COLLABORATION_KINDS so the list reads as collaboration rather than as
- * bookkeeping.
- *
- * A cached public read with nothing per-visitor in it. The SELECT policy on
- * `events` already drops the kinds each person has hidden, so no filtering
- * happens here — the anon key sees exactly the public trail.
- */
-export async function listRecentActivity(limit = 6): Promise<ActivityEvent[]> {
-  "use cache";
-  cacheLife("trail");
-  cacheTag(tags.activity);
-
-  const supabase = getPublicSupabase();
-  if (!supabase) return seedRecentActivity(limit);
-
-  const { data, error } = await supabase
-    .from("events")
-    .select("*, actor:profiles(id, username, name)")
-    .in("kind", [...COLLABORATION_KINDS])
-    .order("id", { ascending: false })
-    .limit(limit);
-  if (error) {
-    if (!isMissingTable(error)) throw new Error(error.message);
-    warnMissingTable("events");
-    return [];
-  }
-
-  return (data ?? []).map((row) => toActivity(row as EventRow & { actor: BriefPerson | null }));
-}
-
-export async function isFollowing(projectId: number, userId: string): Promise<boolean> {
-  const supabase = await getSupabase();
-  if (!supabase) return false;
-
-  const { data, error } = await supabase
-    .from("follows")
-    .select("user_id")
-    .eq("project_id", projectId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) {
-    if (!isMissingTable(error)) throw new Error(error.message);
-    warnMissingTable("follows");
-    return false;
-  }
-
-  return Boolean(data);
-}
-
 /** An update, with enough of its project to read as a line in somebody's inbox. */
 export type FollowedUpdate = UpdateView & { project: { slug: string; title: string } };
 
@@ -1473,21 +1138,6 @@ export async function listFollowedUpdates(userId: string, limit = 12): Promise<F
     author: entry.author ?? null,
     project: entry.project ?? { slug: "", title: "Deleted project" },
   }));
-}
-
-export async function hasBoosted(projectId: number, userId: string): Promise<boolean> {
-  const supabase = await getSupabase();
-  if (!supabase) return false;
-
-  const { data, error } = await supabase
-    .from("boosts")
-    .select("user_id")
-    .eq("project_id", projectId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-
-  return Boolean(data);
 }
 
 /* ------------------------------------------------------------------ *
@@ -1605,32 +1255,6 @@ function seedActivity(personId: string): ActivityEvent[] {
       payload: event.payload,
       actor: person ? { id: person.id, username: person.username, name: person.name } : null,
     }));
-}
-
-function seedRecentActivity(limit: number): ActivityEvent[] {
-  const collaboration = new Set<string>(COLLABORATION_KINDS);
-
-  return seedEvents
-    .filter((event) => collaboration.has(event.kind))
-    .filter((event) => {
-      const actor = seedUsers.find((user) => user.id === event.actorId);
-      return !(actor?.activityHidden ?? []).includes(event.kind);
-    })
-    .sort((a, b) => b.id - a.id)
-    .slice(0, limit)
-    .map((event) => {
-      const actor = seedUsers.find((user) => user.id === event.actorId);
-      return {
-        id: event.id,
-        kind: event.kind,
-        createdAt: event.createdAt,
-        projectId: seedProjects.find((project) => project.slug === event.projectSlug)?.id ?? null,
-        projectSlug: event.projectSlug,
-        projectTitle: event.payload.title ?? "",
-        payload: event.payload,
-        actor: actor ? { id: actor.id, username: actor.username, name: actor.name } : null,
-      };
-    });
 }
 
 function seedSummaries(): ProjectSummary[] {

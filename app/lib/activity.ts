@@ -82,46 +82,6 @@ export const HIGHLIGHT_KINDS = [
   "update_posted",
 ] as const satisfies readonly EventKind[];
 
-/**
- * The kinds the site-wide trail leads with.
- *
- * This one answers "is anybody actually working together here?", so it keeps
- * the entries where two people meet — a role opened, somebody joining, a task
- * picked up or finished, a build-log entry — and leaves out the quieter
- * bookkeeping (`task_created`, `seat_applied`, `boost_given`) that reads the
- * same whether or not a collaboration followed.
- */
-export const COLLABORATION_KINDS = [
-  "project_created",
-  "project_stage_changed",
-  "seat_opened",
-  "seat_filled",
-  "task_taken",
-  "task_done",
-  "comment_posted",
-  "update_posted",
-] as const satisfies readonly EventKind[];
-
-/**
- * The kinds a project's own history keeps.
- *
- * The project page already shows its tasks, its discussion and its support as
- * live state, right above the trail — replaying them underneath said the same
- * thing twice, and pushed the entries only the trail can carry off the bottom
- * of the section. What is left is how the project got here: it started, it
- * moved level, it asked for help, somebody joined.
- *
- * `seat_applied` is deliberately out. Who applied, and was still waiting, is
- * between them and the people running the project — the pending list above
- * already shows it to exactly those people, and this trail is public.
- */
-export const PROJECT_MEMORY_KINDS = [
-  "project_created",
-  "project_stage_changed",
-  "seat_opened",
-  "seat_filled",
-] as const satisfies readonly EventKind[];
-
 /*
  * `update_posted` is not in the list above on purpose: the project page renders
  * the update itself, with its own words, in the same journey. Repeating it as
@@ -174,11 +134,6 @@ export function activityParts(event: ActivityLike, locale: Locale = "en"): { lea
       // way roleLabel falls back rather than throwing.
       return { lead: tx(locale, "berkontribusi pada ", "contributed to "), trail: "." };
   }
-}
-
-export function activitySentence(event: ActivityLike, locale: Locale = "en"): string {
-  const { lead, trail } = activityParts(event, locale);
-  return `${lead}${event.projectTitle}${trail}`;
 }
 
 /**

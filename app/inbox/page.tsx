@@ -165,7 +165,7 @@ export default async function InboxPage() {
           {mine.length === 0 ? (
             <p className="muted">
               {tx(locale, "Kamu belum bergabung ke proyek apa pun.", "You have not joined anything yet.")} {" "}
-              <Link href="/explore?needs=open">{tx(locale, "Lihat proyek yang membutuhkan bantuan", "See projects that need a hand")}</Link>.
+              <Link href="/?track=role">{tx(locale, "Lihat proyek yang membutuhkan bantuan", "See projects that need a hand")}</Link>.
             </p>
           ) : (
             <ul className="application-list">

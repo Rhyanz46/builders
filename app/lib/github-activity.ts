@@ -48,9 +48,6 @@ function kindOf(entry: GitHubActivityEntry): Exclude<GitHubActivityFilter, "all"
   return entry.kind === "commit_summary" ? "commits" : entry.state;
 }
 
-/** How many of a summary's repositories are named before "and N more". */
-export const NAMED_REPOS = 2;
-
 export function buildGitHubActivity(
   pullRequests: (GitHubPullRequestRow & { person: ActivityPerson | null })[],
   summaries: (GitHubCommitSummaryRow & { person: ActivityPerson | null })[],

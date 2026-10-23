@@ -91,16 +91,6 @@ export function projectTypeBlurb(value: string, locale: Locale = "en"): string {
   return isProjectType(value) ? tx(locale, projectTypeMeta[value].blurb, PROJECT_TYPE_EN[value].blurb) : "";
 }
 
-/**
- * A project that has not said which it is.
- *
- * Every project made before this existed is one, and an empty value is the only
- * honest thing to store for them: guessing would put a claim on somebody's row
- * that they never made. New projects have to pick — see `createProject` — so
- * the gap closes on its own rather than being papered over.
- */
-export const PROJECT_TYPE_UNSET = "";
-
 export function isProjectType(value: string): value is ProjectType {
   return (PROJECT_TYPES as readonly string[]).includes(value);
 }

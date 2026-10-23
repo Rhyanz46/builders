@@ -15,7 +15,7 @@ import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "recommend" | "admin" | "explore" | "people" | "activity" | "about" | "feedback" | "";
+export type Section = "home" | "recommend" | "admin" | "activity" | "about" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -51,8 +51,6 @@ const LINKS: { href: string; label: string; labelId: string; key: Section; icon:
 
 type HeaderIconName =
   | "home"
-  | "explore"
-  | "people"
   | "activity"
   | "about"
   | "feedback"
@@ -68,8 +66,6 @@ type HeaderIconName =
 function HeaderIcon({ name }: { name: HeaderIconName }) {
   const paths: Record<HeaderIconName, React.ReactNode> = {
     home: <><path d="m3 11 9-7 9 7" /><path d="M5.5 10v10h13V10M9 20v-6h6v6" /></>,
-    explore: <><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" /></>,
-    people: <><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20" /><circle cx="10" cy="7" r="3.5" /><path d="M17 11a3 3 0 0 0 0-6M19 14.5a4 4 0 0 1 2 3.5v2" /></>,
     activity: <path d="M3 12h4l3-7 4 14 3-7h4" />,
     about: <><circle cx="12" cy="12" r="9" /><path d="M12 11.5v5M12 7.8h.01" /></>,
     feedback: <><path d="M4 5h16v11H10l-4 4v-4H4z" /><path d="M8 9h8M8 12.5h5" /></>,
