@@ -36,7 +36,7 @@ function subscribe(onChange: () => void): () => void {
  * Both icons are always in the markup and CSS shows the right one, because
  * the server cannot know the device's preference.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ row = false }: { row?: boolean }) {
   const { tx } = useLanguage();
   const dark = useSyncExternalStore(subscribe, () => shownTheme() === "dark", () => false);
 
@@ -52,6 +52,19 @@ export function ThemeToggle() {
       document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
     }
     window.dispatchEvent(new Event(CHANGE_EVENT));
+  }
+
+  // In a menu or the footer: a labelled row with a switch that shows the state.
+  if (row) {
+    return (
+      <button type="button" className="theme-row" onClick={flip} role="switch" aria-checked={dark}>
+        <svg className="menu-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+        </svg>
+        <span>{tx("Mode gelap", "Dark mode")}</span>
+        <span className="theme-switch" aria-hidden="true" />
+      </button>
+    );
   }
 
   return (

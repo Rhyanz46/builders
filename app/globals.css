@@ -643,8 +643,13 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
   font-family: inherit; font-size: 13px; font-weight: 650; padding: 12px 20px;
 }
 .feedback-sent button:hover { background: var(--paper); }
+/* The other way in, right under the lede: an issue on GitHub. */
+.feedback-page .lede { margin-bottom: 12px; }
+.feedback-github { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0 0 32px; }
+.feedback-github a { border-bottom: 1px solid var(--line-2); color: var(--ink); font-weight: 600; }
+.feedback-github svg { display: inline-block; height: 15px; margin-right: 5px; vertical-align: -2px; width: 15px; }
+.feedback-github a:hover { border-color: var(--ink); }
 .feedback-elsewhere { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 28px; }
-.feedback-elsewhere h2 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 12px; }
 .feedback-elsewhere p { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; }
 .feedback-elsewhere a { border-bottom: 1px solid var(--line-2); }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
@@ -1297,19 +1302,26 @@ body:has(main.discovery-page), body:has(main.people-page) { background: light-da
   .how-it-works { padding-left: 34px; padding-right: 34px; }
 }
 
-/*
- * Five routes need more room than three did.
- *
- * Between this width and 860px the account cluster stays where it is — the
- * "tambah proyek" button is the whole point of the header — and only the main
- * menu folds into the mobile sheet, which carries the same five links. Below
- * 860px the block after this one takes the actions in with it.
- */
-@media (max-width: 1024px) {
-  .topbar-inner { display: flex; }
-  .desktop-nav { display: none; }
-  .mobile-menu { display: block; }
-  .header-actions { margin-left: auto; }
+/* The phone's main menu: the two places, and the visitor's own, at the
+   thumb — a floating box clear of the screen's edges. Only below 860px, where
+   the header's own menu is gone. */
+.bottom-nav { display: none; }
+@media (max-width: 860px) {
+  .bottom-nav {
+    background: light-dark(rgba(255, 255, 255, .97), rgba(31, 31, 31, .97)); border: 1px solid light-dark(#e4e4e7, #383839);
+    border-radius: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 10px 30px light-dark(rgba(24, 24, 27, .14), rgba(0, 0, 0, .45));
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; left: 12px; margin: 0 auto; max-width: 480px;
+    padding: 6px; position: fixed; right: 12px; z-index: 50;
+  }
+  .bottom-nav > a, .bottom-nav-placeholder {
+    align-items: center; border-radius: 12px; color: light-dark(#71717a, #a3a3ab); display: flex; flex-direction: column;
+    font-size: 11px; font-weight: 500; gap: 3px; justify-content: center; min-height: 50px;
+  }
+  .bottom-nav > a:active { background: light-dark(#f4f4f5, #29292c); }
+  .bottom-nav > a.is-active { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); font-weight: 600; }
+  .bottom-nav .menu-icon { height: 22px; width: 22px; }
+  /* Room for the bar, so the last of every page is not hidden under it. */
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 860px) {
@@ -1468,8 +1480,6 @@ form button[aria-busy="true"]::after,
 @keyframes action-spin { to { transform: rotate(360deg); } }
 
 .generic-route-loading { min-height: 72vh; padding-top: 78px; }
-.generic-loading-nav { align-items: center; display: flex; gap: 26px; }
-.generic-loading-nav .skeleton { flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .route-pending-indicator::after,
@@ -1517,12 +1527,10 @@ form button[aria-busy="true"]::after,
   height: 32px; padding: 0 14px;
 }
 .dx-wa-cta:hover { background: light-dark(#1a7f37, #2ea043); }
-/* WhatsApp's own logo, the file from Meta's brand resources via Simple
-   Icons (public/whatsapp.svg), painted in the button's text colour. */
-.dx-wa-icon {
-  background: currentColor; flex: none; height: 16px; width: 16px;
-  mask: url("/whatsapp.svg") center / contain no-repeat;
-}
+/* WhatsApp's own logo, from Meta's brand resources via Simple Icons
+   (public/whatsapp.svg), inlined so it paints with the button rather than
+   after a second request; drawn in the button's text colour. */
+.dx-wa-icon { fill: currentColor; flex: none; height: 16px; width: 16px; }
 .dx-head-powered a { display: inline-flex; }
 .dx-head-powered img { border-radius: 5px; display: block; }
 .dx-head-stats { display: flex; flex: none; gap: 28px; margin: 0; }
@@ -1926,6 +1934,58 @@ form button[aria-busy="true"]::after,
 .desktop-nav a.is-active { border-color: light-dark(#09090b, #eaeaed); color: light-dark(#09090b, #eaeaed); }
 .nav-login { color: light-dark(#3f3f46, #cdcdd4); font-weight: 550; }
 .nav-login:hover { color: light-dark(#09090b, #eaeaed); }
+/* The brand with the menu right beside it on the left; the source link and
+   the account controls on the right. */
+.topbar-inner { display: flex; }
+.desktop-nav { gap: 4px; justify-self: auto; margin-left: 20px; }
+.desktop-nav > a {
+  border: 0; border-radius: 8px; color: light-dark(#52525b, #bcbcc5); font-size: 14px; font-weight: 500;
+  margin: 0; padding: 8px 12px; white-space: nowrap;
+}
+.desktop-nav > a:hover { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); }
+.desktop-nav > a.is-active { color: light-dark(#09090b, #eaeaed); }
+.header-actions { margin-left: auto; }
+/* The site's own repository: GitHub's mark and, quietly, its stars. */
+.source-link {
+  align-items: center; border-radius: 8px; color: light-dark(#52525b, #bcbcc5); display: inline-flex; font-size: 14px;
+  font-weight: 500; gap: 4px; margin-right: -6px; padding: 8px;
+}
+.source-link:hover { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); }
+.source-link svg { fill: currentColor; flex: none; height: 19px; width: 19px; }
+.source-link-count { font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 400; }
+@media (max-width: 860px) {
+  .source-link { margin-right: 0; padding: 8px; }
+  .source-link-count { display: none; }
+}
+
+/* The theme, kept where preferences live — the account menu, the phone's
+   menu, the footer — as a labelled row with a switch. */
+.theme-row {
+  align-items: center; background: none; border: 0; border-radius: 8px; color: inherit; cursor: pointer; display: flex;
+  font: inherit; gap: 11px; text-align: left; width: 100%;
+}
+.theme-row > span:first-of-type { flex: 1; }
+.theme-switch {
+  background: light-dark(#d4d4d8, #52525b); border-radius: 99px; flex: none; height: 18px; position: relative;
+  transition: background .15s; width: 30px;
+}
+.theme-switch::after {
+  background: light-dark(#ffffff, #e4e4e7); border-radius: 50%; content: ""; height: 14px; left: 2px; position: absolute; top: 2px;
+  transition: transform .15s; width: 14px;
+}
+.theme-row[aria-checked="true"] .theme-switch { background: light-dark(#09090b, #eaeaed); }
+.theme-row[aria-checked="true"] .theme-switch::after { background: light-dark(#fff, #18181b); transform: translateX(12px); }
+.menu-theme-row { border-top: 1px solid var(--line-soft); margin-top: 4px; padding-top: 4px; }
+.menu-theme-row .theme-row, .mobile-nav .mobile-nav-primary .theme-row {
+  color: var(--ink-soft); font-size: 13px; font-weight: 620; min-height: 44px; padding: 10px 11px;
+}
+.mobile-nav .mobile-nav-primary .theme-row { color: light-dark(#616161, #b1b1b1); font-size: 14px; font-weight: 650; gap: 12px; min-height: 46px; }
+.menu-theme-row .theme-row:hover, .mobile-nav .mobile-nav-primary .theme-row:hover { background: light-dark(#f3f3f3, #171717); }
+footer .theme-row { color: inherit; font-size: inherit; gap: 8px; padding: 0; width: auto; }
+footer .theme-row .menu-icon { display: none; }
+footer .theme-row .theme-switch { height: 16px; width: 27px; }
+footer .theme-row .theme-switch::after { height: 12px; width: 12px; }
+footer .theme-row[aria-checked="true"] .theme-switch::after { transform: translateX(11px); }
 .primary-action {
   background: light-dark(#09090b, #eaeaed); border-radius: 8px; box-shadow: none; font-size: 13px; font-weight: 600;
   gap: 6px; min-height: 36px; padding: 8px 14px;

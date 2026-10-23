@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { FeedbackForm } from "../components/feedback-form";
-import { shareCard } from "../content";
+import { GitHubMark } from "../components/github-mark";
+import { shareCard, sourceRepo } from "../content";
 import { supabaseConfigured } from "../lib/supabase";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
@@ -55,6 +56,15 @@ export default async function FeedbackPage() {
             "This site is a project being built too, and your feedback is a contribution—the same as any other one here. No account needed, and no need to be polished.",
           )}
         </p>
+        {/* Two ways in, side by side: the form for anyone, an issue for whoever lives on GitHub. */}
+        <p className="feedback-github">
+          {tx(locale, "Lebih suka lewat GitHub?", "Prefer GitHub?")}{" "}
+          <a href={`https://github.com/${sourceRepo}/issues/new`} rel="noreferrer noopener" target="_blank">
+            <GitHubMark />
+            {tx(locale, "Buka issue", "Open an issue")} <span aria-hidden="true">↗</span>
+          </a>
+          {tx(locale, "—progresnya bisa kamu pantau di sana.", "—you can follow its progress there.")}
+        </p>
 
         {supabaseConfigured() ? (
           <FeedbackForm />
@@ -69,18 +79,6 @@ export default async function FeedbackPage() {
         )}
 
         <aside className="feedback-elsewhere">
-          <h2>{tx(locale, "Ada tempat lain juga", "There are other places, too")}</h2>
-          <p>
-            {tx(
-              locale,
-              "Kalau kamu terbiasa dengan GitHub, bug dan usul boleh langsung jadi issue—di sana pengerjaannya kelihatan.",
-              "If GitHub is where you are comfortable, a bug or a request can go straight to an issue — the work on it is visible there.",
-            )}{" "}
-            <a href="https://github.com/zikrulihsan/ahsanproject/issues" rel="noreferrer noopener" target="_blank">
-              {tx(locale, "Buka issue di GitHub", "Open an issue on GitHub")}
-            </a>
-            .
-          </p>
           <p>
             {tx(
               locale,
@@ -88,7 +86,7 @@ export default async function FeedbackPage() {
               "Found a security hole? Do not write it here or in a public issue — follow the reporting steps in the repository's",
             )}{" "}
             <a
-              href="https://github.com/zikrulihsan/ahsanproject/blob/main/SECURITY.md"
+              href={`https://github.com/${sourceRepo}/blob/main/SECURITY.md`}
               rel="noreferrer noopener"
               target="_blank"
             >

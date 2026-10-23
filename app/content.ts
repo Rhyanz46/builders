@@ -1,6 +1,9 @@
 /** Canonical origin for metadata, share cards, and the sitemap. */
 export const siteUrl = "https://builders.swegrowth.id";
 
+/** This site's own repository, `owner/name` — the site is open source too. */
+export const sourceRepo = "zikrulihsan/builders";
+
 /**
  * The WhatsApp community where contributors share what they are working on.
  * Empty hides the link everywhere it appears.
