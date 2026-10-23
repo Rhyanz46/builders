@@ -152,6 +152,7 @@ export function memberBadges(repo: string, members: OssMember[]): Badge[] {
     people: people.map((member) => member.handle).filter(Boolean),
     count: people.length,
     profiles: people.map((member) => member.username),
+    members: people.map(({ username, name, handle }) => ({ username, name, handle })),
   });
 
   return [
@@ -181,6 +182,7 @@ export function mergeBadges(manual: Badge[], derived: Badge[]): Badge[] {
       kind: badge.kind,
       people,
       profiles,
+      members: [...new Map([...(current.members ?? []), ...(badge.members ?? [])].map((member) => [member.username, member])).values()],
       count: Math.max(people.length, current.count ?? 0, badge.count ?? 0),
     });
   }
