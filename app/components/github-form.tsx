@@ -54,8 +54,8 @@ export function GitHubForm({ github, shown }: { github: string; shown: boolean }
           </label>
           <p className="hint">
             {tx(
-              "Opsional, mati sampai kamu menyalakannya. Kalau dicentang, Builders membaca pull request dan jumlah commit publikmu dari GitHub tiap beberapa jam. Hilangkan centangnya kapan saja: datanya langsung disembunyikan lalu dihapus.",
-              "Optional, and off until you turn it on. When ticked, Builders reads your public pull requests and commit counts from GitHub every few hours. Untick it any time: they are hidden at once, then deleted.",
+              "Opsional, mati sampai kamu menyalakannya. Kalau dicentang, pull request dan jumlah commit publikmu muncul di halaman Aktivitas dalam beberapa menit, lalu diperbarui otomatis dari GitHub tiap 6 jam. Hilangkan centangnya kapan saja: datanya langsung disembunyikan lalu dihapus.",
+              "Optional, and off until you turn it on. When ticked, your public pull requests and commit counts show on the Activity page within a few minutes, then refresh from GitHub every 6 hours on their own. Untick it any time: they are hidden at once, then deleted.",
             )}
           </p>
         </div>
@@ -66,7 +66,11 @@ export function GitHubForm({ github, shown }: { github: string; shown: boolean }
           </button>
           {state.saved && !pending ? (
             <span className="gh-form-saved" role="status">
-              {tx("Tersimpan.", "Saved.")}
+              {/* Saying yes asks GitHub at once, but the Activity page is cached
+                  for a few minutes: say so, rather than let an empty page look broken. */}
+              {values.shown
+                ? tx("Tersimpan. Aktivitasmu muncul di halaman Aktivitas dalam beberapa menit.", "Saved. Your activity shows on the Activity page within a few minutes.")
+                : tx("Tersimpan.", "Saved.")}
             </span>
           ) : null}
         </div>
