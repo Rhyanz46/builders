@@ -4,24 +4,42 @@ import type { GitHubCommitSummaryRow, GitHubPullRequestRow } from "./database.ty
  * The /activity feed: what members have been doing in open source, read from
  * GitHub by the refresh-github-activity Edge Function.
  *
- * Two kinds of entry. A pull request to somebody else's repository stands on
- * its own — that is the contribution the page exists to show. Work on a
- * member's own repositories is one summary line per person, so a busy week on
- * a side project does not bury everybody else.
+ * Two kinds of entry. Pull requests to somebody else's repository come one
+ * entry per person, repository, state and day, so a busy afternoon on one
+ * project is one line with its PRs under it rather than a screenful. A
+ * member's own work — commits and merged pull requests on their own or their
+ * organisation's repositories — is one summary line per person, so a busy
+ * week on a side project does not bury everybody else.
+ *
+ * The two are the page's scopes, toggled like the directory's local and
+ * global: contributions, which the page exists to show and opens on, and
+ * members' own work.
  */
 
 export type ActivityPerson = { id: string; username: string; name: string; handle: string };
+
+export type PullRequestItem = {
+  url: string;
+  number: number;
+  title: string;
+  /** When it was merged, or opened while it is still open. */
+  at: string;
+};
 
 export type PullRequestEntry = {
   kind: "pull_request";
   key: string;
   person: ActivityPerson;
   repo: string;
+  /**
+   * The day's first pull request: what reactions are left on. Later ones that
+   * day join the entry without moving its reactions.
+   */
   url: string;
-  number: number;
-  title: string;
   state: "open" | "merged";
-  /** When it was merged, or opened while it is still open: what the feed sorts by. */
+  /** Newest first; at least one. */
+  pullRequests: PullRequestItem[];
+  /** The newest pull request's time: what the feed sorts by. */
   at: string;
 };
 
@@ -29,7 +47,11 @@ export type CommitSummaryEntry = {
   kind: "commit_summary";
   key: string;
   person: ActivityPerson;
+  /** Commits in the last SUMMARY_DAYS. */
   commits: number;
+  /** Pull requests merged into their own repositories in the same SUMMARY_DAYS. */
+  merged: number;
+  /** Most commits first, then those with only pull requests. */
   repos: { repo: string; commits: number }[];
   since: string;
   at: string;
@@ -37,11 +59,41 @@ export type CommitSummaryEntry = {
 
 export type GitHubActivityEntry = PullRequestEntry | CommitSummaryEntry;
 
+/** The window a member's own work is summed over: COMMIT_DAYS in refresh-github-activity. */
+export const SUMMARY_DAYS = 30;
+
 /** What kind of entry: a merged PR, one in review, or work on one's own repositories. */
 export type GitHubActivityFilter = "all" | "merged" | "open" | "commits";
 
 export function isGitHubActivityFilter(value: string): value is GitHubActivityFilter {
   return value === "all" || value === "merged" || value === "open" || value === "commits";
+}
+
+/**
+ * Whose repositories: other people's (contributions), the member's own, or
+ * both. In the toggle's order; the page opens on "external".
+ */
+export const ACTIVITY_SCOPES = ["all", "external", "own"] as const;
+export type ActivityScope = (typeof ACTIVITY_SCOPES)[number];
+
+export function isActivityScope(value: string): value is ActivityScope {
+  return (ACTIVITY_SCOPES as readonly string[]).includes(value);
+}
+
+export function scopeOf(entry: GitHubActivityEntry): Exclude<ActivityScope, "all"> {
+  return entry.kind === "commit_summary" ? "own" : "external";
+}
+
+/** How many entries each scope shows. */
+export function scopeCounts(entries: GitHubActivityEntry[]): Record<ActivityScope, number> {
+  const counts: Record<ActivityScope, number> = { all: entries.length, external: 0, own: 0 };
+  for (const entry of entries) counts[scopeOf(entry)] += 1;
+  return counts;
+}
+
+/** The entries one scope shows. */
+export function inScope(entries: GitHubActivityEntry[], scope: ActivityScope): GitHubActivityEntry[] {
+  return scope === "all" ? entries : entries.filter((entry) => scopeOf(entry) === scope);
 }
 
 function kindOf(entry: GitHubActivityEntry): Exclude<GitHubActivityFilter, "all"> {
@@ -51,36 +103,55 @@ function kindOf(entry: GitHubActivityEntry): Exclude<GitHubActivityFilter, "all"
 export function buildGitHubActivity(
   pullRequests: (GitHubPullRequestRow & { person: ActivityPerson | null })[],
   summaries: (GitHubCommitSummaryRow & { person: ActivityPerson | null })[],
+  timeZone = "Asia/Jakarta",
+  now = new Date(),
 ): GitHubActivityEntry[] {
   const entries: GitHubActivityEntry[] = [];
+  const summarySince = new Date(now.getTime() - SUMMARY_DAYS * 86_400_000).toISOString();
 
-  for (const row of pullRequests) {
-    if (!row.person || (row.state !== "open" && row.state !== "merged")) continue;
-    entries.push({
-      kind: "pull_request",
-      key: row.url,
-      person: row.person,
-      repo: row.repo,
-      url: row.url,
-      number: row.number,
-      title: row.title,
-      state: row.state,
-      at: row.state === "merged" && row.merged_at ? row.merged_at : row.opened_at,
-    });
-  }
+  // A member's own work, gathered per person: their commit summary, and the
+  // pull requests merged into their own repositories.
+  const own = new Map<string, CommitSummaryEntry>();
+  const ownOf = (person: ActivityPerson, userId: string) => {
+    let entry = own.get(userId);
+    if (!entry) own.set(userId, (entry = { kind: "commit_summary", key: `commits:${userId}`, person, commits: 0, merged: 0, repos: [], since: "", at: "" }));
+    return entry;
+  };
 
   for (const row of summaries) {
     if (!row.person || row.commits <= 0 || !Array.isArray(row.repos) || row.repos.length === 0) continue;
-    entries.push({
-      kind: "commit_summary",
-      key: `commits:${row.user_id}`,
-      person: row.person,
-      commits: row.commits,
-      repos: row.repos,
-      since: row.since,
-      at: row.last_commit_at ?? row.checked_at,
-    });
+    const entry = ownOf(row.person, row.user_id);
+    entry.commits = row.commits;
+    entry.repos = [...row.repos];
+    entry.since = row.since;
+    entry.at = row.last_commit_at ?? row.checked_at;
   }
+
+  const groups = new Map<string, { person: ActivityPerson; repo: string; state: "open" | "merged"; items: PullRequestItem[] }>();
+  for (const row of pullRequests) {
+    if (!row.person || (row.state !== "open" && row.state !== "merged")) continue;
+    const at = row.state === "merged" && row.merged_at ? row.merged_at : row.opened_at;
+    if (row.own) {
+      // Merged within the summary's window is counted; still in review on
+      // their own repository is not news.
+      if (row.state !== "merged" || at < summarySince) continue;
+      const entry = ownOf(row.person, row.user_id);
+      entry.merged += 1;
+      if (!entry.repos.some((each) => each.repo === row.repo)) entry.repos.push({ repo: row.repo, commits: 0 });
+      if (at > entry.at) entry.at = at;
+      continue;
+    }
+    const group = `${row.person.id} ${row.repo} ${row.state} ${dayKey(at, timeZone)}`;
+    const found = groups.get(group) ?? { person: row.person, repo: row.repo, state: row.state, items: [] };
+    found.items.push({ url: row.url, number: row.number, title: row.title, at });
+    groups.set(group, found);
+  }
+  for (const { person, repo, state, items } of groups.values()) {
+    items.sort((a, b) => b.at.localeCompare(a.at) || b.number - a.number);
+    const first = items[items.length - 1];
+    entries.push({ kind: "pull_request", key: first.url, person, repo, url: first.url, state, pullRequests: items, at: items[0].at });
+  }
+  entries.push(...own.values());
 
   return entries.sort((a, b) => b.at.localeCompare(a.at) || a.key.localeCompare(b.key));
 }
@@ -110,14 +181,20 @@ export function queryActivity(entries: GitHubActivityEntry[], query: ActivityQue
     if (member && entry.person.handle.toLowerCase() !== member) return false;
     if (query.repo && !reposOf(entry).includes(query.repo)) return false;
     if (!needle) return true;
-    const haystack = [entry.kind === "pull_request" ? entry.title : "", ...reposOf(entry), entry.person.name, entry.person.handle]
+    const titles = entry.kind === "pull_request" ? entry.pullRequests.map((pr) => pr.title) : [];
+    const haystack = [...titles, ...reposOf(entry), entry.person.name, entry.person.handle]
       .join(" ")
       .toLowerCase();
     return haystack.includes(needle);
   });
 }
 
-/** How many entries of each kind, for the sidebar. */
+/** How many pull requests an entry stands for; none for a commit summary. */
+function pullRequestCount(entry: GitHubActivityEntry): number {
+  return entry.kind === "pull_request" ? entry.pullRequests.length : 0;
+}
+
+/** How many entries of each kind, for the sidebar: what each filter lists. */
 export function kindCounts(entries: GitHubActivityEntry[]): Record<GitHubActivityFilter, number> {
   const counts: Record<GitHubActivityFilter, number> = { all: entries.length, merged: 0, open: 0, commits: 0 };
   for (const entry of entries) counts[kindOf(entry)] += 1;
@@ -127,7 +204,7 @@ export function kindCounts(entries: GitHubActivityEntry[]): Record<GitHubActivit
 /** Repositories pull requests went to, most first: the sidebar's repository group. */
 export function activityRepos(entries: GitHubActivityEntry[]): { repo: string; count: number }[] {
   const counts = new Map<string, number>();
-  for (const entry of entries) if (entry.kind === "pull_request") counts.set(entry.repo, (counts.get(entry.repo) ?? 0) + 1);
+  for (const entry of entries) if (entry.kind === "pull_request") counts.set(entry.repo, (counts.get(entry.repo) ?? 0) + pullRequestCount(entry));
   return [...counts].map(([repo, count]) => ({ repo, count })).sort((a, b) => b.count - a.count || a.repo.localeCompare(b.repo));
 }
 
@@ -137,7 +214,8 @@ export function activityPeople(entries: GitHubActivityEntry[]): { person: Activi
   for (const entry of entries) {
     const key = entry.person.handle.toLowerCase();
     const found = byHandle.get(key) ?? { person: entry.person, count: 0 };
-    found.count += entry.kind === "pull_request" ? 1 : 0;
+    // Their own merged pull requests count too: what is showing is what they did.
+    found.count += entry.kind === "pull_request" ? pullRequestCount(entry) : entry.merged;
     byHandle.set(key, found);
   }
   return [...byHandle.values()].sort((a, b) => b.count - a.count || a.person.name.localeCompare(b.person.name));
@@ -145,13 +223,17 @@ export function activityPeople(entries: GitHubActivityEntry[]): { person: Activi
 
 export type ActivityStats = { people: number; merged: number; open: number; repos: number };
 
-/** The numbers at the top of the page: who, what landed, what is waiting, and where. */
+/**
+ * The numbers at the top of the page: who, what landed, what is waiting, and
+ * where. Contributions only: a member's own work is in their summary, not
+ * counted as open source they gave to.
+ */
 export function activityStats(entries: GitHubActivityEntry[]): ActivityStats {
   const pullRequests = entries.filter((entry): entry is PullRequestEntry => entry.kind === "pull_request");
   return {
     people: new Set(entries.map((entry) => entry.person.id)).size,
-    merged: pullRequests.filter((entry) => entry.state === "merged").length,
-    open: pullRequests.filter((entry) => entry.state === "open").length,
+    merged: pullRequests.filter((entry) => entry.state === "merged").reduce((sum, entry) => sum + pullRequestCount(entry), 0),
+    open: pullRequests.filter((entry) => entry.state === "open").reduce((sum, entry) => sum + pullRequestCount(entry), 0),
     repos: new Set(pullRequests.map((entry) => entry.repo)).size,
   };
 }
