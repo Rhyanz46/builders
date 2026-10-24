@@ -1528,6 +1528,8 @@ form button[aria-busy="true"]::after,
   height: 32px; padding: 0 14px;
 }
 .dx-wa-cta:hover { background: light-dark(#1a7f37, #2ea043); }
+.dx-wa-link { color: var(--dx-muted); font-size: 13px; text-decoration: underline; text-decoration-color: var(--dx-line); text-underline-offset: 3px; }
+.dx-wa-link:hover { color: var(--dx-ink); text-decoration-color: currentColor; }
 /* WhatsApp's own logo, from Meta's brand resources via Simple Icons
    (public/whatsapp.svg), inlined so it paints with the button rather than
    after a second request; drawn in the button's text colour. */
