@@ -103,6 +103,39 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
   ],
 ];
 
+/**
+ * What happens here, as the loop it is: find a project, contribute, be seen,
+ * bring others. The contribution itself happens on GitHub or with the
+ * project's owner; Builders is the finding before it and the being seen
+ * after, which is what makes the next person try.
+ */
+const LOOP: readonly (readonly [string, string, string, string])[] = [
+  [
+    "Temukan",
+    "Find",
+    "Pilih project yang beneran nerima kontributor: repo open source yang PR-nya dibaca, atau produk member yang lagi buka peran.",
+    "Pick a project that genuinely takes contributors: an open source repo whose PRs get read, or a member's product that has a role open.",
+  ],
+  [
+    "Kontribusi",
+    "Contribute",
+    "Kirim PR di GitHub, atau bantu lewat peranmu. Kerjanya terjadi di project-nya, bukan di sini.",
+    "Send a PR on GitHub, or help in your role. The work happens in the project, not here.",
+  ],
+  [
+    "Terlihat",
+    "Be seen",
+    "PR yang di-merge muncul di halaman Aktivitas dan jadi badge di profilmu. Member lain bisa kasih reaksi.",
+    "A merged PR shows on the Activity page and becomes a badge on your profile. Other members can react to it.",
+  ],
+  [
+    "Ajak",
+    "Bring others",
+    "Teman yang lihat kontribusimu jadi berani nyoba. Punya project sendiri? Daftarin, biar kontributor berikutnya nemu.",
+    "Friends who see your contribution are more willing to try. Have a project of your own? List it, so the next contributor finds it.",
+  ],
+];
+
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
 /** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
@@ -131,8 +164,14 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Builders itu apa?",
     "What is Builders?",
-    "Tempat buat kontribusi ke project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia.",
-    "A place to contribute to projects open to contributors—open source repos and products from Indonesian builders.",
+    "Platform komunitas swegrowth buat nemuin project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia—berkontribusi, dan bikin kontribusinya kelihatan.",
+    "The swegrowth community's platform for finding projects open to contributors—open source repos and products from Indonesian builders—contributing, and making that contribution visible.",
+  ],
+  [
+    "Bedanya Builders sama WA Community?",
+    "How is Builders different from the WA Community?",
+    "WA Community itu tempat ngobrol: tanya soal issue, cari reviewer, kabar terbaru. Builders itu platformnya: daftar project, profilmu, dan kontribusimu yang tercatat. Keduanya saling melengkapi.",
+    "The WA Community is where we talk: questions about an issue, finding a reviewer, news. Builders is the platform: the project list, your profile, and your contributions on record. Each needs the other.",
   ],
   [
     "Siapa yang ngelola?",
@@ -231,6 +270,37 @@ export default async function AboutPage() {
             </p>
           </div>
         </header>
+
+        {/* The question a newcomer actually asks, answered in one sentence before anything else. */}
+        <section id="how" className="ab-section" aria-labelledby="how-title">
+          <h2 id="how-title">{tx(locale, "Di Builders ini kita ngapain sebenarnya?", "So what do we actually do on Builders?")}</h2>
+          <p className="ab-answer">
+            {tx(
+              locale,
+              "Kontribusi. Tepatnya: nemuin project orang lain, ngirim kontribusi ke sana, dan bikin kontribusi itu kelihatan.",
+              "Contribute. More precisely: find someone else's project, send it a contribution, and make that contribution visible.",
+            )}
+          </p>
+          <ol className="ab-cards ab-steps">
+            {LOOP.map(([titleId, titleEn, bodyId, bodyEn], index) => (
+              <li key={titleEn} className="ab-card">
+                <span className="ab-step" aria-hidden="true">{index + 1}</span>
+                <h3>{tx(locale, titleId, titleEn)}</h3>
+                <p>{tx(locale, bodyId, bodyEn)}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="ab-lead">
+            {tx(
+              locale,
+              "Builders itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa member yang PR-nya di-merge ke project orang lain tiap bulan.",
+              "Builders is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.",
+            )}
+          </p>
+          <Link className="ab-more" href="/activity">
+            {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
+          </Link>
+        </section>
 
         <section className="ab-section" aria-labelledby="audience-title">
           <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>

@@ -298,8 +298,10 @@ async function VisitorHeader({
             ) : (
               <>
                 <Link className="nav-login" href={signInPath(destination)}>{tx(locale, "Masuk", "Sign in")}</Link>
-                <Link className="primary-action" href="/submit">
-                  <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+                {/* A guest's first step is an account, whatever they came for: suggesting a
+                    project needs one too. A plain sign-in lands on /get-started. */}
+                <Link className="primary-action" href="/signin">
+                  {tx(locale, "Gabung", "Join")}
                 </Link>
               </>
             )}
@@ -423,10 +425,17 @@ function MobileHeaderMenu({
           <ThemeToggle row />
         </nav>
 
-        <Link className="mobile-project-action" href="/submit">
-          <HeaderIcon name="add" />
-          <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
-        </Link>
+        {viewer ? (
+          <Link className="mobile-project-action" href="/submit">
+            <HeaderIcon name="add" />
+            <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
+          </Link>
+        ) : (
+          <Link className="mobile-project-action" href="/signin">
+            <HeaderIcon name="profile" />
+            <span>{tx(locale, "Gabung ke Builders", "Join Builders")}</span>
+          </Link>
+        )}
 
         {viewer ? (
           <section className="mobile-account-section" aria-label={tx(locale, "Akun", "Account")}>
