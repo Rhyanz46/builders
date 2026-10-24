@@ -35,7 +35,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
  * familiar, while the list itself reads as a feed rather than a catalogue.
  *
  * Nobody writes these entries: the refresh-github-activity Edge Function asks
- * GitHub every few hours, for members who chose to be shown.
+ * GitHub every half hour, for members who chose to be shown.
  */
 export default async function ActivityPage({ searchParams }: { searchParams?: SearchParams }) {
   const query = searchParams ?? Promise.resolve({});
@@ -64,8 +64,8 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
         <p>
           {tx(
             locale,
-            "Pull request dan commit member, langsung dari GitHub tiap beberapa jam. ",
-            "Members' pull requests and commits, straight from GitHub every few hours. ",
+            "Pull request dan commit member, langsung dari GitHub, diperbarui tiap 30 menit. ",
+            "Members' pull requests and commits, straight from GitHub, refreshed every 30 minutes. ",
           )}
           <Link className="ax-head-link" href="/account/profile#github-account">
             {tx(locale, "Tampilkan punyamu", "Show yours")}
