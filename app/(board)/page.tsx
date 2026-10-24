@@ -51,15 +51,16 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
           <div>
             <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p className="dx-head-community">
+              {/* What the place is for, in one line, for somebody who has just landed. */}
               {locale === "id" ? (
                 <>
-                  Repo dan produk terkurasi dari <Link href="/about">komunitas builder dan kontributor swegrowth</Link>. Gabung untuk update
-                  dan berbagi project pilihanmu.
+                  Temukan project yang terbuka buat kontributor, kirim kontribusimu, dan biarkan kontribusimu terlihat. Dikurasi komunitas
+                  swegrowth. <Link href="/about#how">Cara kerjanya</Link>
                 </>
               ) : (
                 <>
-                  Repos and products curated in the <Link href="/about">swegrowth builders and contributors community</Link>. Join for updates
-                  and to share your preferred projects.
+                  Find a project that takes contributors, send your contribution, and let it be seen. Curated by the swegrowth community.{" "}
+                  <Link href="/about#how">How it works</Link>
                 </>
               )}
             </p>
