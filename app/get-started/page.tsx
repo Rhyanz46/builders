@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "@/app/components/responsive-link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { setNow } from "../actions";
 import { OssAddForm } from "../components/oss-record";
@@ -7,10 +8,12 @@ import { SiteFooter, SiteHeader } from "../components/shell";
 import { StageBadge } from "../components/pieces";
 import { ProjectLogo } from "../components/project-logo";
 import { SubmitButton } from "../components/submit-button";
+import { WaJoinLink } from "../components/wa-join-link";
+import { waCommunityUrl } from "../content";
 import { MAXIMUM } from "../lib/brief";
 import { getPortfolio, listOssContributionsOf, type ProjectSummary } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
-import { nextSteps, remainingSteps, type NextStep } from "../lib/next-steps";
+import { WA_JOINED_COOKIE, nextSteps, remainingSteps, waActivities, type NextStep } from "../lib/next-steps";
 import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
 import { currentLocale } from "../lib/locale-server";
@@ -56,11 +59,19 @@ export default async function StartPage({
   const keepOpen = query.all === "1";
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
 
-  const [{ owned }, records] = await Promise.all([
+  const [{ owned }, records, cookieStore] = await Promise.all([
     getPortfolio(viewer),
     readPublicly("open source record on get-started", () => listOssContributionsOf(viewer.id), []),
+    cookies(),
   ]);
-  const steps = nextSteps({ person: viewer, owned, ossCount: records.value.length, locale });
+  const steps = nextSteps({
+    person: viewer,
+    owned,
+    ossCount: records.value.length,
+    waUrl: waCommunityUrl,
+    waJoined: cookieStore.get(WA_JOINED_COOKIE)?.value === "1",
+    locale,
+  });
   const remaining = remainingSteps(steps);
   if (remaining.length === 0 && !keepOpen) redirect("/");
 
@@ -75,6 +86,15 @@ export default async function StartPage({
         <header className="ob-head">
           <p className="ob-kicker">{tx(locale, "Mulai di Builders", "Getting started")}</p>
           <h1>{tx(locale, `Halo, ${firstName}.`, `Hello, ${firstName}.`)}</h1>
+          {/* Who they have just joined, before what they owe it. */}
+          <p className="ob-welcome">
+            {tx(
+              locale,
+              "Selamat datang di sekumpulan orang yang sama-sama mau aktif di open source. Di sini kamu nggak mulai sendirian: ada teman yang udah duluan, maintainer yang kenal kamu, dan progres yang saling kelihatan.",
+              "Welcome to a circle of people who all want to be active in open source. Here you do not start alone: there are friends who have been there, maintainers who know you, and progress everyone can see.",
+            )}{" "}
+            <Link href="/about#why-together">{tx(locale, "Kenapa bareng-bareng?", "Why together?")}</Link>
+          </p>
           <p>
             {remaining.length === 0
               ? tx(locale, "Semua langkah sudah selesai. Saatnya pilih project dari direktori.", "Every step is done. Time to pick a project from the directory.")
@@ -97,6 +117,11 @@ export default async function StartPage({
                     </small>
                   ) : null}
                 </OssAddForm> : null}
+              {step.id === "wa" ? (
+                <ul className="ob-wa-list" aria-label={tx(locale, "Yang kita lakukan di WA", "What we do on WA")}>
+                  {waActivities(locale).map((line) => <li key={line}>{line}</li>)}
+                </ul>
+              ) : null}
             </StepRow>
           ))}
         </ol>
@@ -163,9 +188,15 @@ function StepRow({
         <p>{step.blurb}</p>
         {children}
       </div>
-      <Link className={step.done ? "ob-step-edit" : "dx-action"} href={step.href}>
-        {step.done ? tx(locale, "Ubah", "Edit") : step.cta}
-      </Link>
+      {step.external ? (
+        <WaJoinLink className={step.done ? "ob-step-edit" : "dx-action"} href={step.href}>
+          {step.done ? tx(locale, "Buka WA", "Open WA") : step.cta}
+        </WaJoinLink>
+      ) : (
+        <Link className={step.done ? "ob-step-edit" : "dx-action"} href={step.href}>
+          {step.done ? tx(locale, "Ubah", "Edit") : step.cta}
+        </Link>
+      )}
     </li>
   );
 }

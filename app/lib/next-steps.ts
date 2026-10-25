@@ -5,12 +5,16 @@
  * more than a list of links is knowing who among us has been where. So the
  * steps a new account owes are the ones that put them on that map:
  *
- *   1. link GitHub — the account every contribution here is made with, and
- *      the face on a directory badge;
+ *   1. link GitHub and show its activity — the account every contribution
+ *      here is made with, the face on a directory badge, and the merged PRs
+ *      on /activity that make the next person try;
  *   2. list the repos you have contributed to or maintain — those become the
  *      "a friend has contributed" and "maintainer in our group" badges;
  *   3. say who you are — profession, skills, a line about you — so somebody
- *      who sees your face on a badge knows who to ask.
+ *      who sees your face on a badge knows who to ask;
+ *   4. join the WA Community — where the talking happens: questions, reviews,
+ *      merged PRs cheered. Nobody here can see who is in a WhatsApp group, so
+ *      it counts as done once the button has been pressed.
  *
  * Listing a product of your own is offered, never owed: most people here come
  * to contribute, not to found something.
@@ -26,7 +30,23 @@
 import { githubHandle } from "./oss";
 import { tx, type Locale } from "./locale";
 
-export type NextStepId = "github" | "oss" | "talent" | "project" | "now" | "role";
+/** Set when the WA Community button on /get-started is pressed; read back as that step's `done`. */
+export const WA_JOINED_COOKIE = "builders_wa_joined";
+
+/**
+ * What the WA Community is for, said on its step so that joining reads as
+ * the next part of contributing rather than one more group to mute.
+ */
+export function waActivities(locale: Locale): string[] {
+  return [
+    tx(locale, "Tanya kalau mentok: setup repo, issue mana yang cocok buat mulai, cara baca codebase-nya.", "Ask when you are stuck: setting a repo up, which issue to start with, how to find your way around the code."),
+    tx(locale, "Cari teman yang pernah kontribusi ke repo yang sama, atau minta review sebelum PR-mu dikirim.", "Find somebody who has contributed to the same repo, or ask for a review before your PR goes out."),
+    tx(locale, "Ngerjain issue bareng: bagi tugas, pairing, atau sesi kontribusi rutin.", "Work on issues together: split the work, pair, or join a regular contribution session."),
+    tx(locale, "Share PR yang di-merge dan repo baru yang layak masuk direktori—dirayain bareng.", "Share merged PRs and new repos worth adding to the directory—and cheer them on together."),
+  ];
+}
+
+export type NextStepId = "github" | "oss" | "talent" | "wa" | "project" | "now" | "role";
 
 export type NextStep = {
   id: NextStepId;
@@ -37,6 +57,8 @@ export type NextStep = {
   done: boolean;
   /** A step worth offering but never counted as owed. */
   optional?: boolean;
+  /** `href` leaves this site. */
+  external?: boolean;
 };
 
 /** The half of a profile these steps read. */
@@ -51,6 +73,8 @@ export type StepPerson = {
   linkedin: string;
   x: string;
   resume: string;
+  /** Agreed to their GitHub activity being shown on /activity. */
+  githubActivityShown?: boolean;
 };
 
 /** The half of a project these steps read. */
@@ -64,26 +88,32 @@ export function nextSteps({
   person,
   owned,
   ossCount = 0,
+  waUrl = "",
+  waJoined = false,
   locale = "en",
 }: {
   person: StepPerson;
   owned: StepProject[];
   /** Rows in the person's open source record. */
   ossCount?: number;
+  /** The WA Community's invite; no step without one. */
+  waUrl?: string;
+  /** They pressed the WA Community button, on this browser. */
+  waJoined?: boolean;
   locale?: Locale;
 }): NextStep[] {
   const steps: NextStep[] = [
     {
       id: "github",
-      title: tx(locale, "Tautkan akun GitHub-mu", "Link your GitHub account"),
+      title: tx(locale, "Tautkan GitHub & tampilkan aktivitasmu", "Link GitHub and show your activity"),
       blurb: tx(
         locale,
-        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, jadi orang tahu ada teman yang bisa ditanya.",
-        "The account you send PRs with. Its picture shows on directory badges, so people know there is a friend to ask.",
+        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, dan PR-mu yang di-merge muncul di halaman Aktivitas—biar teman lain ikut semangat.",
+        "The account you send PRs with. Its picture shows on directory badges, and your merged PRs show on the Activity page—so friends get the itch too.",
       ),
       href: "/account/profile#github-account",
       cta: tx(locale, "Tambah GitHub", "Add GitHub"),
-      done: githubHandle(person.github) !== "",
+      done: githubHandle(person.github) !== "" && person.githubActivityShown === true,
     },
     {
       id: "oss",
@@ -109,6 +139,23 @@ export function nextSteps({
       cta: tx(locale, "Lengkapi profil", "Complete profile"),
       done: profileReady(person),
     },
+    ...(waUrl
+      ? [
+          {
+            id: "wa" as const,
+            title: tx(locale, "Gabung WA Community", "Join the WA Community"),
+            blurb: tx(
+              locale,
+              "Interaksi paling aktif ada di sana. Di sini tempat nemu project dan nyatat kontribusi; ngobrolnya di WA.",
+              "That is where most of the talking happens. This site is for finding projects and keeping the record; the conversation is on WA.",
+            ),
+            href: waUrl,
+            cta: tx(locale, "Gabung WA", "Join on WA"),
+            done: waJoined,
+            external: true,
+          },
+        ]
+      : []),
     {
       id: "project",
       title: tx(locale, "Punya produk yang butuh kontributor?", "Have a product that needs contributors?"),
