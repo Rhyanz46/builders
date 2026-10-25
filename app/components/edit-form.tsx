@@ -194,7 +194,7 @@ export function EditForm({ project }: { project: EditableProject }) {
           />
           <span>
             <strong>{tx("Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")}</strong>
-            <small>{tx("Tampilkan lencana publik dan undang kontribusi melalui issue atau pull request.", "Show a public badge and invite contributions through issues or pull requests.")}</small>
+            <small>{tx("Repomu ikut tampil di oss.swegrowth.id, tempat kontributor open source mencari issue dan mengirim pull request.", "Your repository also shows on oss.swegrowth.id, where open source contributors find issues and send pull requests.")}</small>
           </span>
         </label>
         <input

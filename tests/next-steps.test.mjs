@@ -27,12 +27,14 @@ const filledPerson = {
 
 const project = (over = {}) => ({ slug: "warung-antre", nowText: "", openSeatCount: 0, ...over });
 
-test("a brand new account owes GitHub and who it is", () => {
+// The tests run as the builders site, where GitHub is offered, never owed.
+test("a brand new account on builders owes who it is, not GitHub", () => {
   const steps = nextSteps({ person: emptyPerson, owned: [] });
   assert.deepEqual(
     remainingSteps(steps).map((step) => step.id),
-    ["github", "talent"],
+    ["talent"],
   );
+  assert.equal(steps.find((step) => step.id === "github").optional, true);
 });
 
 test("GitHub counts once it reads as an account, in any of the usual spellings", () => {
@@ -114,7 +116,7 @@ test("GitHub is done once its activity is shown too, not on the username alone",
 test("the WA Community is owed, done once its button was pressed, and absent without an invite", () => {
   const waUrl = "https://chat.whatsapp.com/abc";
   const wa = (waJoined) => nextSteps({ person: emptyPerson, owned: [], waUrl, waJoined }).find((step) => step.id === "wa");
-  assert.deepEqual(remainingSteps(nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["github", "wa", "talent"]);
+  assert.deepEqual(remainingSteps(nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["wa", "talent"]);
   assert.equal(wa(false).href, waUrl);
   assert.equal(wa(false).external, true);
   assert.equal(wa(true).done, true);
@@ -124,7 +126,8 @@ test("the WA Community is owed, done once its button was pressed, and absent wit
 test("each path shows only its own steps, in its own order", () => {
   const waUrl = "https://chat.whatsapp.com/abc";
   const steps = nextSteps({ person: emptyPerson, owned: [project()], waUrl });
-  assert.deepEqual(stepsFor("contribute", steps).map((step) => step.id), ["github", "wa", "talent"]);
+  // Helping a product on builders: who you are, then the community.
+  assert.deepEqual(stepsFor("contribute", steps).map((step) => step.id), ["talent", "wa"]);
   assert.deepEqual(stepsFor("founder", steps).map((step) => step.id), ["talent", "wa", "project", "now", "role"]);
   // Before there is a product, a founder is only asked to list one.
   assert.deepEqual(stepsFor("founder", nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["talent", "wa", "project"]);

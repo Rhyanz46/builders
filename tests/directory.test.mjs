@@ -187,9 +187,24 @@ test("a product taking both PRs and people says so on both paths, and can be fil
   assert.deepEqual(filterDirectory(entries, { ...none, track: "role", open: "prs" }).map((e) => e.name), ["Tool"]);
 
   // A filter is offered only where it narrows: every role-path entry has open roles,
-  // and on the code path pull requests are filtered by tier instead.
+  // and on the code path pull requests are filtered by tier instead. On the
+  // builders site, which the tests run as, pull requests are never offered.
   assert.deepEqual(openingCounts(entries, "github"), [{ open: "roles", count: 1 }]);
-  assert.deepEqual(openingCounts(entries, "role"), [{ open: "prs", count: 1 }]);
+  assert.deepEqual(openingCounts(entries, "role"), []);
+});
+
+test("the builders directory lists every product, and asking for help is what narrows it", () => {
+  const helping = productEntries(product({ openSeatCount: 1, openRoles: ["design"] }), describe, roleName, "en", { everyProduct: true });
+  const quiet = productEntries(product({ id: 2, slug: "two" }), describe, roleName, "en", { everyProduct: true });
+  // Without the option a product asking for nothing is left out, as before.
+  assert.deepEqual(productEntries(product({ id: 2, slug: "two" }), describe, roleName, "en"), []);
+
+  assert.equal(quiet.length, 1);
+  assert.equal(quiet[0].track, "role");
+  assert.deepEqual(quiet[0].labels, []);
+  assert.equal(quiet[0].actionHref, "/projects/two");
+  assert.equal(quiet[0].hasOpenRoles, false);
+  assert.deepEqual(openingCounts([...helping, ...quiet], "role"), [{ open: "roles", count: 1 }]);
 });
 
 const DAY = 86_400_000;

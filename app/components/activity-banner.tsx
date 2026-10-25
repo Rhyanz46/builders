@@ -3,6 +3,7 @@ import Link from "./responsive-link";
 import { DismissibleBanner } from "./dismissible-banner";
 import { currentViewer } from "../lib/session";
 import { tx, type Locale } from "../lib/locale";
+import { isOss } from "../lib/site";
 
 const ACTIVITY_BANNER_COOKIE = "builders_activity_banner_closed";
 
@@ -14,6 +15,8 @@ const ACTIVITY_BANNER_COOKIE = "builders_activity_banner_closed";
  * once, for a month at a time.
  */
 export async function ActivityBanner({ locale }: { locale: Locale }) {
+  // GitHub activity is the open source site's; the builders site shows none of it.
+  if (!isOss) return null;
   const [viewer, cookieStore] = await Promise.all([currentViewer(), cookies()]);
   if (!viewer || (viewer.github && viewer.githubActivityShown)) return null;
   if (cookieStore.get(ACTIVITY_BANNER_COOKIE)?.value === "1") return null;

@@ -28,7 +28,7 @@ import { stageLabel } from "../../lib/stages";
 import { currentViewer } from "../../lib/session";
 import { currentLocale } from "../../lib/locale-server";
 import { tx, type Locale } from "../../lib/locale";
-import { isOss, site } from "../../lib/site";
+import { isOss, ossUrl, site } from "../../lib/site";
 
 type Params = Promise<{ username: string }>;
 
@@ -121,7 +121,8 @@ export default async function ProfilePage({
   const x = safeWebUrl(person.x);
   const publicEmail = safePublicEmail(person.publicEmail);
   const contacts: Array<{ href: string; icon: LinkIconKind; label: string; external: boolean }> = [
-    ...(handle ? [{ href: `https://github.com/${handle}`, icon: "github" as const, label: `@${handle}`, external: true }] : []),
+    // GitHub is the open source site's; on builders a profile is about products.
+    ...(isOss && handle ? [{ href: `https://github.com/${handle}`, icon: "github" as const, label: `@${handle}`, external: true }] : []),
     ...(website ? [{ href: website, icon: "website" as const, label: domainOf(website) || "Website", external: true }] : []),
     ...(publicEmail ? [{ href: `mailto:${publicEmail}`, icon: "email" as const, label: publicEmail, external: false }] : []),
     ...(linkedin ? [{ href: linkedin, icon: "linkedin" as const, label: "LinkedIn", external: true }] : []),
@@ -171,10 +172,13 @@ export default async function ProfilePage({
         </header>
 
         <ul className="pf-stats" aria-label={tx(locale, "Ringkasan", "Summary")}>
-          <Stat value={contributed} label={tx(locale, "repo dikontribusi", "repos contributed to")} />
-          <Stat value={maintained} label={tx(locale, "repo di-maintain", "repos maintained")} />
-          {/* Products and the work on them belong to the builders site. */}
-          {isOss ? null : (
+          {/* Repos on the open source site, products and the work on them on builders. */}
+          {isOss ? (
+            <>
+              <Stat value={contributed} label={tx(locale, "repo dikontribusi", "repos contributed to")} />
+              <Stat value={maintained} label={tx(locale, "repo di-maintain", "repos maintained")} />
+            </>
+          ) : (
             <>
               <Stat value={owned.length} label={tx(locale, "produk dibangun", "products built")} />
               <Stat value={contributing.length} label={tx(locale, "produk dibantu", "products helped")} />
@@ -187,17 +191,26 @@ export default async function ProfilePage({
 
         <div className="pf-layout">
           <div className="pf-main">
-            <section className="pf-section" aria-labelledby="oss-heading">
-              <div className="pf-section-head">
-                <h2 id="oss-heading">{tx(locale, "Kontribusi open source", "Open source contributions")}</h2>
-                {isSelf ? <Link href="/account/profile#open-source">{tx(locale, "Kelola", "Manage")}</Link> : null}
-              </div>
-              {records.length > 0 ? (
-                <OssRecordList records={sortRecords(records)} handle={handle} locale={locale} />
-              ) : (
-                <OssRecordEmpty self={isSelf} locale={locale} />
-              )}
-            </section>
+            {/* The open source record is the open source site's; builders points there. */}
+            {isOss ? (
+              <section className="pf-section" aria-labelledby="oss-heading">
+                <div className="pf-section-head">
+                  <h2 id="oss-heading">{tx(locale, "Kontribusi open source", "Open source contributions")}</h2>
+                  {isSelf ? <Link href="/account/profile#open-source">{tx(locale, "Kelola", "Manage")}</Link> : null}
+                </div>
+                {records.length > 0 ? (
+                  <OssRecordList records={sortRecords(records)} handle={handle} locale={locale} />
+                ) : (
+                  <OssRecordEmpty self={isSelf} locale={locale} />
+                )}
+              </section>
+            ) : records.length > 0 ? (
+              <p className="pf-note">
+                <a href={ossUrl(`/u/${person.username}`)} target="_blank" rel="noreferrer">
+                  {tx(locale, "Kontribusi open source-nya ada di oss.swegrowth.id", "Their open source contributions are on oss.swegrowth.id")} ↗
+                </a>
+              </p>
+            ) : null}
 
             {/* Products built, products helped, and the work trail of events on
                 them: builders only. The open source site shows the record above. */}

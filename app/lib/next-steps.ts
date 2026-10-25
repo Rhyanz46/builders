@@ -32,6 +32,7 @@
 
 import { githubHandle } from "./oss";
 import { tx, type Locale } from "./locale";
+import { isOss } from "./site";
 
 /** Set when the WA Community button on /get-started is pressed; read back as that step's `done`. */
 export const WA_JOINED_COOKIE = "builders_wa_joined";
@@ -101,6 +102,8 @@ export function nextSteps({
       href: "/account/profile#github-account",
       cta: tx(locale, "Tambah GitHub", "Add GitHub"),
       done: githubHandle(person.github) !== "" && person.githubActivityShown === true,
+      // GitHub is the open source site's; nothing on builders asks for it.
+      optional: !isOss,
     },
     ...(waUrl
       ? [
@@ -109,8 +112,12 @@ export function nextSteps({
             title: tx(locale, "Gabung WA Community", "Join the WA Community"),
             blurb: tx(
               locale,
-              "Interaksi paling aktif ada di sana: tanya kalau mentok, cari reviewer, dan rayain PR yang di-merge.",
-              "Where most of the talking happens: ask when you are stuck, find a reviewer, and cheer merged PRs.",
+              isOss
+                ? "Interaksi paling aktif ada di sana: tanya kalau mentok, cari reviewer, dan rayain PR yang di-merge."
+                : "Interaksi paling aktif ada di sana: kenalan sama pemilik produk, tanya soal perannya, dan cerita progresmu.",
+              isOss
+                ? "Where most of the talking happens: ask when you are stuck, find a reviewer, and cheer merged PRs."
+                : "Where most of the talking happens: meet the people behind the products, ask about a role, and share how it is going.",
             ),
             href: waUrl,
             cta: tx(locale, "Gabung WA", "Join on WA"),
@@ -191,8 +198,9 @@ export function isOnboardingPath(value: string): value is OnboardingPath {
 }
 
 const PATH_STEPS: Record<OnboardingPath, NextStepId[]> = {
-  // In the order /how-it-works tells it.
-  contribute: ["github", "wa", "talent"],
+  // In the order /how-it-works tells it: code on the open source site, a role
+  // on a member's product on builders, where a profile is what an owner reads.
+  contribute: isOss ? ["github", "wa", "talent"] : ["talent", "wa"],
   // A founder needs people to know who they are and where to find them
   // before the product, which is the point of being here.
   founder: ["talent", "wa", "project", "now", "role"],

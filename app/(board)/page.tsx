@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = isOss
     ? tx(locale, `${site.name} — Direktori Kontribusi Open Source`, `${site.name} — An Open Source Contribution Directory`)
-    : tx(locale, "Builders — Direktori Project untuk Dikontribusikan", "Builders — A Directory of Projects to Contribute To");
+    : tx(locale, "Builders — Direktori Produk Komunitas swegrowth", "Builders — The swegrowth Community's Product Directory");
   const description = isOss
     ? tx(
         locale,
@@ -33,8 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
       )
     : tx(
         locale,
-        "Kirim kode ke project open source di GitHub, atau bantu produk builders lewat peran lain. Pilih caramu, pilih project-nya, mulai.",
-        "Send code to open source projects on GitHub, or help builders' products in another role. Pick your way, pick a project, start.",
+        "Produk buatan member komunitas swegrowth, dari ide sampai rilis. Ikuti progresnya, bantu lewat peranmu, atau daftarkan produkmu.",
+        "Products built by swegrowth community members, from idea to launch. Follow their progress, help in your role, or list your own.",
       );
   return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
@@ -64,14 +64,20 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
 
         <header className="dx-head">
           <div>
-            <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
+            <h1>{isOss ? tx(locale, "Direktori kontribusi", "Contribution directory") : tx(locale, "Direktori produk", "Product directory")}</h1>
             <p className="dx-head-community">
               {/* What the place is for, in one line, for somebody who has just landed. */}
-              {tx(
-                locale,
-                "Komunitas buat yang mau aktif di open source. Semua project di sini dikurasi bareng-bareng.",
-                "A community for people who want to be active in open source. Every project here is curated together.",
-              )}
+              {isOss
+                ? tx(
+                    locale,
+                    "Daftar repo open source yang lagi nerima kontributor, dikurasi bareng oleh komunitas yang mau aktif di open source. Gabung buat ikut kontribusi dan nambahin repo.",
+                    "Open source repos taking contributors right now, curated together by a community that wants to be active in open source. Join to contribute and add repos of your own.",
+                  )
+                : tx(
+                    locale,
+                    "Produk buatan member komunitas swegrowth, dari ide sampai rilis. Ikuti progresnya, bantu lewat peranmu, atau daftarkan produkmu.",
+                    "Products built by swegrowth community members, from idea to launch. Follow their progress, help in your role, or list your own.",
+                  )}
             </p>
             <div className="dx-head-actions">
               <Suspense fallback={<WaButton />}>
@@ -135,15 +141,21 @@ async function readDirectory(locale: Locale) {
       adminPick: pickedProjects.has(project.id),
     };
   });
-  const entries: DirectoryEntry[] = [
-    ...repos.filter((repo) => repo.list === "internal").map((repo) => repoEntry(repo, locale, members)),
-    ...repos.filter((repo) => repo.list === "recommended").map((repo) => repoEntry(repo, locale, members)),
-    ...products.flatMap((project) =>
-      productEntries(project, projectBlurb, (role) => roleLabel(role, "", locale), locale),
-    ),
-    // The open source site keeps members' products that take PRs — their card
-    // is the repository — and leaves the role path to the builders site.
-  ].filter((entry) => !isOss || entry.track === "github");
+  const roleName = (role: string) => roleLabel(role, "", locale);
+  const entries: DirectoryEntry[] = isOss
+    ? [
+        ...repos.filter((repo) => repo.list === "internal").map((repo) => repoEntry(repo, locale, members)),
+        ...repos.filter((repo) => repo.list === "recommended").map((repo) => repoEntry(repo, locale, members)),
+        // The open source site keeps members' products that take PRs — their
+        // card is the repository — and leaves the role path to the builders site.
+        ...products.flatMap((project) => productEntries(project, projectBlurb, roleName, locale)),
+      ].filter((entry) => entry.track === "github")
+    : // The builders site is a directory of products, every active one, with
+      // nothing of GitHub's: no repos, and no repository link on a card.
+      products
+        .flatMap((project) => productEntries(project, projectBlurb, roleName, locale, { everyProduct: true }))
+        .filter((entry) => entry.track === "role")
+        .map((entry) => ({ ...entry, links: entry.links.filter((link) => link.kind !== "github") }));
   return { entries, members, unavailable: reposResult.unavailable || projectsResult.unavailable };
 }
 
@@ -185,10 +197,12 @@ function WaButton() {
 async function HeadStats({ locale }: { locale: Locale }) {
   const { entries, members } = await readDirectory(locale);
   const stats = [
-    { value: entries.filter((entry) => entry.track === "github").length, label: tx(locale, "Repo", "Repos") },
     ...(isOss
-      ? []
-      : [{ value: entries.filter((entry) => entry.track === "role").length, label: tx(locale, "Produk cari bantuan", "Products seeking help") }]),
+      ? [{ value: entries.length, label: tx(locale, "Repo", "Repos") }]
+      : [
+          { value: entries.length, label: tx(locale, "Produk", "Products") },
+          { value: entries.filter((entry) => entry.hasOpenRoles).length, label: tx(locale, "Cari bantuan", "Looking for help") },
+        ]),
     { value: members.length, label: tx(locale, "Terdaftar", "Registered") },
   ];
   return (

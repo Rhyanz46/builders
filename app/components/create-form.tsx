@@ -99,12 +99,6 @@ export function CreateForm() {
         found.highlight = tx("Ceritakan singkat apa yang sedang kamu buat.", "Say briefly what you are building.");
       }
     }
-    if (!takesPRs && !wantsRole) {
-      found.help = tx(
-        "Pilih minimal satu: terima PR di GitHub, atau cari orang untuk sebuah peran. Tanpa itu produkmu tidak tampil di direktori.",
-        "Choose at least one: take pull requests on GitHub, or look for someone for a role. Without one, your product does not show in the directory.",
-      );
-    }
     setChecked(found);
     if (Object.keys(found).length > 0) {
       event.preventDefault();
@@ -115,9 +109,6 @@ export function CreateForm() {
   // Remounts the prefilled inputs when a new page has been read, so the name
   // and summary show what was found. Anything typed there stays typed.
   const prefillKey = preview?.url ?? "no-preview";
-  // Either complaint, the page's or the server's, is about having no help
-  // ticked; once a box is ticked it no longer applies.
-  const helpError = takesPRs || wantsRole ? undefined : errorFor("help");
 
   return (
     /* Validated here and on the server rather than by the browser, so every
@@ -223,19 +214,19 @@ export function CreateForm() {
         )}
       </fieldset>
 
-      <fieldset className={`step ${helpError ? "has-error" : ""}`}>
+      <fieldset className="step">
         <legend>
           <span className="step-number">2</span> {tx("Butuh bantuan apa?", "What help do you need?")}
         </legend>
         <p className="step-intro">
-          {tx("Pilih minimal satu. Ini yang menentukan di mana produkmu tampil di direktori.", "Choose at least one. This decides where your product shows in the directory.")}
+          {tx("Opsional: produkmu tetap tampil di direktori. Pilih kalau kamu mau dibantu.", "Optional: your product shows in the directory either way. Pick one if you want a hand.")}
         </p>
 
         <label className={`help-toggle ${takesPRs ? "is-on" : ""}`}>
           <input type="checkbox" checked={takesPRs} onChange={(event) => setTakesPRs(event.target.checked)} />
           <span>
             <strong>{tx("Terima pull request di GitHub", "Take pull requests on GitHub")}</strong>
-            <small>{tx("Tampil di jalur “Kirim PR di GitHub”: orang langsung mencari issue di repomu.", "Shows on the “Send a pull request” path: people go straight to your repository's issues.")}</small>
+            <small>{tx("Repomu ikut tampil di oss.swegrowth.id, tempat kontributor open source langsung mencari issue di sana.", "Your repository also shows on oss.swegrowth.id, where open source contributors go straight to its issues.")}</small>
           </span>
         </label>
         <input type="hidden" name="openForGitHubContributions" value={takesPRs ? "yes" : "no"} />
@@ -289,11 +280,6 @@ export function CreateForm() {
           </div>
         ) : null}
 
-        {helpError ? (
-          <p className="field-error help-error" role="alert">
-            {helpError}
-          </p>
-        ) : null}
       </fieldset>
 
       <fieldset className="step">

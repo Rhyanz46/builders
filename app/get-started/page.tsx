@@ -97,7 +97,9 @@ export default async function StartPage({
             {path === null
               ? tx(locale, "Kamu ke sini mau ngapain?", "What brings you here?")
               : path === "contribute"
-                ? tx(locale, "Tiga langkah, lalu pilih project pertamamu.", "Three steps, then pick your first project.")
+                ? isOss
+                  ? tx(locale, "Tiga langkah, lalu pilih project pertamamu.", "Three steps, then pick your first project.")
+                  : tx(locale, "Dua langkah, lalu pilih produk yang mau kamu bantu.", "Two steps, then pick a product to help.")
                 : tx(locale, "Kenalin dirimu, lalu daftarkan produkmu biar kontributor bisa nemu.", "Introduce yourself, then list your product so contributors can find it.")}
           </p>
         </header>
@@ -113,8 +115,8 @@ export default async function StartPage({
                   </svg>
                 </span>
                 <span className="submit-choice-copy">
-                  <strong>{tx(locale, "Kontribusi ke project", "Contribute to a project")}</strong>
-                  <small>{tx(locale, "Kirim PR ke repo open source, atau bantu produk member lewat peran lain.", "Send PRs to open source repos, or help members' products in another role.")}</small>
+                  <strong>{tx(locale, "Bantu produk member", "Help a member's product")}</strong>
+                  <small>{tx(locale, "Gabung ke tim produk lewat peranmu: desain, product, riset, konten, atau QA.", "Join a product's team in your role: design, product, research, content or QA.")}</small>
                 </span>
                 <span className="submit-choice-arrow" aria-hidden="true">→</span>
               </Link>
@@ -164,14 +166,14 @@ function PathSteps({ path, steps, locale }: { path: OnboardingPath; steps: NextS
       {path === "contribute" ? (
         <div className="ob-next tone-done">
           <div>
-            <strong>{tx(locale, "Lalu: pilih project pertamamu", "Then: pick your first project")}</strong>
+            <strong>{isOss ? tx(locale, "Lalu: pilih project pertamamu", "Then: pick your first project") : tx(locale, "Lalu: pilih produk yang mau kamu bantu", "Then: pick a product to help")}</strong>
             <span>
               {isOss
                 ? tx(locale, "Repo yang lagi nerima PR, semuanya ada di direktori.", "Repos taking PRs right now, all in the directory.")
-                : tx(locale, "Kode di GitHub atau peran lain — semuanya ada di direktori.", "Code on GitHub or another role — it is all in the directory.")}
+                : tx(locale, "Produk yang lagi cari bantuan, semuanya ada di direktori.", "Products looking for help, all in the directory.")}
             </span>
           </div>
-          <Link className="dx-action" href="/">{tx(locale, "Buka direktori", "Open the directory")} <span aria-hidden="true">→</span></Link>
+          <Link className="dx-action" href={isOss ? "/" : "/?open=roles"}>{tx(locale, "Buka direktori", "Open the directory")} <span aria-hidden="true">→</span></Link>
         </div>
       ) : null}
     </>

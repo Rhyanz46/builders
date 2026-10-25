@@ -21,7 +21,7 @@ import { isOss, site } from "../lib/site";
  * What "add" means on this site: listing a project on builders, suggesting an
  * open source repo on oss, which has no products to list.
  */
-const ADD_HREF = isOss ? "/recommend" : "/submit";
+const ADD_HREF = isOss ? "/recommend" : "/new";
 function addLabel(locale: Locale): string {
   return isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project");
 }
@@ -60,7 +60,9 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
  */
 const PRIMARY_LINKS: NavLink[] = [
   { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "directory" },
-  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "pull-request" },
+  // Activity is members' pull requests, the open source site's; builders gets
+  // its own feed of products later, and lists none until then.
+  ...(isOss ? [{ href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity" as const, icon: "pull-request" as const }] : []),
 ];
 
 /* The pages that answer for the site — how it works, what this is, and where to say it is broken. */
@@ -533,7 +535,7 @@ export async function SiteFooter() {
       <p>
         {isOss
           ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
-          : tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}
+          : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
       </p>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
