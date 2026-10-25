@@ -8,6 +8,7 @@ import {
   type DirectoryFilters,
 } from "./directory";
 import { isStage } from "./stages";
+import { isOss } from "./site";
 
 /**
  * The directory's address, both ways: what a URL asks for, and the URL for a
@@ -48,7 +49,8 @@ export function readFilters(query: Query): DirectoryFilters {
   const open = read(query, "open");
   const sort = read(query, "sort");
   return {
-    track: isDirectoryTrack(track) ? track : "github",
+    // The open source site has only the code path.
+    track: !isOss && isDirectoryTrack(track) ? track : "github",
     scope: isDirectoryScope(scope) ? scope : "",
     open: isDirectoryOpening(open) ? open : "",
     pr: readAll(query, "pr").filter(isPRTier),

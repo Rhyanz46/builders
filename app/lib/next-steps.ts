@@ -5,15 +5,22 @@
  * more than a list of links is knowing who among us has been where. So the
  * steps a new account owes are the ones that put them on that map:
  *
- *   1. link GitHub — the account every contribution here is made with, and
- *      the face on a directory badge;
- *   2. list the repos you have contributed to or maintain — those become the
- *      "a friend has contributed" and "maintainer in our group" badges;
+ *   1. link GitHub and show its activity — the account every contribution
+ *      here is made with, the face on a directory badge, and the merged PRs
+ *      on /activity that make the next person try;
+ *   2. join the WA Community — where the talking happens: questions, reviews,
+ *      merged PRs cheered. Nobody here can see who is in a WhatsApp group, so
+ *      it counts as done once the button has been pressed;
  *   3. say who you are — profession, skills, a line about you — so somebody
  *      who sees your face on a badge knows who to ask.
  *
+ * The repos somebody has contributed to are not a step: GitHub records them
+ * once the activity is shown, and older ones can still be typed in on the
+ * profile.
+ *
  * Listing a product of your own is offered, never owed: most people here come
- * to contribute, not to found something.
+ * to contribute, not to found something. /get-started asks which of the two
+ * somebody came for first, and shows that path's steps — see `stepsFor`.
  *
  * Deliberately a list of named things rather than a percentage. A profile is
  * not a form to fill to 100%.
@@ -26,7 +33,10 @@
 import { githubHandle } from "./oss";
 import { tx, type Locale } from "./locale";
 
-export type NextStepId = "github" | "oss" | "talent" | "project" | "now" | "role";
+/** Set when the WA Community button on /get-started is pressed; read back as that step's `done`. */
+export const WA_JOINED_COOKIE = "builders_wa_joined";
+
+export type NextStepId = "github" | "wa" | "talent" | "project" | "now" | "role";
 
 export type NextStep = {
   id: NextStepId;
@@ -37,6 +47,8 @@ export type NextStep = {
   done: boolean;
   /** A step worth offering but never counted as owed. */
   optional?: boolean;
+  /** `href` leaves this site. */
+  external?: boolean;
 };
 
 /** The half of a profile these steps read. */
@@ -51,6 +63,8 @@ export type StepPerson = {
   linkedin: string;
   x: string;
   resume: string;
+  /** Agreed to their GitHub activity being shown on /activity. */
+  githubActivityShown?: boolean;
 };
 
 /** The half of a project these steps read. */
@@ -63,40 +77,48 @@ export type StepProject = {
 export function nextSteps({
   person,
   owned,
-  ossCount = 0,
+  waUrl = "",
+  waJoined = false,
   locale = "en",
 }: {
   person: StepPerson;
   owned: StepProject[];
-  /** Rows in the person's open source record. */
-  ossCount?: number;
+  /** The WA Community's invite; no step without one. */
+  waUrl?: string;
+  /** They pressed the WA Community button, on this browser. */
+  waJoined?: boolean;
   locale?: Locale;
 }): NextStep[] {
   const steps: NextStep[] = [
     {
       id: "github",
-      title: tx(locale, "Tautkan akun GitHub-mu", "Link your GitHub account"),
+      title: tx(locale, "Tautkan GitHub & tampilkan aktivitasmu", "Link GitHub and show your activity"),
       blurb: tx(
         locale,
-        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, jadi orang tahu ada teman yang bisa ditanya.",
-        "The account you send PRs with. Its picture shows on directory badges, so people know there is a friend to ask.",
+        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, dan PR-mu yang di-merge muncul di halaman Aktivitas—biar teman lain ikut semangat.",
+        "The account you send PRs with. Its picture shows on directory badges, and your merged PRs show on the Activity page—so friends get the itch too.",
       ),
       href: "/account/profile#github-account",
       cta: tx(locale, "Tambah GitHub", "Add GitHub"),
-      done: githubHandle(person.github) !== "",
+      done: githubHandle(person.github) !== "" && person.githubActivityShown === true,
     },
-    {
-      id: "oss",
-      title: tx(locale, "Catat repo yang pernah kamu kontribusi", "List the repos you have contributed to"),
-      blurb: tx(
-        locale,
-        "Atau yang kamu maintain. Setiap repo yang kamu catat memberi badge di direktori — tanda bagi pemula bahwa ada teman yang sudah lewat jalan itu.",
-        "Or the ones you maintain. Every repo you list puts a badge on the directory — a sign to newcomers that a friend has been there.",
-      ),
-      href: "/account/profile#open-source",
-      cta: tx(locale, "Catat repo", "List a repo"),
-      done: ossCount > 0,
-    },
+    ...(waUrl
+      ? [
+          {
+            id: "wa" as const,
+            title: tx(locale, "Gabung WA Community", "Join the WA Community"),
+            blurb: tx(
+              locale,
+              "Interaksi paling aktif ada di sana: tanya kalau mentok, cari reviewer, dan rayain PR yang di-merge.",
+              "Where most of the talking happens: ask when you are stuck, find a reviewer, and cheer merged PRs.",
+            ),
+            href: waUrl,
+            cta: tx(locale, "Gabung WA", "Join on WA"),
+            done: waJoined,
+            external: true,
+          },
+        ]
+      : []),
     {
       id: "talent",
       title: tx(locale, "Ceritakan siapa kamu", "Say who you are"),
@@ -158,6 +180,27 @@ export function nextSteps({
   }
 
   return steps;
+}
+
+/** Why somebody is here, asked first on /get-started. */
+export const ONBOARDING_PATHS = ["contribute", "founder"] as const;
+export type OnboardingPath = (typeof ONBOARDING_PATHS)[number];
+
+export function isOnboardingPath(value: string): value is OnboardingPath {
+  return (ONBOARDING_PATHS as readonly string[]).includes(value);
+}
+
+const PATH_STEPS: Record<OnboardingPath, NextStepId[]> = {
+  // In the order /how-it-works tells it.
+  contribute: ["github", "wa", "talent"],
+  // A founder needs people to know who they are and where to find them
+  // before the product, which is the point of being here.
+  founder: ["talent", "wa", "project", "now", "role"],
+};
+
+/** One path's steps, in that path's order; the ones it does not need are left out. */
+export function stepsFor(path: OnboardingPath, steps: NextStep[]): NextStep[] {
+  return PATH_STEPS[path].flatMap((id) => steps.filter((step) => step.id === id));
 }
 
 /** The steps still owed. Optional ones never appear here. */

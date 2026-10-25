@@ -13,6 +13,7 @@ import { currentViewer, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
+import { site } from "../../lib/site";
 
 /*
  * Allowed to block — same reason as the rest of /account. Nothing here is
@@ -24,8 +25,8 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Edit profil — Builders", "Edit profile — Builders"),
-    description: tx(locale, "Atur akun GitHub, kontribusi open source, dan profilmu di Builders.", "Set your GitHub account, open source contributions, and profile on Builders."),
+    title: tx(locale, `Edit profil — ${site.name}`, `Edit profile — ${site.name}`),
+    description: tx(locale, `Atur akun GitHub, kontribusi open source, dan profilmu di ${site.name}.`, `Set your GitHub account, open source contributions, and profile on ${site.name}.`),
     robots: { index: false },
   };
 }
@@ -56,10 +57,7 @@ export default async function EditProfilePage({
     <>
       <SiteHeader returnTo="/account/profile" />
 
-      <main id="main-content" className="page-narrow">
-        <p className="eyebrow">
-          <span /> {tx(locale, "Profil", "Profile")}
-        </p>
+      <main id="main-content" className="page-narrow account-page">
         <h1>{tx(locale, "Lengkapi profilmu.", "Complete your profile.")}</h1>
         <p className="lede">
           {tx(locale, "Yang paling penting ada di atas: akun GitHub dan repo yang pernah kamu kontribusi—dari situ badge di direktori dibuat. Sisanya tampil di ", "What matters most comes first: your GitHub account and the repos you have contributed to—the directory's badges are built from them. The rest shows on ")}
@@ -73,7 +71,7 @@ export default async function EditProfilePage({
         <GitHubForm github={handle ? `https://github.com/${handle}` : viewer.github} shown={viewer.githubActivityShown} />
 
         {/* Second: every repo listed here becomes a badge on that repo's row. */}
-        <section id="open-source" className="oss-editor" aria-labelledby="oss-editor-title">
+        <section id="open-source" className="oss-editor tone-done" aria-labelledby="oss-editor-title">
           <h2 id="oss-editor-title" className="is-step">
             <span className="step-number">2</span> {tx(locale, "Kontribusi open source", "Open source contributions")}
           </h2>
@@ -95,7 +93,7 @@ export default async function EditProfilePage({
           ) : (
             <OssRecordEmpty self={false} locale={locale} />
           )}
-          <OssAddForm returnTo="/account/profile" status={ossStatus} locale={locale} />
+          <OssAddForm status={ossStatus} locale={locale} />
         </section>
 
         <ProfileForm

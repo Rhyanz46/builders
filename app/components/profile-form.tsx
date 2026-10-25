@@ -41,7 +41,7 @@ export function ProfileForm({
         </p>
       ) : null}
 
-      <fieldset className="step">
+      <fieldset className="step tone-pick">
         <legend>
           <span className="step-number">3</span> {tx("Tentang dirimu", "About you")}
         </legend>
@@ -105,7 +105,7 @@ export function ProfileForm({
         />
       </fieldset>
 
-      <fieldset className="step" id="contact">
+      <fieldset className="step tone-work" id="contact">
         <legend>
           <span className="step-number">4</span> {tx("Kontak lain", "Other contacts")}
         </legend>

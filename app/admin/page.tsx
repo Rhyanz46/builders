@@ -11,12 +11,13 @@ import { viewerId } from "../lib/session";
 import { signInPath } from "../lib/urls";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { isOss, site } from "../lib/site";
 
 export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  return { title: tx(locale, "Admin — Builders", "Admin — Builders"), robots: { index: false } };
+  return { title: tx(locale, `Admin — ${site.name}`, `Admin — ${site.name}`), robots: { index: false } };
 }
 
 /**
@@ -57,9 +58,10 @@ export default async function AdminPage({
   const editing = all.find((repo) => repo.id === editId);
   const pickedRepos = new Set(picks.repoIds);
   const pickedProjects = new Set(picks.projectIds);
-  // The products the directory lists: a GitHub repository, or a seat open.
+  // The products the directory lists: a GitHub repository, or a seat open —
+  // on the open source site, only the ones with a repository.
   const listed = products
-    .filter((project) => project.repoUrl || project.openSeatCount > 0)
+    .filter((project) => project.repoUrl || (!isOss && project.openSeatCount > 0))
     .toSorted((a, b) => Number(pickedProjects.has(b.id)) - Number(pickedProjects.has(a.id)));
 
   return (

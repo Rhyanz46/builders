@@ -3,10 +3,11 @@ import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Usulkan project — Builders", "Suggest a project — Builders");
+  const title = tx(locale, `Tambah project — ${site.name}`, `Add a project — ${site.name}`);
   const description = tx(
     locale,
     "Usulkan repo open source untuk dikirimi PR, atau daftarkan produk yang butuh bantuan di peran lain.",
@@ -34,12 +35,12 @@ export default async function SubmitPage() {
       <main id="main-content" className="dx-page ob-page">
         <header className="ob-head">
           <p className="ob-kicker">{tx(locale, "Direktori kontribusi", "Contribution directory")}</p>
-          <h1>{tx(locale, "Usulkan project", "Suggest a project")}</h1>
+          <h1>{tx(locale, "Tambah project", "Add a project")}</h1>
           <p>{tx(locale, "Pilih yang paling cocok. Keduanya bisa milikmu sendiri.", "Pick whichever fits. Either can be your own.")}</p>
         </header>
 
         <ul className="submit-choices">
-          <li>
+          <li className="tone-account">
             <Link href="/recommend">
               <span className="submit-choice-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -60,7 +61,7 @@ export default async function SubmitPage() {
               <span className="submit-choice-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
-          <li>
+          <li className="tone-pick">
             <Link href="/new">
               <span className="submit-choice-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>

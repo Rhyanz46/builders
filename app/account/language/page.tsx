@@ -3,6 +3,7 @@ import { SiteFooter, SiteHeader } from "../../components/shell";
 import { LanguagePicker } from "../../components/language-picker";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
+import { site } from "../../lib/site";
 
 /**
  * A settings page rather than the always-visible header toggle it replaced.
@@ -15,8 +16,8 @@ import { tx } from "../../lib/locale";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Bahasa — Builders", "Language — Builders"),
-    description: tx(locale, "Pilih bahasa tampilan Builders.", "Choose the display language for Builders."),
+    title: tx(locale, `Bahasa — ${site.name}`, `Language — ${site.name}`),
+    description: tx(locale, `Pilih bahasa tampilan ${site.name}.`, `Choose the display language for ${site.name}.`),
     robots: { index: false },
   };
 }
@@ -36,8 +37,8 @@ export default async function LanguageSettingsPage() {
         <p className="lede">
           {tx(
             locale,
-            "Berlaku di seluruh Builders sampai kamu menggantinya lagi di sini.",
-            "Applies across Builders until you change it again here.",
+            `Berlaku di seluruh ${site.name} sampai kamu menggantinya lagi di sini.`,
+            `Applies across ${site.name} until you change it again here.`,
           )}
         </p>
 

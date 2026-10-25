@@ -7,14 +7,15 @@ import { shareCard, sourceRepo } from "../content";
 import { supabaseConfigured } from "../lib/supabase";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Masukan — Builders", "Feedback — Builders");
+  const title = tx(locale, `Masukan — ${site.name}`, `Feedback — ${site.name}`);
   const description = tx(
     locale,
-    "Ceritakan apa yang error, bikin bingung, atau kamu harap ada di Builders. Tidak perlu punya akun.",
-    "Tell us what is broken, what is confusing, or what you wish existed on Builders. No account needed.",
+    `Ceritakan apa yang error, bikin bingung, atau kamu harap ada di ${site.name}. Tidak perlu punya akun.`,
+    `Tell us what is broken, what is confusing, or what you wish existed on ${site.name}. No account needed.`,
   );
   return {
     title,
@@ -45,9 +46,6 @@ export default async function FeedbackPage() {
       <SiteHeader returnTo="/feedback" active="feedback" />
 
       <main id="main-content" className="page-narrow feedback-page">
-        <p className="eyebrow">
-          <span /> {tx(locale, "Masukan", "Feedback")}
-        </p>
         <h1>{tx(locale, "Ada yang ganjil? Bilang aja.", "Something off? Just say so.")}</h1>
         <p className="lede">
           {tx(

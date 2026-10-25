@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
 import { currentLocale } from "./lib/locale-server";
 import { tx } from "./lib/locale";
+import { isOss, site } from "./lib/site";
 
-export const alt = "Builders";
+export const alt = site.name;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -82,7 +83,7 @@ export default async function OpenGraphImage() {
             </svg>
           </div>
           <div style={{ display: "flex", fontSize: 32, fontWeight: 800, letterSpacing: "-1.5px" }}>
-            builders<span style={{ color: "#315f51", display: "flex", fontWeight: 650 }}>.swegrowth</span>
+            {site.id}<span style={{ color: "#315f51", display: "flex", fontWeight: 650 }}>.swegrowth</span>
           </div>
         </div>
 
@@ -97,7 +98,7 @@ export default async function OpenGraphImage() {
               textTransform: "uppercase",
             }}
           >
-            {tx(locale, "Indeks publik untuk karya nyata", "A public index of real work")}
+            {isOss ? tx(locale, "Kontribusi open source, bareng-bareng", "Open source contribution, together") : tx(locale, "Indeks publik untuk karya nyata", "A public index of real work")}
           </div>
           <div
             style={{
@@ -109,11 +110,11 @@ export default async function OpenGraphImage() {
               maxWidth: 960,
             }}
           >
-            {tx(locale, "Tampilkan karyamu. Bangun portofolio. Jadilah mudah ditemukan.", "Show your work. Build your portfolio. Get discovered.")}
+            {isOss ? tx(locale, "Temukan repo yang nerima kontributor. Kirim PR. Biar kelihatan.", "Find repos that take contributors. Send a PR. Let it be seen.") : tx(locale, "Tampilkan karyamu. Bangun portofolio. Jadilah mudah ditemukan.", "Show your work. Build your portfolio. Get discovered.")}
           </div>
         </div>
 
-        <div style={{ color: "#667970", display: "flex", fontSize: 22 }}>builders.swegrowth.id</div>
+        <div style={{ color: "#667970", display: "flex", fontSize: 22 }}>{site.url.replace(/^https?:\/\//, "")}</div>
       </div>
     </div>,
     size,

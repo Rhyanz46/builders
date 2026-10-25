@@ -1053,7 +1053,7 @@ export async function addOssContribution(formData: FormData): Promise<void> {
   const viewer = await currentViewer();
   if (!viewer) redirect(signInPath("/account/profile#open-source"));
 
-  const back = (status: string) => ossReturn(text(formData, "returnTo"), status);
+  const back = (status: string) => `/account/profile?oss=${status}#open-source`;
   const repo = parseRepoRef(text(formData, "repo"));
   const relation = text(formData, "relation");
   if (!repo || !isOssRelation(relation)) redirect(back("invalid"));
@@ -1068,17 +1068,6 @@ export async function addOssContribution(formData: FormData): Promise<void> {
 
   ossChanged(viewer.username);
   redirect(back("added"));
-}
-
-/**
- * Where the open source form goes back to: the onboarding page it can be
- * embedded in, or the profile editor. A fixed pair rather than whatever the
- * form says, so the field can never become an open redirect.
- */
-function ossReturn(requested: string, status: string): string {
-  return requested === "/get-started?all=1"
-    ? `/get-started?all=1&oss=${status}#step-oss`
-    : `/account/profile?oss=${status}#open-source`;
 }
 
 /** Removes one repository from the viewer's record. RLS keeps it to their own rows. */

@@ -40,7 +40,7 @@ export function RepoForm({
   const field = (name: string) => `repo-${mode}-${name}`;
 
   return (
-    <form className="rf" action={formAction} noValidate>
+    <form className="rf tone-account" action={formAction} noValidate>
       <input type="hidden" name="mode" value={mode} />
       {id !== undefined ? <input type="hidden" name="id" value={id} /> : null}
       {errors.form ? <p className="rf-error rf-error-form" role="alert">{errors.form}</p> : null}

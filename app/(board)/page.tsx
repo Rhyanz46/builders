@@ -6,6 +6,7 @@ import { shareCard, waCommunityUrl } from "../content";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
+import { ActivityBanner } from "../components/activity-banner";
 import { listAdminPicks, listOssMembers, listProjects, listRepoSignals } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
@@ -17,15 +18,24 @@ import { roleLabel } from "../lib/roles";
 import { currentLocale } from "../lib/locale-server";
 import { currentViewer } from "../lib/session";
 import { tx, type Locale } from "../lib/locale";
+import { isOss, site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Builders — Direktori Project untuk Dikontribusikan", "Builders — A Directory of Projects to Contribute To");
-  const description = tx(
-    locale,
-    "Kirim kode ke project open source di GitHub, atau bantu produk builders lewat peran lain. Pilih caramu, pilih project-nya, mulai.",
-    "Send code to open source projects on GitHub, or help builders' products in another role. Pick your way, pick a project, start.",
-  );
+  const title = isOss
+    ? tx(locale, `${site.name} — Direktori Kontribusi Open Source`, `${site.name} — An Open Source Contribution Directory`)
+    : tx(locale, "Builders — Direktori Project untuk Dikontribusikan", "Builders — A Directory of Projects to Contribute To");
+  const description = isOss
+    ? tx(
+        locale,
+        "Repo open source yang lagi nerima kontributor, dikurasi bareng komunitas swegrowth. Pilih repo-nya, kirim PR, biar kelihatan.",
+        "Open source repos taking contributors right now, curated together by the swegrowth community. Pick one, send a PR, let it be seen.",
+      )
+    : tx(
+        locale,
+        "Kirim kode ke project open source di GitHub, atau bantu produk builders lewat peran lain. Pilih caramu, pilih project-nya, mulai.",
+        "Send code to open source projects on GitHub, or help builders' products in another role. Pick your way, pick a project, start.",
+      );
   return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
 
@@ -48,21 +58,19 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
       <SiteHeader returnTo={query.then((value) => pathFor(readFilters(value)))} active="home" />
 
       <main id="main-content" className="dx-page">
+        <Suspense fallback={null}>
+          <ActivityBanner locale={locale} />
+        </Suspense>
+
         <header className="dx-head">
           <div>
             <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p className="dx-head-community">
               {/* What the place is for, in one line, for somebody who has just landed. */}
-              {locale === "id" ? (
-                <>
-                  Temukan project yang terbuka buat kontributor, kirim kontribusimu, dan biarkan kontribusimu terlihat. Dikurasi komunitas
-                  swegrowth. <Link href="/about#how">Cara kerjanya</Link>
-                </>
-              ) : (
-                <>
-                  Find a project that takes contributors, send your contribution, and let it be seen. Curated by the swegrowth community.{" "}
-                  <Link href="/about#how">How it works</Link>
-                </>
+              {tx(
+                locale,
+                "Komunitas buat yang mau aktif di open source. Semua project di sini dikurasi bareng-bareng.",
+                "A community for people who want to be active in open source. Every project here is curated together.",
               )}
             </p>
             <div className="dx-head-actions">
@@ -133,29 +141,26 @@ async function readDirectory(locale: Locale) {
     ...products.flatMap((project) =>
       productEntries(project, projectBlurb, (role) => roleLabel(role, "", locale), locale),
     ),
-  ];
+    // The open source site keeps members' products that take PRs — their card
+    // is the repository — and leaves the role path to the builders site.
+  ].filter((entry) => !isOss || entry.track === "github");
   return { entries, members, unavailable: reposResult.unavailable || projectsResult.unavailable };
 }
 
 /**
- * The heading's call to action, by how far along the visitor is. The loop
- * the site runs on (see /about#how) only counts somebody who has an account
- * and shows their GitHub activity, so a guest is asked to join and a member
- * who has not said yes yet is asked for that. Somebody with both has nothing
- * left to give here, and is pointed at the community's chat. The WA group
- * stays beside the others as a plain link.
+ * The heading's call to action: a guest is asked to join, with the WA group
+ * beside it as a plain link; a member is pointed at the community's chat.
+ * Showing GitHub activity is asked for by `ActivityBanner` instead, which a
+ * member can close.
  */
 async function JoinCta({ locale }: { locale: Locale }) {
   const viewer = await currentViewer();
-  if (viewer && viewer.github && viewer.githubActivityShown) return <WaButton />;
+  if (viewer) return <WaButton />;
 
-  const [href, label] = !viewer
-    ? ["/signin", tx(locale, "Gabung ke Builders", "Join Builders")]
-    : ["/account/profile#github-account", tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")];
   return (
     <>
-      <Link className="primary-action" href={href}>
-        {label}
+      <Link className="primary-action" href="/signin">
+        {tx(locale, `Gabung ke ${site.name}`, `Join ${site.name}`)}
       </Link>
       {waCommunityUrl ? (
         <a className="dx-wa-link" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">
@@ -181,7 +186,9 @@ async function HeadStats({ locale }: { locale: Locale }) {
   const { entries, members } = await readDirectory(locale);
   const stats = [
     { value: entries.filter((entry) => entry.track === "github").length, label: tx(locale, "Repo", "Repos") },
-    { value: entries.filter((entry) => entry.track === "role").length, label: tx(locale, "Produk cari bantuan", "Products seeking help") },
+    ...(isOss
+      ? []
+      : [{ value: entries.filter((entry) => entry.track === "role").length, label: tx(locale, "Produk cari bantuan", "Products seeking help") }]),
     { value: members.length, label: tx(locale, "Terdaftar", "Registered") },
   ];
   return (

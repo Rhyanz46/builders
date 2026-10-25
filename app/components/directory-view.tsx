@@ -30,11 +30,16 @@ import {
   type DirectoryEntry,
   type DirectoryFilters,
   type DirectoryTrack,
+  type SharedBy,
 } from "../lib/directory";
 import { badgeKindLabel, badgeLabel, badgePeople, type Badge, type BadgeKind } from "../lib/badges";
 import { pathFor, readFilters, readPage } from "../lib/directory-url";
 import { tx, type Locale } from "../lib/locale";
+import { isOss } from "../lib/site";
 import { stageLabel, stageMeta } from "../lib/stages";
+
+/** The ways to contribute this site lists; the open source site has only the code path. */
+const TRACKS: readonly DirectoryTrack[] = isOss ? ["github"] : DIRECTORY_TRACKS;
 
 /** How long typing rests before the address catches up. Browsers throttle history writes. */
 const SEARCH_SETTLE_MS = 300;
@@ -169,36 +174,40 @@ export function DirectoryView({
     <div className="dx-layout">
       {/* On a phone the first choice is a two-way tab across the top; the
           sidebar group below says the same thing on a wide screen. */}
-      <nav className="dx-mtabs" aria-label={tx(locale, "Cara kontribusi", "How to contribute")}>
-        {DIRECTORY_TRACKS.map((track) => (
-          <InstantLink
-            key={track}
-            className={filters.track === track ? "is-active" : ""}
-            aria-current={filters.track === track ? "page" : undefined}
-            href={trackHref(track)}
-          >
-            <TrackIcon track={track} />
-            {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
-            <span>{entries.filter((entry) => entry.track === track).length}</span>
-          </InstantLink>
-        ))}
-      </nav>
+      {TRACKS.length > 1 ? (
+        <nav className="dx-mtabs" aria-label={tx(locale, "Cara kontribusi", "How to contribute")}>
+          {TRACKS.map((track) => (
+            <InstantLink
+              key={track}
+              className={filters.track === track ? "is-active" : ""}
+              aria-current={filters.track === track ? "page" : undefined}
+              href={trackHref(track)}
+            >
+              <TrackIcon track={track} />
+              {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+              <span>{entries.filter((entry) => entry.track === track).length}</span>
+            </InstantLink>
+          ))}
+        </nav>
+      ) : null}
 
       <FilterPanel active={active}>
-        <FacetGroup className="dx-facet-tracks" title={tx(locale, "Cara kontribusi", "How to contribute")}>
-          {DIRECTORY_TRACKS.map((track) => (
-            <FacetLink
-              key={track}
-              active={filters.track === track}
-              href={trackHref(track)}
-              count={entries.filter((entry) => entry.track === track).length}
-              icon={<TrackIcon track={track} />}
-              note={tx(locale, TRACK_COPY[track].noteId, TRACK_COPY[track].noteEn)}
-            >
-              {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
-            </FacetLink>
-          ))}
-        </FacetGroup>
+        {TRACKS.length > 1 ? (
+          <FacetGroup className="dx-facet-tracks" title={tx(locale, "Cara kontribusi", "How to contribute")}>
+            {TRACKS.map((track) => (
+              <FacetLink
+                key={track}
+                active={filters.track === track}
+                href={trackHref(track)}
+                count={entries.filter((entry) => entry.track === track).length}
+                icon={<TrackIcon track={track} />}
+                note={tx(locale, TRACK_COPY[track].noteId, TRACK_COPY[track].noteEn)}
+              >
+                {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
         {tiers.length > 0 ? (
           <FacetGroup title={tx(locale, "Status PR", "PR status")}>
             {tiers.map(({ tier, count }) => (
@@ -665,6 +674,28 @@ function TrackIcon({ track }: { track: DirectoryTrack }) {
   );
 }
 
+/** Who put a catalogue repo forward, credited the way they stand to it. */
+function SharedByLine({ sharedBy, locale }: { sharedBy: SharedBy; locale: Locale }) {
+  const name = <Link href={`/u/${sharedBy.username}`}>{sharedBy.name || sharedBy.username}</Link>;
+  // The owner and maintainers share their own work; anybody else recommends it.
+  // The name leads, as people know each other by it; their part comes after.
+  const verb = sharedBy.role === "owner" || sharedBy.role === "maintainer"
+    ? tx(locale, "Dibagikan oleh ", "Shared by ")
+    : tx(locale, "Direkomendasikan oleh ", "Recommended by ");
+  const role =
+    sharedBy.role === "owner" ? tx(locale, "pemilik", "owner")
+    : sharedBy.role === "maintainer" ? "maintainer"
+    : sharedBy.role === "contributor" ? tx(locale, "kontributor", "contributor")
+    : "";
+  return (
+    <p className="dx-shared">
+      {verb}
+      {name}
+      {role ? ` (${role})` : null}
+    </p>
+  );
+}
+
 function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: Locale; now: number | null }) {
   const external = { target: "_blank", rel: "noopener noreferrer" };
   const owner = entry.kind === "product" ? tx(locale, `oleh ${entry.owner}`, `by ${entry.owner}`) : entry.owner;
@@ -697,6 +728,14 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
             ) : (
               <Link href={entry.href}>{title}</Link>
             )}
+            {/* An admin's pick is a mark on the name rather than a chip among
+                the badges: it vouches for the project, not for people. */}
+            {entry.adminPick ? (
+              <span className="dx-pick" title={badgeLabel({ kind: "admin-pick" }, locale)}>
+                <BadgeIcon kind="admin-pick" />
+                <span className="sr-only">{badgeLabel({ kind: "admin-pick" }, locale)}</span>
+              </span>
+            ) : null}
             {/* The PR status belongs to the code path. A product asking for
                 both simply appears on both tabs; neither card points at the
                 other. */}
@@ -727,9 +766,12 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
             </p>
           ) : null}
           {entry.description ? <p className="dx-desc">{entry.description}</p> : null}
-          {entry.badges.length > 0 ? (
+          {entry.sharedBy ? <SharedByLine sharedBy={entry.sharedBy} locale={locale} /> : null}
+          {entry.badges.some((badge) => badge.kind !== "admin-pick") ? (
             <ul className="dx-badges" aria-label={tx(locale, "Tanda", "Signals")}>
-              {entry.badges.map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
+              {entry.badges
+                .filter((badge) => badge.kind !== "admin-pick")
+                .map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
             </ul>
           ) : null}
           {entry.track === "github" && entry.labels.length > 0 ? (

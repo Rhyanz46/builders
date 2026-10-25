@@ -15,9 +15,19 @@ import { SignOutButton } from "./sign-out-button";
 import { Skeleton } from "./skeleton";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { isOss, site } from "../lib/site";
+
+/**
+ * What "add" means on this site: listing a project on builders, suggesting an
+ * open source repo on oss, which has no products to list.
+ */
+const ADD_HREF = isOss ? "/recommend" : "/submit";
+function addLabel(locale: Locale): string {
+  return isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project");
+}
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "recommend" | "admin" | "activity" | "about" | "feedback" | "";
+export type Section = "home" | "recommend" | "admin" | "activity" | "how" | "about" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -29,10 +39,10 @@ export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
 
 export function Brand({ footer = false, locale }: { footer?: boolean; locale: Locale }) {
   return (
-    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label={tx(locale, "Beranda Builders", "Builders home")}>
+    <Link className={`brand ${footer ? "footer-brand" : ""}`} href="/" aria-label={tx(locale, `Beranda ${site.name}`, `${site.name} home`)}>
       <Logo className="brand-mark" />
       {/* The header keeps the name short beside the menu; the footer credits the community in full. */}
-      <span><strong>builders</strong>{footer ? <span className="brand-alt">.swegrowth</span> : null}</span>
+      <span><strong>{site.id}</strong>{footer ? <span className="brand-alt">.swegrowth</span> : null}</span>
     </Link>
   );
 }
@@ -45,7 +55,7 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
  * The directory is the site, so the menu is short: the directory itself and
  * what members are doing in open source, first in the menu on a laptop and
  * given the bottom bar on a phone. Adding to the directory is the
- * header's one button, "Suggest a project", which asks whether it is a repo
+ * header's one button, "Add a project", which asks whether it is a repo
  * or a product.
  */
 const PRIMARY_LINKS: NavLink[] = [
@@ -53,8 +63,9 @@ const PRIMARY_LINKS: NavLink[] = [
   { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "pull-request" },
 ];
 
-/* The two pages that answer for the site — what this is, and where to say it is broken. */
+/* The pages that answer for the site — how it works, what this is, and where to say it is broken. */
 const SECONDARY_LINKS: NavLink[] = [
+  { href: "/how-it-works", label: "How it works", labelId: "Cara kerja", key: "how", icon: "steps" },
   { href: "/about", label: "About", labelId: "Tentang", key: "about", icon: "about" },
   { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
@@ -284,15 +295,18 @@ async function VisitorHeader({
             <SourceLink locale={locale} />
             {viewer ? (
               <>
-                <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
-                  <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4" />
-                  </svg>
-                  {waiting > 0 ? <span className="notification-dot">{waiting}</span> : null}
-                </Link>
+                {/* No proposals or notices on the open source site. */}
+                {isOss ? null : (
+                  <Link className="icon-button" href="/inbox" aria-label={inboxLabel(incoming, unseen, locale)}>
+                    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8M10 21h4" />
+                    </svg>
+                    {waiting > 0 ? <span className="notification-dot">{waiting}</span> : null}
+                  </Link>
+                )}
                 <AccountMenu viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
-                <Link className="primary-action" href="/submit">
-                  <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+                <Link className="primary-action" href={ADD_HREF}>
+                  <span aria-hidden="true">+</span> {addLabel(locale)}
                 </Link>
               </>
             ) : (
@@ -351,14 +365,16 @@ function AccountMenu({ viewer, waiting, admin, locale }: { viewer: Viewer; waiti
             <HeaderIcon name="steps" />
             <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
           </Link>
-          <Link href="/inbox">
-            <HeaderIcon name="inbox" />
-            <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
-            {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
-          </Link>
-          <Link href="/submit">
+          {isOss ? null : (
+            <Link href="/inbox">
+              <HeaderIcon name="inbox" />
+              <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
+              {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
+            </Link>
+          )}
+          <Link href={ADD_HREF}>
             <HeaderIcon name="add" />
-            <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
+            <span>{addLabel(locale)}</span>
           </Link>
           <Link href="/account/language">
             <HeaderIcon name="language" />
@@ -426,14 +442,14 @@ function MobileHeaderMenu({
         </nav>
 
         {viewer ? (
-          <Link className="mobile-project-action" href="/submit">
+          <Link className="mobile-project-action" href={ADD_HREF}>
             <HeaderIcon name="add" />
-            <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
+            <span>{addLabel(locale)}</span>
           </Link>
         ) : (
           <Link className="mobile-project-action" href="/signin">
             <HeaderIcon name="profile" />
-            <span>{tx(locale, "Gabung ke Builders", "Join Builders")}</span>
+            <span>{tx(locale, `Gabung ke ${site.name}`, `Join ${site.name}`)}</span>
           </Link>
         )}
 
@@ -453,11 +469,13 @@ function MobileHeaderMenu({
                 <HeaderIcon name="steps" />
                 <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
               </Link>
-              <Link href="/inbox">
-                <HeaderIcon name="inbox" />
-                <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
-                {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
-              </Link>
+              {isOss ? null : (
+                <Link href="/inbox">
+                  <HeaderIcon name="inbox" />
+                  <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
+                  {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
+                </Link>
+              )}
               <Link href="/account/language">
                 <HeaderIcon name="language" />
                 <span>{tx(locale, "Bahasa", "Language")}</span>
@@ -512,10 +530,15 @@ export async function SiteFooter() {
   return (
     <footer>
       <Brand footer locale={locale} />
-      <p>{tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}</p>
+      <p>
+        {isOss
+          ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
+          : tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}
+      </p>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
-        <Link href="/submit">{tx(locale, "Usulkan project", "Suggest a project")}</Link>
+        <Link href={ADD_HREF}>{addLabel(locale)}</Link>
+        <Link href="/how-it-works">{tx(locale, "Cara kerjanya", "How it works")}</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
         <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
@@ -525,7 +548,7 @@ export async function SiteFooter() {
         <a href={`https://github.com/${sourceRepo}`} target="_blank" rel="noopener noreferrer">GitHub</a>
         <ThemeToggle row />
       </nav>
-      <small>© <CopyrightYear /> Builders</small>
+      <small>© <CopyrightYear /> {site.name}</small>
     </footer>
   );
 }

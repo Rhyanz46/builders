@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "./language-provider";
+import { site } from "../lib/site";
 
 type ShareStatus = "idle" | "sharing" | "shared" | "copied" | "error";
 
@@ -36,8 +37,8 @@ export function ShareProfileButton({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${name} — Builders`,
-          text: tx(`Lihat profil dan karya ${name} di Builders.`, `View ${name}'s profile and work on Builders.`),
+          title: `${name} — ${site.name}`,
+          text: tx(`Lihat profil dan karya ${name} di ${site.name}.`, `View ${name}'s profile and work on ${site.name}.`),
           url,
         });
         showStatus("shared");

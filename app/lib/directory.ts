@@ -65,6 +65,8 @@ export type DirectoryEntry = {
   why?: string;
   /** Who put a catalogue repo forward. */
   submittedBy?: { username: string; name: string } | null;
+  /** The same person, with how they stand to the repo — what the card credits. */
+  sharedBy?: SharedBy | null;
   /** Why a repo is listed, or the roles a product is asking for. */
   labels: string[];
   /**
@@ -109,6 +111,39 @@ export type DirectoryEntry = {
   /** True when `actionHref` leaves this site. */
   external: boolean;
 };
+
+/**
+ * Who put a catalogue repository forward, and how they stand to it. The
+ * person sharing a repo is not always its owner, and the card says which:
+ *
+ *   - `owner`       — their GitHub username owns the repository;
+ *   - `maintainer`  — their open source record says they maintain it;
+ *   - `contributor` — they have contributed to it, by their record or GitHub's;
+ *   - `recommender` — none of the above: somebody else's work they vouch for.
+ */
+export const SHARED_BY_ROLES = ["owner", "maintainer", "contributor", "recommender"] as const;
+export type SharedByRole = (typeof SHARED_BY_ROLES)[number];
+export type SharedBy = { username: string; name: string; role: SharedByRole };
+
+export function sharedBy(
+  repo: string,
+  submitter: { username: string; name: string } | null | undefined,
+  members: OssMember[] = [],
+): SharedBy | null {
+  if (!submitter) return null;
+  const key = repo.toLowerCase();
+  const member = members.find((candidate) => candidate.username === submitter.username);
+  const record = member?.contributions.find((contribution) => contribution.repo === key);
+  const role: SharedByRole =
+    member?.handle && member.handle.toLowerCase() === key.split("/")[0]
+      ? "owner"
+      : record?.relation === "maintainer"
+        ? "maintainer"
+        : record
+          ? "contributor"
+          : "recommender";
+  return { ...submitter, role };
+}
 
 export type DirectoryLink = { kind: "github" | "website"; href: string; label: string };
 
@@ -222,6 +257,7 @@ export function repoEntry(
     description: repo.summary,
     why: repo.why,
     submittedBy: repo.submittedBy,
+    sharedBy: sharedBy(`${repo.owner}/${repo.repo}`, repo.submittedBy, members),
     labels: repo.reasons.map((reason) => reasonLabel(reason, locale)),
     prTier: tier,
     welcomesPRs: open,

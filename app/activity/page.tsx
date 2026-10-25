@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
+import { ActivityBanner } from "../components/activity-banner";
 import { ActivityView } from "../components/activity-view";
 import { Skeleton } from "../components/skeleton";
 import { shareCard } from "../content";
@@ -13,14 +14,15 @@ import { activityStats, dayKey, type GitHubActivityEntry } from "../lib/github-a
 import { readPublicly } from "../lib/public-read";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Aktivitas — Builders", "Activity — Builders");
+  const title = tx(locale, `Aktivitas — ${site.name}`, `Activity — ${site.name}`);
   const description = tx(
     locale,
-    "Kontribusi open source member Builders, langsung dari GitHub: pull request yang di-merge, yang sedang direview, dan kesibukan di repo sendiri.",
-    "Builders members' open source work, straight from GitHub: merged pull requests, ones in review, and what they are building on their own repositories.",
+    `Kontribusi open source member ${site.name}, langsung dari GitHub: pull request yang di-merge, yang sedang direview, dan kesibukan di repo sendiri.`,
+    `${site.name} members' open source work, straight from GitHub: merged pull requests, ones in review, and what they are building on their own repositories.`,
   );
   return { title, description, alternates: { canonical: "/activity" }, openGraph: shareCard({ title, description, url: "/activity" }) };
 }
@@ -46,6 +48,10 @@ export default async function ActivityPage({ searchParams }: { searchParams?: Se
       <SiteHeader returnTo={query.then((values) => activityPath(readActivityFilters(values), readActivityPage(values)))} active="activity" />
 
       <main id="main-content" className="dx-page">
+        <Suspense fallback={null}>
+          <ActivityBanner locale={locale} />
+        </Suspense>
+
         <Suspense fallback={<ActivitySkeleton locale={locale} />}>
           <ActivityBody query={query} locale={locale} />
         </Suspense>
@@ -64,8 +70,8 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
         <p>
           {tx(
             locale,
-            "Pull request dan commit member, langsung dari GitHub, diperbarui tiap 30 menit. ",
-            "Members' pull requests and commits, straight from GitHub, refreshed every 30 minutes. ",
+            "Kontribusi open source member, langsung dari GitHub, biar saling kelihatan dan yang lain ikut mulai. ",
+            "Members' open source contributions, straight from GitHub, so we see each other's and others start too. ",
           )}
           <Link className="ax-head-link" href="/account/profile#github-account">
             {tx(locale, "Tampilkan punyamu", "Show yours")}
