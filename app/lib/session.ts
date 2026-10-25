@@ -31,6 +31,9 @@ const authUser = cache(async (): Promise<AuthIdentity | null> => {
     const supabase = await getSupabase();
     if (!supabase) return null;
 
+    const preview = await devPreviewIdentity(supabase);
+    if (preview) return preview;
+
     const { data, error } = await supabase.auth.getClaims();
     if (error) throw error;
 
@@ -114,6 +117,27 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
     return null;
   }
 });
+
+/**
+ * Local preview only: `DEV_VIEW_AS=<username>` in .env.local shows the site as
+ * that member under `next dev`, because signing in through GitHub returns to
+ * the deployed site rather than to localhost.
+ *
+ * It only changes what pages *show*. The database still sees a guest, so every
+ * write is refused by its policies, and anything only an owner may read stays
+ * hidden. Never on in a production build or on Vercel.
+ */
+async function devPreviewIdentity(supabase: NonNullable<Awaited<ReturnType<typeof getSupabase>>>): Promise<AuthIdentity | null> {
+  const username = process.env.DEV_VIEW_AS?.trim();
+  if (!username || process.env.NODE_ENV !== "development" || process.env.VERCEL) return null;
+
+  const { data } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
+  if (!data) {
+    console.warn(`[ahsan] DEV_VIEW_AS: no member is called "${username}"; continuing as a guest.`);
+    return null;
+  }
+  return { id: data.id, email: "", userMetadata: {} };
+}
 
 /** An interrupted navigation cancels its session request; that is not an outage. */
 function isAbortError(error: unknown): boolean {
