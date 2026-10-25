@@ -59,16 +59,10 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
             <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p className="dx-head-community">
               {/* What the place is for, in one line, for somebody who has just landed. */}
-              {locale === "id" ? (
-                <>
-                  Komunitas buat yang mau aktif di open source, bareng-bareng. Temukan project yang terbuka buat kontributor, kirim
-                  kontribusimu, dan biarkan kontribusimu terlihat. Semua project-nya dikurasi dan didaftarkan oleh komunitas.
-                </>
-              ) : (
-                <>
-                  A community for people who want to be active in open source, together. Find a project that takes contributors, send
-                  your contribution, and let it be seen. Every project is curated and listed by the community.
-                </>
+              {tx(
+                locale,
+                "Komunitas buat yang mau aktif di open source. Semua project di sini dikurasi bareng-bareng.",
+                "A community for people who want to be active in open source. Every project here is curated together.",
               )}
             </p>
             <div className="dx-head-actions">
