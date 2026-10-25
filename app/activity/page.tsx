@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
+import { ActivityBanner } from "../components/activity-banner";
 import { ActivityView } from "../components/activity-view";
 import { Skeleton } from "../components/skeleton";
 import { shareCard } from "../content";
@@ -46,6 +47,10 @@ export default async function ActivityPage({ searchParams }: { searchParams?: Se
       <SiteHeader returnTo={query.then((values) => activityPath(readActivityFilters(values), readActivityPage(values)))} active="activity" />
 
       <main id="main-content" className="dx-page">
+        <Suspense fallback={null}>
+          <ActivityBanner locale={locale} />
+        </Suspense>
+
         <Suspense fallback={<ActivitySkeleton locale={locale} />}>
           <ActivityBody query={query} locale={locale} />
         </Suspense>
@@ -64,8 +69,8 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
         <p>
           {tx(
             locale,
-            "Pull request dan commit member, langsung dari GitHub, diperbarui tiap 30 menit. ",
-            "Members' pull requests and commits, straight from GitHub, refreshed every 30 minutes. ",
+            "Kontribusi open source member, langsung dari GitHub, biar saling kelihatan dan yang lain ikut mulai. ",
+            "Members' open source contributions, straight from GitHub, so we see each other's and others start too. ",
           )}
           <Link className="ax-head-link" href="/account/profile#github-account">
             {tx(locale, "Tampilkan punyamu", "Show yours")}

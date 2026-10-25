@@ -21,7 +21,7 @@ export function GitHubForm({ github, shown }: { github: string; shown: boolean }
 
   return (
     <form className="create-form gh-form" action={formAction} id="github-account">
-      <fieldset className="step">
+      <fieldset className="step tone-account">
         <legend>
           <span className="step-number">1</span> GitHub
         </legend>

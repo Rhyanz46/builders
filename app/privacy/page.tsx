@@ -25,7 +25,6 @@ export default async function PrivacyPage() {
       <SiteHeader returnTo="/privacy" />
 
       <main id="main-content" className="page-narrow legal-content">
-        <p className="eyebrow"><span /> {tx(locale, "Kebijakan Privasi", "Privacy Policy")}</p>
         <h1>{tx(locale, "Datamu, dan siapa yang dapat melihatnya.", "Your data, and who gets to see it.")}</h1>
         <p className="lede">
           {tx(locale, "Builders adalah papan kolaborasi sekaligus portofolio. Karena visibilitas karya merupakan inti layanan ini, kami menjelaskan secara langsung apa yang bersifat publik, apa yang tetap privat, dan ke mana datamu dikirim.", "Builders is both a collaboration board and a portfolio. Because making work visible is central to the service, this page plainly explains what is public, what stays private, and where your data goes.")}

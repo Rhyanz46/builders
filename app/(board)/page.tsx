@@ -6,6 +6,7 @@ import { shareCard, waCommunityUrl } from "../content";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
+import { ActivityBanner } from "../components/activity-banner";
 import { listAdminPicks, listOssMembers, listProjects, listRepoSignals } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
@@ -48,22 +49,19 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
       <SiteHeader returnTo={query.then((value) => pathFor(readFilters(value)))} active="home" />
 
       <main id="main-content" className="dx-page">
+        <Suspense fallback={null}>
+          <ActivityBanner locale={locale} />
+        </Suspense>
+
         <header className="dx-head">
           <div>
             <h1>{tx(locale, "Direktori kontribusi", "Contribution directory")}</h1>
             <p className="dx-head-community">
               {/* What the place is for, in one line, for somebody who has just landed. */}
-              {locale === "id" ? (
-                <>
-                  Komunitas buat yang mau aktif di open source, bareng-bareng. Temukan project yang terbuka buat kontributor, kirim
-                  kontribusimu, dan biarkan kontribusimu terlihat. <Link href="/about#how">Cara kerjanya</Link>
-                </>
-              ) : (
-                <>
-                  A community for people who want to be active in open source, together. Find a project that takes contributors, send
-                  your contribution, and let it be seen.{" "}
-                  <Link href="/about#how">How it works</Link>
-                </>
+              {tx(
+                locale,
+                "Komunitas buat yang mau aktif di open source. Semua project di sini dikurasi bareng-bareng.",
+                "A community for people who want to be active in open source. Every project here is curated together.",
               )}
             </p>
             <div className="dx-head-actions">
@@ -139,24 +137,19 @@ async function readDirectory(locale: Locale) {
 }
 
 /**
- * The heading's call to action, by how far along the visitor is. The loop
- * the site runs on (see /about#how) only counts somebody who has an account
- * and shows their GitHub activity, so a guest is asked to join and a member
- * who has not said yes yet is asked for that. Somebody with both has nothing
- * left to give here, and is pointed at the community's chat. The WA group
- * stays beside the others as a plain link.
+ * The heading's call to action: a guest is asked to join, with the WA group
+ * beside it as a plain link; a member is pointed at the community's chat.
+ * Showing GitHub activity is asked for by `ActivityBanner` instead, which a
+ * member can close.
  */
 async function JoinCta({ locale }: { locale: Locale }) {
   const viewer = await currentViewer();
-  if (viewer && viewer.github && viewer.githubActivityShown) return <WaButton />;
+  if (viewer) return <WaButton />;
 
-  const [href, label] = !viewer
-    ? ["/signin", tx(locale, "Gabung ke Builders", "Join Builders")]
-    : ["/account/profile#github-account", tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")];
   return (
     <>
-      <Link className="primary-action" href={href}>
-        {label}
+      <Link className="primary-action" href="/signin">
+        {tx(locale, "Gabung ke Builders", "Join Builders")}
       </Link>
       {waCommunityUrl ? (
         <a className="dx-wa-link" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">

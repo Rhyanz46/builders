@@ -4,7 +4,6 @@ import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { shareCard, waCommunityUrl } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
-import { prTierLabel, type PRTier } from "../lib/directory";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
@@ -71,72 +70,6 @@ const ROLES: readonly (readonly [string, string, string, string])[] = [
 ];
 
 /**
- * What each PR status on a directory card means — the same tiers, in the same
- * order and words, as `prTierLabel` in app/lib/directory.ts. Written out here
- * because "what does this colour mean?" is the first question a card raises.
- */
-const TIERS: readonly (readonly [PRTier, string, string])[] = [
-  [
-    "active",
-    "Ada PR dari luar tim yang di-merge dalam 90 hari terakhir. Paling besar kemungkinan PR pertamamu dibaca dan diterima.",
-    "A pull request from outside the team was merged in the last 90 days. The best odds that your first PR is read and accepted.",
-  ],
-  [
-    "first",
-    "Pemiliknya sudah buka pintu buat PR dan repo-nya masih aktif, tapi belum ada orang luar yang di-merge. Kamu bisa jadi yang pertama.",
-    "The owner has opened it to pull requests and the repo is alive, but nobody from outside has been merged yet. You could be the first.",
-  ],
-  [
-    "open",
-    "Pemiliknya terbuka buat PR, tapi GitHub belum sempat kami tanya soal siapa saja yang di-merge.",
-    "The owner takes pull requests, but we have not heard back from GitHub yet about who gets merged.",
-  ],
-  [
-    "unopened",
-    "Kodenya bisa dibaca dan dipelajari, tapi pemiliknya belum bilang siap nerima PR. Tanya dulu sebelum ngirim.",
-    "The code is there to read and learn from, but the owner has not said they take PRs. Ask before sending one.",
-  ],
-  [
-    "inactive",
-    "Repo-nya di-archive, atau nggak ada push selama 120 hari. PR ke sini kemungkinan besar nggak ada yang baca.",
-    "The repo is archived, or nothing has been pushed for 120 days. A PR here will most likely go unread.",
-  ],
-];
-
-/**
- * What happens here, as the loop it is: find a project, contribute, be seen,
- * bring others. The contribution itself happens on GitHub or with the
- * project's owner; Builders is the finding before it and the being seen
- * after, which is what makes the next person try.
- */
-const LOOP: readonly (readonly [string, string, string, string])[] = [
-  [
-    "Temukan",
-    "Find",
-    "Pilih project yang beneran nerima kontributor: repo open source yang PR-nya dibaca, atau produk member yang lagi buka peran.",
-    "Pick a project that genuinely takes contributors: an open source repo whose PRs get read, or a member's product that has a role open.",
-  ],
-  [
-    "Kontribusi",
-    "Contribute",
-    "Kirim PR di GitHub, atau bantu lewat peranmu. Kerjanya terjadi di project-nya, bukan di sini.",
-    "Send a PR on GitHub, or help in your role. The work happens in the project, not here.",
-  ],
-  [
-    "Terlihat",
-    "Be seen",
-    "PR yang di-merge muncul di halaman Aktivitas dan jadi badge di profilmu. Member lain bisa kasih reaksi.",
-    "A merged PR shows on the Activity page and becomes a badge on your profile. Other members can react to it.",
-  ],
-  [
-    "Ajak",
-    "Bring others",
-    "Teman yang lihat kontribusimu jadi berani nyoba. Punya project sendiri? Daftarin, biar kontributor berikutnya nemu.",
-    "Friends who see your contribution are more willing to try. Have a project of your own? List it, so the next contributor finds it.",
-  ],
-];
-
-/**
  * Why the circle helps, not only the list: what being among people doing the
  * same thing gives you that a directory alone does not. Each point is
  * something the site already does — the friend badge, maintainers in the
@@ -172,6 +105,12 @@ const TOGETHER: readonly (readonly [string, string, string, string])[] = [
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
 /** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
+/** Each point's colour, in TOGETHER's order: a friend's badge, a known reviewer, the Activity feed, both sides helped. */
+const TOGETHER_TONES = ["tone-pick", "tone-account", "tone-done", "tone-wa"];
+
+/** Engineers in the code path's blue, other roles in the badges' amber, builders in a result's purple. */
+const AUDIENCE_TONES = ["tone-account", "tone-pick", "tone-done"];
+
 const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
     "Engineer",
@@ -239,8 +178,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Repo yang saya tahu belum ada. Bisa diusulin?",
     "A repo I know is missing. Can I suggest it?",
-    "Bisa. Klik “Usulkan project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
-    "Yes. Press “Suggest a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
+    "Bisa. Klik “Tambah project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
+    "Yes. Press “Add a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
   ],
   [
     "Kenapa masuknya pakai GitHub?",
@@ -314,15 +253,6 @@ export default async function AboutPage() {
               "Contributing to open source, together. Builders is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.",
             )}
           </p>
-          <ol className="ab-cards ab-steps">
-            {LOOP.map(([titleId, titleEn, bodyId, bodyEn], index) => (
-              <li key={titleEn} className="ab-card">
-                <span className="ab-step" aria-hidden="true">{index + 1}</span>
-                <h3>{tx(locale, titleId, titleEn)}</h3>
-                <p>{tx(locale, bodyId, bodyEn)}</p>
-              </li>
-            ))}
-          </ol>
           <p className="ab-lead">
             {tx(
               locale,
@@ -330,9 +260,14 @@ export default async function AboutPage() {
               "Builders is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.",
             )}
           </p>
-          <Link className="ab-more" href="/activity">
-            {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
-          </Link>
+          <p className="hw-more">
+            <Link className="ab-more" href="/how-it-works">
+              {tx(locale, "Lihat cara kerjanya", "See how it works")} <Arrow />
+            </Link>
+            <Link className="ab-more" href="/activity">
+              {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
+            </Link>
+          </p>
         </section>
 
         <section id="why-together" className="ab-section" aria-labelledby="together-title">
@@ -345,8 +280,8 @@ export default async function AboutPage() {
             )}
           </p>
           <ul className="ab-cards ab-steps">
-            {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
+            {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn], index) => (
+              <li key={titleEn} className={`ab-card ${TOGETHER_TONES[index] ?? ""}`}>
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
@@ -364,98 +299,12 @@ export default async function AboutPage() {
         <section className="ab-section" aria-labelledby="audience-title">
           <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
           <ul className="ab-cards">
-            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
+            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn], index) => (
+              <li key={titleEn} className={`ab-card ${AUDIENCE_TONES[index] ?? ""}`}>
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
             ))}
-          </ul>
-        </section>
-
-        <section className="ab-section" aria-labelledby="directory-title">
-          <h2 id="directory-title">{tx(locale, "Cara pakai direktorinya", "How the directory works")}</h2>
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Halaman depan Builders adalah direktori project yang lagi nerima kontributor. Ada dua jalur, dan kamu tinggal pilih yang paling cocok sama keahlianmu.",
-              "Builders' front page is a directory of projects taking contributors right now. There are two paths; pick the one that fits what you do.",
-            )}
-          </p>
-
-          <div className="ab-cards ab-cards-two">
-            <Link className="ab-card" href="/">
-              <h3>{tx(locale, "Kode di GitHub", "Code on GitHub")}</h3>
-              <p>
-                {tx(
-                  locale,
-                  "Repo open source dan project member yang punya repo GitHub. Pilih Lokal untuk yang dikelola komunitas atau maintainer Indonesia, Global untuk sisanya. Tiap kartu nunjukin bahasa, bintang, isu pemula, dan status PR-nya.",
-                  "Open source repos and members' projects with a GitHub repo. Pick Local for those run by the community or by Indonesian maintainers, Global for the rest. Each card shows the language, stars, starter issues, and PR status.",
-                )}
-              </p>
-            </Link>
-            <Link className="ab-card" href="/?track=role">
-              <h3>{tx(locale, "Peran lain", "Other roles")}</h3>
-              <p>
-                {tx(
-                  locale,
-                  "Project member yang lagi cari desainer, PM, peneliti, marketing, QA, dan peran lain. Klik “Tawarkan bantuan” di peran yang cocok, dan admin bakal nyambungin kamu ke pemilik project lewat WhatsApp.",
-                  "Members' projects looking for designers, PMs, researchers, marketers, QA, and more. Press “Offer to help” on the role that fits, and an admin connects you with the project's owner on WhatsApp.",
-                )}
-              </p>
-            </Link>
-          </div>
-
-          <h3 className="ab-subhead">{tx(locale, "Arti status PR", "What the PR status means")}</h3>
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Bukan sekadar centang dari pemiliknya. Status ini dihitung dari GitHub dan diperbarui tiap beberapa jam.",
-              "Not just a box the owner ticked. It is worked out from GitHub and refreshed every few hours.",
-            )}
-          </p>
-          <ul className="ab-list">
-            {TIERS.map(([tier, bodyId, bodyEn]) => (
-              <li key={tier}>
-                <span className={`dx-tier-dot dx-tier-dot-${tier}`} aria-hidden="true" />
-                <div>
-                  <strong>{prTierLabel(tier, locale)}</strong>
-                  <p>{tx(locale, bodyId, bodyEn)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <h3 className="ab-subhead">{tx(locale, "Tanda di kartu", "The signs on a card")}</h3>
-          <ul className="ab-list">
-            <li>
-              <span className="ab-sign" aria-hidden="true">✓</span>
-              <div>
-                <strong>{tx(locale, "Teman kita pernah kontribusi", "Friends have contributed")}</strong>
-                <p>{tx(locale, "Ada member Builders yang PR-nya pernah masuk ke sini. Kamu bisa tanya-tanya ke mereka dulu.", "A Builders member has landed a PR here before. You can ask them first.")}</p>
-              </div>
-            </li>
-            <li>
-              <span className="ab-sign" aria-hidden="true">●</span>
-              <div>
-                <strong>{tx(locale, "Ada di grup kita", "In our group")}</strong>
-                <p>{tx(locale, "Maintainer-nya ada di komunitas kita, jadi PR pertamamu dibaca orang yang kenal kamu.", "The maintainer is in our community, so your first PR is read by someone who knows you.")}</p>
-              </div>
-            </li>
-            <li>
-              <span className="ab-sign" aria-hidden="true">🇮🇩</span>
-              <div>
-                <strong>{tx(locale, "Maintainer Indonesia", "Indonesian maintainers")}</strong>
-                <p>{tx(locale, "Repo-nya dikelola orang Indonesia. Masuk hitungan Lokal, walaupun bukan buatan komunitas kita.", "The repo is maintained by Indonesians. It counts as Local, even when it is not one of the community's own.")}</p>
-              </div>
-            </li>
-            <li>
-              <span className="ab-sign" aria-hidden="true">☆</span>
-              <div>
-                <strong>Star</strong>
-                <p>{tx(locale, "Suka sama repo-nya? Tombol Star membuka repo itu di GitHub, tempat kamu bisa kasih bintang.", "Like a repo? The Star button opens it on GitHub, where you can star it.")}</p>
-              </div>
-            </li>
           </ul>
         </section>
 
@@ -496,7 +345,7 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="ab-cta" aria-labelledby="about-cta-title">
+        <section className="ab-cta tone-account" aria-labelledby="about-cta-title">
           <h2 id="about-cta-title">{tx(locale, "Mulai dari satu kontribusi.", "Start with one contribution.")}</h2>
           <p>
             {tx(
@@ -510,7 +359,7 @@ export default async function AboutPage() {
               {tx(locale, "Lihat direktori", "Browse the directory")}
             </Link>
             <Link className="ab-button" href="/submit">
-              <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+              <span aria-hidden="true">+</span> {tx(locale, "Tambah project", "Add a project")}
             </Link>
             {waCommunityUrl ? (
               <a className="ab-button" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">

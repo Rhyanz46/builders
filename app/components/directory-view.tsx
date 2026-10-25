@@ -669,17 +669,21 @@ function TrackIcon({ track }: { track: DirectoryTrack }) {
 /** Who put a catalogue repo forward, credited the way they stand to it. */
 function SharedByLine({ sharedBy, locale }: { sharedBy: SharedBy; locale: Locale }) {
   const name = <Link href={`/u/${sharedBy.username}`}>{sharedBy.name || sharedBy.username}</Link>;
+  // The owner and maintainers share their own work; anybody else recommends it.
+  // The name leads, as people know each other by it; their part comes after.
+  const verb = sharedBy.role === "owner" || sharedBy.role === "maintainer"
+    ? tx(locale, "Dibagikan oleh ", "Shared by ")
+    : tx(locale, "Direkomendasikan oleh ", "Recommended by ");
+  const role =
+    sharedBy.role === "owner" ? tx(locale, "pemilik", "owner")
+    : sharedBy.role === "maintainer" ? "maintainer"
+    : sharedBy.role === "contributor" ? tx(locale, "kontributor", "contributor")
+    : "";
   return (
     <p className="dx-shared">
-      {sharedBy.role === "owner" ? (
-        <>{tx(locale, "Dibagikan pemiliknya, ", "Shared by its owner, ")}{name}</>
-      ) : sharedBy.role === "maintainer" ? (
-        <>{tx(locale, "Dibagikan maintainer-nya, ", "Shared by its maintainer, ")}{name}</>
-      ) : sharedBy.role === "contributor" ? (
-        <>{tx(locale, "Direkomendasikan ", "Recommended by ")}{name}{tx(locale, ", kontributornya", ", a contributor")}</>
-      ) : (
-        <>{tx(locale, "Direkomendasikan ", "Recommended by ")}{name}</>
-      )}
+      {verb}
+      {name}
+      {role ? ` (${role})` : null}
     </p>
   );
 }
@@ -716,6 +720,14 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
             ) : (
               <Link href={entry.href}>{title}</Link>
             )}
+            {/* An admin's pick is a mark on the name rather than a chip among
+                the badges: it vouches for the project, not for people. */}
+            {entry.adminPick ? (
+              <span className="dx-pick" title={badgeLabel({ kind: "admin-pick" }, locale)}>
+                <BadgeIcon kind="admin-pick" />
+                <span className="sr-only">{badgeLabel({ kind: "admin-pick" }, locale)}</span>
+              </span>
+            ) : null}
             {/* The PR status belongs to the code path. A product asking for
                 both simply appears on both tabs; neither card points at the
                 other. */}
@@ -747,9 +759,11 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
           ) : null}
           {entry.description ? <p className="dx-desc">{entry.description}</p> : null}
           {entry.sharedBy ? <SharedByLine sharedBy={entry.sharedBy} locale={locale} /> : null}
-          {entry.badges.length > 0 ? (
+          {entry.badges.some((badge) => badge.kind !== "admin-pick") ? (
             <ul className="dx-badges" aria-label={tx(locale, "Tanda", "Signals")}>
-              {entry.badges.map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
+              {entry.badges
+                .filter((badge) => badge.kind !== "admin-pick")
+                .map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
             </ul>
           ) : null}
           {entry.track === "github" && entry.labels.length > 0 ? (

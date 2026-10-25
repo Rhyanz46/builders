@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { hasContact, nextSteps, profileReady, remainingSteps } from "../app/lib/next-steps.ts";
+import { hasContact, isOnboardingPath, nextSteps, profileReady, remainingSteps, stepsFor } from "../app/lib/next-steps.ts";
 import { isTalentPoolMember } from "../app/lib/people.ts";
 
 const emptyPerson = {
@@ -27,11 +27,11 @@ const filledPerson = {
 
 const project = (over = {}) => ({ slug: "warung-antre", nowText: "", openSeatCount: 0, ...over });
 
-test("a brand new account owes GitHub, its open source record, and who it is", () => {
+test("a brand new account owes GitHub and who it is", () => {
   const steps = nextSteps({ person: emptyPerson, owned: [] });
   assert.deepEqual(
     remainingSteps(steps).map((step) => step.id),
-    ["github", "oss", "talent"],
+    ["github", "talent"],
   );
 });
 
@@ -41,11 +41,6 @@ test("GitHub counts once it reads as an account, in any of the usual spellings",
   assert.equal(done("@someone"), true);
   assert.equal(done("https://gitlab.com/someone"), false);
   assert.equal(done("https://github.com/someone/a-repo"), false);
-});
-
-test("listing one repo settles the open source step", () => {
-  const steps = nextSteps({ person: emptyPerson, owned: [], ossCount: 1 });
-  assert.equal(steps.find((step) => step.id === "oss").done, true);
 });
 
 test("listing a product is offered, never owed", () => {
@@ -61,8 +56,8 @@ test("the product steps stay hidden until there is a product to say them about",
   assert.equal(steps.some((step) => step.id === "role"), false);
 });
 
-test("a contributor with GitHub, a record, and a profile owes nothing", () => {
-  const steps = nextSteps({ person: { ...filledPerson, github: "https://github.com/someone", githubActivityShown: true }, owned: [], ossCount: 2 });
+test("a contributor with GitHub and a profile owes nothing", () => {
+  const steps = nextSteps({ person: { ...filledPerson, github: "https://github.com/someone", githubActivityShown: true }, owned: [] });
   assert.deepEqual(remainingSteps(steps), []);
 });
 
@@ -70,7 +65,6 @@ test("a founder's product steps are offered, never owed", () => {
   const steps = nextSteps({
     person: { ...filledPerson, github: "someone", githubActivityShown: true },
     owned: [project()],
-    ossCount: 1,
   });
   assert.deepEqual(remainingSteps(steps), []);
   assert.ok(steps.find((step) => step.id === "role").optional);
@@ -120,9 +114,20 @@ test("GitHub is done once its activity is shown too, not on the username alone",
 test("the WA Community is owed, done once its button was pressed, and absent without an invite", () => {
   const waUrl = "https://chat.whatsapp.com/abc";
   const wa = (waJoined) => nextSteps({ person: emptyPerson, owned: [], waUrl, waJoined }).find((step) => step.id === "wa");
-  assert.deepEqual(remainingSteps(nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["github", "oss", "talent", "wa"]);
+  assert.deepEqual(remainingSteps(nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["github", "wa", "talent"]);
   assert.equal(wa(false).href, waUrl);
   assert.equal(wa(false).external, true);
   assert.equal(wa(true).done, true);
   assert.equal(nextSteps({ person: emptyPerson, owned: [] }).some((step) => step.id === "wa"), false);
+});
+
+test("each path shows only its own steps, in its own order", () => {
+  const waUrl = "https://chat.whatsapp.com/abc";
+  const steps = nextSteps({ person: emptyPerson, owned: [project()], waUrl });
+  assert.deepEqual(stepsFor("contribute", steps).map((step) => step.id), ["github", "wa", "talent"]);
+  assert.deepEqual(stepsFor("founder", steps).map((step) => step.id), ["talent", "wa", "project", "now", "role"]);
+  // Before there is a product, a founder is only asked to list one.
+  assert.deepEqual(stepsFor("founder", nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["talent", "wa", "project"]);
+  assert.equal(isOnboardingPath("founder"), true);
+  assert.equal(isOnboardingPath("admin"), false);
 });
