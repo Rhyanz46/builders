@@ -938,11 +938,17 @@ form button.danger:hover { background: #96320f; }
 
 .page-narrow h1 { font-size: clamp(26px, 3vw, 34px); margin-bottom: 20px; }
 .lede { color: var(--muted); font-size: 17px; line-height: 1.7; margin-bottom: 34px; }
-.legal-content h2 { font-size: 22px; font-weight: 680; letter-spacing: -.02em; margin: 42px 0 14px; }
-.legal-content h3 { font-size: 16px; font-weight: 680; margin: 26px 0 8px; }
-.legal-content p { color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
-.legal-content ul { color: var(--ink-soft); font-size: 15px; line-height: 1.7; margin: 0 0 16px; padding-left: 20px; }
-.legal-content li + li { margin-top: 8px; }
+/* /privacy in the directory's sizes; links in its blue. */
+.legal-content { max-width: 760px; padding-top: 40px; }
+.legal-content h1 { font-size: 26px; font-weight: 650; letter-spacing: -.03em; line-height: 1.2; margin: 0; }
+.legal-content .lede { color: var(--dx-muted); font-size: 14px; line-height: 1.6; margin: 6px 0 0; }
+.legal-content a { color: light-dark(#0969da, #4493f8); }
+.legal-content h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; margin: 28px 0 8px; }
+.legal-content h3 { font-size: 14.5px; font-weight: 650; margin: 18px 0 4px; }
+.legal-content p { color: var(--dx-text); font-size: 14px; line-height: 1.7; }
+.legal-content ul { color: var(--dx-text); font-size: 14px; line-height: 1.7; margin: 0 0 14px; padding-left: 20px; }
+.legal-content li + li { margin-top: 6px; }
+.legal-content li::marker { color: light-dark(#0969da, #4493f8); }
 .how-list { list-style: none; margin: 0 0 34px; padding: 0; }
 .how-list li { border-top: 1px solid var(--line); display: flex; gap: 22px; padding: 22px 0; }
 .how-list span {
@@ -2101,8 +2107,30 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 /* Numbered like the profile form's steps around it. */
 .oss-editor h2.is-step { align-items: center; display: flex; gap: 10px; margin-bottom: 8px; }
 .oss-editor > p { color: var(--dx-muted); font-size: 14px; line-height: 1.55; margin: 0 0 14px; }
-.oss-editor .oss-editor-note { background: var(--dx-warm-soft); border-radius: 8px; color: var(--dx-warm); padding: 9px 12px; }
+.oss-editor .oss-editor-note { background: light-dark(#fff7ed, #261c10); border-radius: 8px; color: light-dark(#b45309, #fbbf24); padding: 9px 12px; }
 .oss-editor-note a { color: inherit; font-weight: 650; text-decoration: underline; }
+
+/* /account/profile in the directory's plainness: no box inside a box, each
+   step a hairline section with a small number in its tone, smaller buttons. */
+.account-page { max-width: 760px; padding-top: 40px; }
+.account-page h1 { font-size: 26px; font-weight: 650; letter-spacing: -.03em; line-height: 1.2; margin: 0; }
+.account-page .lede { color: var(--dx-muted); font-size: 14px; line-height: 1.6; margin: 6px 0 0; }
+.account-page .lede a { color: light-dark(#0969da, #4493f8); }
+.account-page .create-form, .account-page .oss-editor {
+  background: none; border: 0; border-radius: 0; border-top: 1px solid var(--dx-line); margin: 24px 0 0; padding: 20px 0 0;
+}
+.account-page fieldset.step { border: 0; border-radius: 0; margin: 0; padding: 0; }
+.account-page fieldset.step + fieldset.step { border-top: 1px solid var(--dx-line); margin-top: 24px; padding-top: 20px; }
+.account-page .step > legend { font-size: 15px; font-weight: 650; gap: 8px; letter-spacing: -.01em; padding: 0; }
+.account-page .oss-editor h2 { font-size: 15px; }
+.account-page .oss-editor > p { font-size: 13.5px; }
+.account-page .step-number {
+  background: var(--tone-soft, var(--dx-soft)); color: var(--tone, var(--dx-ink)); font-weight: 650; height: 22px; width: 22px;
+}
+.account-page .ghost-button { border-radius: 7px; padding: 8px 14px; }
+.account-page .primary-button { border-radius: 7px; gap: 8px; height: 34px; padding: 0 14px; }
+.account-page .primary-button:hover { transform: none; }
+.account-page > .hint { margin-top: 20px; }
 
 /* ------------------------------------------------------------ onboarding */
 .ob-page { max-width: none; }
@@ -2199,7 +2227,7 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .pf-stats strong { font-size: 20px; font-variant-numeric: tabular-nums; font-weight: 650; letter-spacing: -.02em; }
 .pf-stats span { color: var(--dx-muted); font-size: 12px; }
 .pf-self-note {
-  background: var(--dx-warm-soft); border-radius: 10px; color: var(--dx-warm); font-size: 13px; line-height: 1.5;
+  background: light-dark(#fff7ed, #261c10); border-radius: 10px; color: light-dark(#b45309, #fbbf24); font-size: 13px; line-height: 1.5;
   margin: 16px 0 0; padding: 10px 14px;
 }
 .pf-self-note a { color: inherit; font-weight: 650; text-decoration: underline; }
@@ -2364,8 +2392,8 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 /* ----------------------------------------------------- repo form & admin
    /recommend and /admin: the catalogue's way in, and its queue. */
 .ob-card {
-  background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 14px; margin: 0 auto; max-width: 720px;
-  padding: 22px;
+  background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 10px; margin: 0 auto; max-width: 720px;
+  padding: 20px;
 }
 .ob-card h2 { color: var(--dx-ink); font-size: 17px; font-weight: 650; margin: 0 0 4px; }
 .ob-notice {
@@ -2393,7 +2421,8 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
   align-items: flex-start; border: 1px solid var(--dx-line); border-radius: 10px; cursor: pointer; display: flex;
   gap: 10px; padding: 12px;
 }
-.rf-choice:has(input:checked) { border-color: var(--dx-ink); box-shadow: inset 0 0 0 1px var(--dx-ink); }
+.rf-choice:has(input:checked) { background: var(--tone-soft, var(--dx-soft)); border-color: var(--tone, var(--dx-ink)); box-shadow: inset 0 0 0 1px var(--tone, var(--dx-ink)); }
+.rf-choice input, .rf-check input { accent-color: var(--tone, var(--dx-ink)); }
 .rf-choice input { margin: 3px 0 0; }
 .rf-choice span { display: flex; flex-direction: column; gap: 2px; }
 .rf-choice strong { font-size: 14px; }
@@ -2403,7 +2432,7 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
   align-items: center; border: 1px solid var(--dx-line); border-radius: 99px; cursor: pointer; display: inline-flex;
   font-size: 13px; gap: 7px; padding: 6px 12px;
 }
-.rf-check:has(input:checked) { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#fff, #1f1f1f); }
+.rf-check:has(input:checked) { background: var(--tone-soft, var(--dx-soft)); border-color: var(--tone, var(--dx-ink)); color: var(--tone, var(--dx-ink)); }
 .rf-check input { margin: 0; }
 .rf-more { border-top: 1px solid var(--dx-line); padding-top: 12px; }
 .rf-more summary { color: var(--dx-muted); cursor: pointer; font-size: 13px; font-weight: 600; }

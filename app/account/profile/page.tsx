@@ -56,10 +56,7 @@ export default async function EditProfilePage({
     <>
       <SiteHeader returnTo="/account/profile" />
 
-      <main id="main-content" className="page-narrow">
-        <p className="eyebrow">
-          <span /> {tx(locale, "Profil", "Profile")}
-        </p>
+      <main id="main-content" className="page-narrow account-page">
         <h1>{tx(locale, "Lengkapi profilmu.", "Complete your profile.")}</h1>
         <p className="lede">
           {tx(locale, "Yang paling penting ada di atas: akun GitHub dan repo yang pernah kamu kontribusi—dari situ badge di direktori dibuat. Sisanya tampil di ", "What matters most comes first: your GitHub account and the repos you have contributed to—the directory's badges are built from them. The rest shows on ")}
@@ -73,7 +70,7 @@ export default async function EditProfilePage({
         <GitHubForm github={handle ? `https://github.com/${handle}` : viewer.github} shown={viewer.githubActivityShown} />
 
         {/* Second: every repo listed here becomes a badge on that repo's row. */}
-        <section id="open-source" className="oss-editor" aria-labelledby="oss-editor-title">
+        <section id="open-source" className="oss-editor tone-done" aria-labelledby="oss-editor-title">
           <h2 id="oss-editor-title" className="is-step">
             <span className="step-number">2</span> {tx(locale, "Kontribusi open source", "Open source contributions")}
           </h2>
