@@ -136,6 +136,39 @@ const LOOP: readonly (readonly [string, string, string, string])[] = [
   ],
 ];
 
+/**
+ * Why the circle helps, not only the list: what being among people doing the
+ * same thing gives you that a directory alone does not. Each point is
+ * something the site already does — the friend badge, maintainers in the
+ * group, the Activity feed — said as what it means for you.
+ */
+const TOGETHER: readonly (readonly [string, string, string, string])[] = [
+  [
+    "Ada yang udah duluan",
+    "Someone has been there",
+    "Kalau ada teman yang pernah kontribusi ke repo itu, kamu bisa tanya langsung: setup-nya gimana, maintainer-nya suka PR yang kayak apa.",
+    "When a friend has contributed to that repo, you can just ask them: how the setup goes, what kind of PR its maintainers like.",
+  ],
+  [
+    "PR-mu dibaca orang yang kenal kamu",
+    "Your PR is read by someone who knows you",
+    "Banyak maintainer-nya ada di komunitas ini, jadi PR pertamamu nggak tenggelam di antrean orang asing.",
+    "Many of the maintainers are in this community, so your first PR does not sink in a queue of strangers.",
+  ],
+  [
+    "Kelihatan, lalu nular",
+    "Seen, then catching",
+    "Tiap PR yang di-merge muncul di halaman Aktivitas. Lihat teman ngirim PR minggu ini bikin kamu pengin nyoba juga.",
+    "Every merged PR shows on the Activity page. Seeing a friend send a PR this week makes you want to try too.",
+  ],
+  [
+    "Dua arah",
+    "Both ways",
+    "Kontributor dapat pengalaman dan rekam jejak yang nyata. Maintainer dan builder dapat bantuan yang selama ini nggak kunjung datang.",
+    "Contributors get real experience and a real track record. Maintainers and builders get the help that never used to come.",
+  ],
+];
+
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
 /** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
@@ -277,8 +310,8 @@ export default async function AboutPage() {
           <p className="ab-answer">
             {tx(
               locale,
-              "Kontribusi. Tepatnya: nemuin project orang lain, ngirim kontribusi ke sana, dan bikin kontribusi itu kelihatan.",
-              "Contribute. More precisely: find someone else's project, send it a contribution, and make that contribution visible.",
+              "Kontribusi ke open source, bareng-bareng. Builders itu komunitas orang yang sama-sama mau aktif di open source: kita nemuin project yang beneran nerima kontributor, ngirim kontribusi ke sana, dan saling lihat progres satu sama lain, biar yang lain ikut berani mulai.",
+              "Contributing to open source, together. Builders is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.",
             )}
           </p>
           <ol className="ab-cards ab-steps">
@@ -300,6 +333,32 @@ export default async function AboutPage() {
           <Link className="ab-more" href="/activity">
             {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
           </Link>
+        </section>
+
+        <section id="why-together" className="ab-section" aria-labelledby="together-title">
+          <h2 id="together-title">{tx(locale, "Kenapa harus bareng-bareng?", "Why together?")}</h2>
+          <p className="ab-lead">
+            {tx(
+              locale,
+              "Kontribusi ke open source sendirian itu gampang berhenti di tengah jalan: nggak tahu mulai dari mana, PR nggak ada yang review, lama-lama lupa. Di circle ini, kamu nggak mulai dari nol.",
+              "Contributing to open source alone stalls easily: you don't know where to start, nobody reviews your PR, and after a while you forget. In this circle, you don't start from zero.",
+            )}
+          </p>
+          <ul className="ab-cards ab-steps">
+            {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn]) => (
+              <li key={titleEn} className="ab-card">
+                <h3>{tx(locale, titleId, titleEn)}</h3>
+                <p>{tx(locale, bodyId, bodyEn)}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="ab-answer">
+            {tx(
+              locale,
+              "Harapannya: makin banyak engineer Indonesia yang rutin kontribusi ke open source, dan project buatan kita nggak lagi dikerjain sendirian.",
+              "The hope: more and more Indonesian engineers contributing to open source as a habit, and the projects we build no longer built alone.",
+            )}
+          </p>
         </section>
 
         <section className="ab-section" aria-labelledby="audience-title">
