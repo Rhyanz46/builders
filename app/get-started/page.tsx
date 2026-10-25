@@ -19,6 +19,7 @@ import { currentViewer } from "../lib/session";
 import { signInPath } from "../lib/urls";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { isOss, site } from "../lib/site";
 
 /*
  * Allowed to block — same reason as /inbox. The whole page is one person's
@@ -30,7 +31,7 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Langkah berikutnya — Builders", "Next steps — Builders"),
+    title: tx(locale, `Langkah berikutnya — ${site.name}`, `Next steps — ${site.name}`),
     description: tx(locale, "Mau kontribusi atau cari kontributor? Pilih, lalu ikuti beberapa langkah singkat.", "Here to contribute, or to find contributors? Pick one, then follow a few short steps."),
     robots: { index: false },
   };
@@ -58,7 +59,12 @@ export default async function StartPage({
 
   const query = (await searchParams) ?? {};
   const keepOpen = query.all === "1";
-  const path = typeof query.path === "string" && isOnboardingPath(query.path) ? query.path : null;
+  // The open source site has no products to list, so there is nothing to choose.
+  const path: OnboardingPath | null = isOss
+    ? "contribute"
+    : typeof query.path === "string" && isOnboardingPath(query.path)
+      ? query.path
+      : null;
 
   const [{ owned }, cookieStore] = await Promise.all([getPortfolio(viewer), cookies()]);
   const steps = nextSteps({
@@ -85,7 +91,7 @@ export default async function StartPage({
 
       <main id="main-content" className="dx-page ob-page">
         <header className="ob-head">
-          <p className="ob-kicker">{tx(locale, "Mulai di Builders", "Getting started")}</p>
+          <p className="ob-kicker">{tx(locale, `Mulai di ${site.name}`, "Getting started")}</p>
           <h1>{tx(locale, `Halo, ${firstName}.`, `Hello, ${firstName}.`)}</h1>
           <p>
             {path === null
@@ -131,7 +137,7 @@ export default async function StartPage({
         )}
 
         <p className="ob-skip">
-          {path !== null ? (
+          {path !== null && !isOss ? (
             <>
               <Link href={pathHref(null)}>{tx(locale, "Ganti tujuan", "Change what you came for")}</Link>
               {" · "}
@@ -159,7 +165,11 @@ function PathSteps({ path, steps, locale }: { path: OnboardingPath; steps: NextS
         <div className="ob-next tone-done">
           <div>
             <strong>{tx(locale, "Lalu: pilih project pertamamu", "Then: pick your first project")}</strong>
-            <span>{tx(locale, "Kode di GitHub atau peran lain — semuanya ada di direktori.", "Code on GitHub or another role — it is all in the directory.")}</span>
+            <span>
+              {isOss
+                ? tx(locale, "Repo yang lagi nerima PR, semuanya ada di direktori.", "Repos taking PRs right now, all in the directory.")
+                : tx(locale, "Kode di GitHub atau peran lain — semuanya ada di direktori.", "Code on GitHub or another role — it is all in the directory.")}
+            </span>
           </div>
           <Link className="dx-action" href="/">{tx(locale, "Buka direktori", "Open the directory")} <span aria-hidden="true">→</span></Link>
         </div>

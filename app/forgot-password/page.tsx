@@ -5,12 +5,13 @@ import { ForgotPasswordForm } from "../components/auth-forms";
 import { supabaseConfigured } from "../lib/supabase";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Lupa kata sandi — Builders", "Forgot password — Builders"),
-    description: tx(locale, "Minta tautan untuk mengatur ulang kata sandi akun Builders.", "Request a link to reset your Builders account password."),
+    title: tx(locale, `Lupa kata sandi — ${site.name}`, `Forgot password — ${site.name}`),
+    description: tx(locale, `Minta tautan untuk mengatur ulang kata sandi akun ${site.name}.`, `Request a link to reset your ${site.name} account password.`),
     robots: { index: false },
   };
 }

@@ -5,16 +5,17 @@ import { shareCard, waCommunityUrl } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 import { prTierLabel, type PRTier } from "../lib/directory";
+import { isOss, site } from "../lib/site";
 
 export async function howItWorksMetadata(track: Track): Promise<Metadata> {
   const locale = await currentLocale();
   const title =
     track === "github"
-      ? tx(locale, "Cara kerjanya: kode di GitHub — Builders", "How it works: code on GitHub — Builders")
-      : tx(locale, "Cara kerjanya: peran lain — Builders", "How it works: other roles — Builders");
+      ? tx(locale, `Cara kerjanya: kode di GitHub — ${site.name}`, `How it works: code on GitHub — ${site.name}`)
+      : tx(locale, `Cara kerjanya: peran lain — ${site.name}`, `How it works: other roles — ${site.name}`);
   const description =
     track === "github"
-      ? tx(locale, "Dari masuk sampai PR pertamamu di-merge ke repo open source, bareng komunitas Builders.", "From signing in to your first PR merged into an open source repo, with the Builders community.")
+      ? tx(locale, `Dari masuk sampai PR pertamamu di-merge ke repo open source, bareng komunitas ${site.name}.`, `From signing in to your first PR merged into an open source repo, with the ${site.name} community.`)
       : tx(locale, "Bantu produk member sebagai desainer, product, riset, konten, marketing, atau QA, dari masuk sampai jadi bagian timnya.", "Help members' products in design, product, research, content, marketing or QA, from signing in to being on the team.");
   return {
     title,
@@ -167,8 +168,12 @@ function steps(track: Track, locale: Locale): Step[] {
       title: tx(locale, "Pilih repo", "Pick a repo"),
       body: tx(
         locale,
-        "Di direktori, tab Kode di GitHub berisi repo yang nerima PR. Pilih Lokal kalau mau yang maintainer-nya ada di komunitas, lalu cari kartu dengan \"Isu pemula\".",
-        "In the directory, the Code on GitHub tab lists repos that take PRs. Pick Local for ones whose maintainers are in the community, then look for a card with \"Starter issues\".",
+        isOss
+          ? "Di direktori, pilih Lokal kalau mau repo yang maintainer-nya ada di komunitas, lalu cari kartu dengan \"Isu pemula\"."
+          : "Di direktori, tab Kode di GitHub berisi repo yang nerima PR. Pilih Lokal kalau mau yang maintainer-nya ada di komunitas, lalu cari kartu dengan \"Isu pemula\".",
+        isOss
+          ? "In the directory, pick Local for repos whose maintainers are in the community, then look for a card with \"Starter issues\"."
+          : "In the directory, the Code on GitHub tab lists repos that take PRs. Pick Local for ones whose maintainers are in the community, then look for a card with \"Starter issues\".",
       ),
       action: { href: "/", label: tx(locale, "Buka direktori", "Open the directory") },
     },
@@ -209,8 +214,8 @@ export async function HowItWorks({ track }: { track: Track }) {
             {track === "github"
               ? tx(
                   locale,
-                  "Dari masuk sampai PR pertamamu di-merge. Kontribusinya terjadi di GitHub; Builders bantu kamu nemu repo-nya, nyambungin kamu ke teman yang bisa ditanya, dan nyatat hasilnya.",
-                  "From signing in to your first merged PR. The contribution happens on GitHub; Builders helps you find the repo, connects you with friends to ask, and keeps the record.",
+                  `Dari masuk sampai PR pertamamu di-merge. Kontribusinya terjadi di GitHub; ${site.name} bantu kamu nemu repo-nya, nyambungin kamu ke teman yang bisa ditanya, dan nyatat hasilnya.`,
+                  `From signing in to your first merged PR. The contribution happens on GitHub; ${site.name} helps you find the repo, connects you with friends to ask, and keeps the record.`,
                 )
               : tx(
                   locale,
@@ -218,15 +223,18 @@ export async function HowItWorks({ track }: { track: Track }) {
                   "Not a programmer? Members' products need design, product, research, content, marketing and QA too. From signing in to being on the team.",
                 )}
           </p>
-          {/* Named and ordered as the directory's own tabs. */}
-          <nav className="dx-scope hw-tracks" aria-label={tx(locale, "Cara kontribusi", "How you contribute")}>
-            <Link href={href("github")} className={track === "github" ? "is-active" : ""} aria-current={track === "github" ? "page" : undefined}>
-              {tx(locale, "Kode di GitHub", "Code on GitHub")}
-            </Link>
-            <Link href={href("role")} className={track === "role" ? "is-active" : ""} aria-current={track === "role" ? "page" : undefined}>
-              {tx(locale, "Peran lain", "Other roles")}
-            </Link>
-          </nav>
+          {/* Named and ordered as the directory's own tabs. The open source
+              site walks through the code path only. */}
+          {isOss ? null : (
+            <nav className="dx-scope hw-tracks" aria-label={tx(locale, "Cara kontribusi", "How you contribute")}>
+              <Link href={href("github")} className={track === "github" ? "is-active" : ""} aria-current={track === "github" ? "page" : undefined}>
+                {tx(locale, "Kode di GitHub", "Code on GitHub")}
+              </Link>
+              <Link href={href("role")} className={track === "role" ? "is-active" : ""} aria-current={track === "role" ? "page" : undefined}>
+                {tx(locale, "Peran lain", "Other roles")}
+              </Link>
+            </nav>
+          )}
         </header>
 
         <ol className="hw-steps">
@@ -283,7 +291,7 @@ export async function HowItWorks({ track }: { track: Track }) {
                 <span className="ab-sign" aria-hidden="true">✓</span>
                 <div>
                   <strong>{tx(locale, "Teman kita pernah kontribusi", "Friends have contributed")}</strong>
-                  <p>{tx(locale, "Ada member Builders yang PR-nya pernah masuk ke sini. Kamu bisa tanya-tanya ke mereka dulu.", "A Builders member has landed a PR here before. You can ask them first.")}</p>
+                  <p>{tx(locale, `Ada member ${site.name} yang PR-nya pernah masuk ke sini. Kamu bisa tanya-tanya ke mereka dulu.`, `A ${site.name} member has landed a PR here before. You can ask them first.`)}</p>
                 </div>
               </li>
               <li>
@@ -316,7 +324,7 @@ export async function HowItWorks({ track }: { track: Track }) {
             {tx(locale, "Kenapa harus bareng-bareng?", "Why together?")} <Arrow />
           </Link>
           <Link className="ab-more" href="/about">
-            {tx(locale, "Tentang Builders", "About Builders")} <Arrow />
+            {tx(locale, `Tentang ${site.name}`, `About ${site.name}`)} <Arrow />
           </Link>
         </p>
       </main>

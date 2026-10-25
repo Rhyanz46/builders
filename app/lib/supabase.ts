@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { resilientSupabaseFetch } from "./resilient-fetch";
+import { authCookieOptions } from "./site";
 
 export type Supabase = SupabaseClient<Database>;
 
@@ -41,6 +42,7 @@ export const getSupabase = cache(async (): Promise<Supabase | null> => {
 
   return createServerClient<Database>(url, anonKey, {
     global: { fetch: resilientSupabaseFetch },
+    cookieOptions: authCookieOptions,
     cookies: {
       getAll() {
         return cookieStore.getAll();

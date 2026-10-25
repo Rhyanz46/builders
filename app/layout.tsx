@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { defaultShareImage, siteUrl } from "./content";
+import { site } from "./lib/site";
 import { LanguageProvider } from "./components/language-provider";
 import { currentLocale } from "./lib/locale-server";
 import { cookies } from "next/headers";
@@ -35,9 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
     metadataBase: new URL(siteUrl),
-    title: { default: "Builders", template: "%s" },
+    title: { default: site.name, template: "%s" },
     openGraph: {
-      siteName: "Builders",
+      siteName: site.name,
       type: "website",
       locale: locale === "id" ? "id_ID" : "en_US",
       images: [defaultShareImage],

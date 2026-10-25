@@ -4,6 +4,7 @@ import { resilientSupabaseFetch } from "./resilient-fetch";
 import { sameOriginRedirect } from "./redirect";
 import { siteOrigin } from "./origin";
 import { pinnedOrigin, safeNextPath } from "./urls";
+import { authCookieOptions, site } from "./site";
 
 export type OAuthProvider = "google" | "github";
 
@@ -63,6 +64,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
 
   const supabase = createServerClient(url, anonKey, {
     global: { fetch: resilientSupabaseFetch },
+    cookieOptions: authCookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -124,11 +126,17 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
 }
 
 /**
- * Where GitHub may send somebody back to us rather than to Supabase. Each one
- * has to be registered as a redirect URI on the GitHub App, next to Supabase's
- * own callback — an unregistered one makes GitHub refuse the sign-in.
+ * Where GitHub may send somebody back to us rather than to Supabase: both
+ * sites (see lib/site.ts) and local development. Each one has to be
+ * registered as a redirect URI on the GitHub App, next to Supabase's own
+ * callback — an unregistered one makes GitHub refuse the sign-in.
  */
-const GITHUB_RETURN_ORIGINS = new Set(["https://builders.swegrowth.id", "http://localhost:3000"]);
+const GITHUB_RETURN_ORIGINS = new Set([
+  "https://builders.swegrowth.id",
+  "https://oss.swegrowth.id",
+  site.url,
+  "http://localhost:3000",
+]);
 
 /**
  * The GitHub authorize URL, but coming back through this site.

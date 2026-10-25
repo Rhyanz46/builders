@@ -13,6 +13,7 @@ import { currentViewer, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
+import { site } from "../../lib/site";
 
 /*
  * Allowed to block — same reason as the rest of /account. Nothing here is
@@ -24,8 +25,8 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Edit profil — Builders", "Edit profile — Builders"),
-    description: tx(locale, "Atur akun GitHub, kontribusi open source, dan profilmu di Builders.", "Set your GitHub account, open source contributions, and profile on Builders."),
+    title: tx(locale, `Edit profil — ${site.name}`, `Edit profile — ${site.name}`),
+    description: tx(locale, `Atur akun GitHub, kontribusi open source, dan profilmu di ${site.name}.`, `Set your GitHub account, open source contributions, and profile on ${site.name}.`),
     robots: { index: false },
   };
 }

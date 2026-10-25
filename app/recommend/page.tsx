@@ -11,6 +11,7 @@ import { readPublicly } from "../lib/public-read";
 import { currentViewer, viewerId } from "../lib/session";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { isOss, site } from "../lib/site";
 
 /*
  * Allowed to block, like the /account pages: what this page shows depends on
@@ -21,7 +22,7 @@ export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Usulkan repo — Builders", "Suggest a repo — Builders");
+  const title = tx(locale, `Usulkan repo — ${site.name}`, `Suggest a repo — ${site.name}`);
   const description = tx(
     locale,
     "Usulkan repo open source — milikmu atau yang kamu rekomendasikan — untuk masuk direktori kontribusi.",
@@ -96,10 +97,13 @@ export default async function RecommendPage({
           </section>
         ) : null}
 
-        <p className="ob-skip">
-          {tx(locale, "Punya produk yang butuh desainer, PM, atau peran lain? ", "Have a product that needs a designer, PM, or another role? ")}
-          <Link href="/new">{tx(locale, "Daftarkan produk dan buka peran", "List it and open a role")}</Link>
-        </p>
+        {/* Products and their roles live on the builders site only. */}
+        {isOss ? null : (
+          <p className="ob-skip">
+            {tx(locale, "Punya produk yang butuh desainer, PM, atau peran lain? ", "Have a product that needs a designer, PM, or another role? ")}
+            <Link href="/new">{tx(locale, "Daftarkan produk dan buka peran", "List it and open a role")}</Link>
+          </p>
+        )}
       </main>
 
       <SiteFooter />

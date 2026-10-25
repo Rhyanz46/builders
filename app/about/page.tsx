@@ -4,14 +4,19 @@ import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { shareCard, waCommunityUrl } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { isOss, site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Tentang — Builders", "About — Builders");
+  const title = tx(locale, `Tentang — ${site.name}`, `About — ${site.name}`);
   const description = tx(
     locale,
-    "Kontribusi dan bawa dampak, bareng-bareng. Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
-    "Contribute and deliver impact, together. Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
+    isOss
+      ? "Kontribusi ke open source, bareng-bareng. Temukan repo open source, lokal maupun global, yang siap menerima kontribusimu."
+      : "Kontribusi dan bawa dampak, bareng-bareng. Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+    isOss
+      ? "Contributing to open source, together. Find open source repos, local and global, that are ready for your contribution."
+      : "Contribute and deliver impact, together. Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
   );
   return {
     title,
@@ -104,46 +109,70 @@ const TOGETHER: readonly (readonly [string, string, string, string])[] = [
 
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
-/** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
 /** Each point's colour, in TOGETHER's order: a friend's badge, a known reviewer, the Activity feed, both sides helped. */
 const TOGETHER_TONES = ["tone-pick", "tone-account", "tone-done", "tone-wa"];
 
-/** Engineers in the code path's blue, other roles in the badges' amber, builders in a result's purple. */
-const AUDIENCE_TONES = ["tone-account", "tone-pick", "tone-done"];
-
-const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
+/**
+ * Who the place is for: contributors first — engineers, then every other role
+ * — and builders listing a project. The open source site has no products or
+ * roles, so it speaks to engineers and to maintainers with a repo to share.
+ */
+const ALL_AUDIENCES: readonly (readonly [string, string, string, string, string])[] = [
   [
+    "tone-account",
     "Engineer",
     "Engineers",
     "Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
     "Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
   ],
   [
+    "tone-pick",
     "Peran lain",
     "Every other role",
     "Desain, produk, riset, penulisan, marketing, QA—project dari builder Indonesia juga nyari semua itu. Lihat mana yang lagi buka peranmu.",
     "Design, product, research, writing, marketing, QA—projects from Indonesian builders look for all of it. See which are opening your role.",
   ],
   [
+    "tone-done",
     "Builder",
     "Builders",
     "Punya project, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
     "Building a project, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
   ],
+  [
+    "tone-done",
+    "Maintainer",
+    "Maintainers",
+    "Punya repo open source yang nerima PR? Usulkan di sini, biar kontributor dari komunitas bisa nemu.",
+    "Maintain an open source repo that takes PRs? Suggest it here, so contributors from the community find it.",
+  ],
 ];
 
-const FAQ: readonly (readonly [string, string, string, string])[] = [
+const AUDIENCES = ALL_AUDIENCES.filter(([, titleId]) => (isOss ? titleId === "Engineer" || titleId === "Maintainer" : titleId !== "Maintainer"));
+
+/** Questions about products and their roles, which only the builders site has. */
+const BUILDERS_ONLY_FAQ = new Set([
+  "I am not a programmer. Can I still contribute?",
+  "My project is still a messy idea. Can I post it?",
+  "Do I have to open a role?",
+]);
+
+const ALL_FAQ: readonly (readonly [string, string, string, string])[] = [
   [
-    "Builders itu apa?",
-    "What is Builders?",
-    "Platform komunitas swegrowth buat nemuin project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia—berkontribusi, dan bikin kontribusinya kelihatan.",
-    "The swegrowth community's platform for finding projects open to contributors—open source repos and products from Indonesian builders—contributing, and making that contribution visible.",
+    `${site.name} itu apa?`,
+    `What is ${site.name}?`,
+    isOss
+      ? "Platform komunitas swegrowth buat nemuin repo open source yang terbuka buat kontributor, berkontribusi, dan bikin kontribusinya kelihatan."
+      : "Platform komunitas swegrowth buat nemuin project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia—berkontribusi, dan bikin kontribusinya kelihatan.",
+    isOss
+      ? "The swegrowth community's platform for finding open source repos open to contributors, contributing, and making that contribution visible."
+      : "The swegrowth community's platform for finding projects open to contributors—open source repos and products from Indonesian builders—contributing, and making that contribution visible.",
   ],
   [
-    "Bedanya Builders sama WA Community?",
-    "How is Builders different from the WA Community?",
-    "WA Community itu tempat ngobrol: tanya soal issue, cari reviewer, kabar terbaru. Builders itu platformnya: daftar project, profilmu, dan kontribusimu yang tercatat. Keduanya saling melengkapi.",
-    "The WA Community is where we talk: questions about an issue, finding a reviewer, news. Builders is the platform: the project list, your profile, and your contributions on record. Each needs the other.",
+    `Bedanya ${site.name} sama WA Community?`,
+    `How is ${site.name} different from the WA Community?`,
+    `WA Community itu tempat ngobrol: tanya soal issue, cari reviewer, kabar terbaru. ${site.name} itu platformnya: daftar ${isOss ? "repo" : "project"}, profilmu, dan kontribusimu yang tercatat. Keduanya saling melengkapi.`,
+    `The WA Community is where we talk: questions about an issue, finding a reviewer, news. ${site.name} is the platform: the ${isOss ? "repo" : "project"} list, your profile, and your contributions on record. Each needs the other.`,
   ],
   [
     "Siapa yang ngelola?",
@@ -178,8 +207,12 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Repo yang saya tahu belum ada. Bisa diusulin?",
     "A repo I know is missing. Can I suggest it?",
-    "Bisa. Klik “Tambah project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
-    "Yes. Press “Add a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
+    isOss
+      ? "Bisa. Klik “Usulkan repo”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori."
+      : "Bisa. Klik “Tambah project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
+    isOss
+      ? "Yes. Press “Suggest a repo” and pick why it belongs. Once an admin has checked it, the repo joins the directory."
+      : "Yes. Press “Add a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
   ],
   [
     "Kenapa masuknya pakai GitHub?",
@@ -194,6 +227,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
     "No. Free for the community.",
   ],
 ];
+
+const FAQ = ALL_FAQ.filter(([, questionEn]) => !isOss || !BUILDERS_ONLY_FAQ.has(questionEn));
 
 export default async function AboutPage() {
   const locale = await currentLocale();
@@ -224,40 +259,52 @@ export default async function AboutPage() {
               )}
             </p>
             <p className="ab-quote">
-              <span className="ab-quote-lead">{tx(locale, "Builders hadir buat nyambungin keduanya.", "Builders is here to bring the two together.")}</span>
+              <span className="ab-quote-lead">{tx(locale, `${site.name} hadir buat nyambungin keduanya.`, `${site.name} is here to bring the two together.`)}</span>
               <strong>
-                {tx(
-                  locale,
-                  "Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
-                  "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
-                )}
+                {isOss
+                  ? tx(
+                      locale,
+                      "Temukan repo open source, lokal maupun global, yang siap menerima kontribusimu.",
+                      "Find open source repos, local and global, that are ready for your contribution.",
+                    )
+                  : tx(
+                      locale,
+                      "Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+                      "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
+                    )}
               </strong>
             </p>
             <p>
-              {tx(
-                locale,
-                "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
-                "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
-              )}
+              {isOss
+                ? tx(
+                    locale,
+                    "Tiap repo nunjukin apakah lagi nerima PR dan isu mana yang cocok buat mulai. Tahu repo yang layak? Usulkan ke direktori.",
+                    "Each repo shows whether it's taking PRs and where to start. Know one that belongs? Suggest it for the directory.",
+                  )
+                : tx(
+                    locale,
+                    "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
+                    "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
+                  )}
             </p>
           </div>
         </header>
 
         {/* The question a newcomer actually asks, answered in one sentence before anything else. */}
         <section id="how" className="ab-section" aria-labelledby="how-title">
-          <h2 id="how-title">{tx(locale, "Di Builders ini kita ngapain sebenarnya?", "So what do we actually do on Builders?")}</h2>
+          <h2 id="how-title">{tx(locale, `Di ${site.name} ini kita ngapain sebenarnya?`, `So what do we actually do on ${site.name}?`)}</h2>
           <p className="ab-answer">
             {tx(
               locale,
-              "Kontribusi ke open source, bareng-bareng. Builders itu komunitas orang yang sama-sama mau aktif di open source: kita nemuin project yang beneran nerima kontributor, ngirim kontribusi ke sana, dan saling lihat progres satu sama lain, biar yang lain ikut berani mulai.",
-              "Contributing to open source, together. Builders is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.",
+              `Kontribusi ke open source, bareng-bareng. ${site.name} itu komunitas orang yang sama-sama mau aktif di open source: kita nemuin project yang beneran nerima kontributor, ngirim kontribusi ke sana, dan saling lihat progres satu sama lain, biar yang lain ikut berani mulai.`,
+              `Contributing to open source, together. ${site.name} is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.`,
             )}
           </p>
           <p className="ab-lead">
             {tx(
               locale,
-              "Builders itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa member yang PR-nya di-merge ke project orang lain tiap bulan.",
-              "Builders is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.",
+              `${site.name} itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa member yang PR-nya di-merge ke project orang lain tiap bulan.`,
+              `${site.name} is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.`,
             )}
           </p>
           <p className="hw-more">
@@ -299,8 +346,8 @@ export default async function AboutPage() {
         <section className="ab-section" aria-labelledby="audience-title">
           <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
           <ul className="ab-cards">
-            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn], index) => (
-              <li key={titleEn} className={`ab-card ${AUDIENCE_TONES[index] ?? ""}`}>
+            {AUDIENCES.map(([tone, titleId, titleEn, bodyId, bodyEn]) => (
+              <li key={titleEn} className={`ab-card ${tone}`}>
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
@@ -308,29 +355,32 @@ export default async function AboutPage() {
           </ul>
         </section>
 
-        <section className="ab-section" aria-labelledby="roles-title">
-          <h2 id="roles-title">{tx(locale, "Selain kode", "Beyond code")}</h2>
-          <p className="ab-lead">
-            {tx(
-              locale,
-              "Sebuah project juga butuh hal lain selain kode supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
-              "A project needs more than code before people can use it. Every role sees something different, and all of it can be a contribution.",
-            )}
-          </p>
+        {/* Roles on members' products, which only the builders site has. */}
+        {isOss ? null : (
+          <section className="ab-section" aria-labelledby="roles-title">
+            <h2 id="roles-title">{tx(locale, "Selain kode", "Beyond code")}</h2>
+            <p className="ab-lead">
+              {tx(
+                locale,
+                "Sebuah project juga butuh hal lain selain kode supaya bisa dipakai orang. Tiap peran ngelihat hal yang beda, dan semuanya bisa jadi kontribusi.",
+                "A project needs more than code before people can use it. Every role sees something different, and all of it can be a contribution.",
+              )}
+            </p>
 
-          <ul className="ab-cards">
-            {ROLES.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
-                <h3>{tx(locale, titleId, titleEn)}</h3>
-                <p>{tx(locale, bodyId, bodyEn)}</p>
-              </li>
-            ))}
-          </ul>
+            <ul className="ab-cards">
+              {ROLES.map(([titleId, titleEn, bodyId, bodyEn]) => (
+                <li key={titleEn} className="ab-card">
+                  <h3>{tx(locale, titleId, titleEn)}</h3>
+                  <p>{tx(locale, bodyId, bodyEn)}</p>
+                </li>
+              ))}
+            </ul>
 
-          <Link className="ab-more" href="/?track=role">
-            {tx(locale, "Lihat project yang lagi cari peran lain", "See projects looking for other roles")} <Arrow />
-          </Link>
-        </section>
+            <Link className="ab-more" href="/?track=role">
+              {tx(locale, "Lihat project yang lagi cari peran lain", "See projects looking for other roles")} <Arrow />
+            </Link>
+          </section>
+        )}
 
         <section className="ab-section" aria-labelledby="faq-title">
           <h2 id="faq-title">{tx(locale, "Pertanyaan yang sering muncul", "Frequently asked questions")}</h2>
@@ -350,16 +400,16 @@ export default async function AboutPage() {
           <p>
             {tx(
               locale,
-              "Cari project yang pas di direktori. Punya project sendiri? Daftarin juga.",
-              "Find a project that fits in the directory. Have one of your own? List it too.",
+              isOss ? "Cari repo yang pas di direktori. Tahu repo yang layak? Usulkan juga." : "Cari project yang pas di direktori. Punya project sendiri? Daftarin juga.",
+              isOss ? "Find a repo that fits in the directory. Know one that belongs? Suggest it too." : "Find a project that fits in the directory. Have one of your own? List it too.",
             )}
           </p>
           <div className="ab-cta-actions">
             <Link className="ab-button ab-button-primary" href="/">
               {tx(locale, "Lihat direktori", "Browse the directory")}
             </Link>
-            <Link className="ab-button" href="/submit">
-              <span aria-hidden="true">+</span> {tx(locale, "Tambah project", "Add a project")}
+            <Link className="ab-button" href={isOss ? "/recommend" : "/submit"}>
+              <span aria-hidden="true">+</span> {isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project")}
             </Link>
             {waCommunityUrl ? (
               <a className="ab-button" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">

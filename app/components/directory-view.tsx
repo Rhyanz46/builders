@@ -35,7 +35,11 @@ import {
 import { badgeKindLabel, badgeLabel, badgePeople, type Badge, type BadgeKind } from "../lib/badges";
 import { pathFor, readFilters, readPage } from "../lib/directory-url";
 import { tx, type Locale } from "../lib/locale";
+import { isOss } from "../lib/site";
 import { stageLabel, stageMeta } from "../lib/stages";
+
+/** The ways to contribute this site lists; the open source site has only the code path. */
+const TRACKS: readonly DirectoryTrack[] = isOss ? ["github"] : DIRECTORY_TRACKS;
 
 /** How long typing rests before the address catches up. Browsers throttle history writes. */
 const SEARCH_SETTLE_MS = 300;
@@ -170,36 +174,40 @@ export function DirectoryView({
     <div className="dx-layout">
       {/* On a phone the first choice is a two-way tab across the top; the
           sidebar group below says the same thing on a wide screen. */}
-      <nav className="dx-mtabs" aria-label={tx(locale, "Cara kontribusi", "How to contribute")}>
-        {DIRECTORY_TRACKS.map((track) => (
-          <InstantLink
-            key={track}
-            className={filters.track === track ? "is-active" : ""}
-            aria-current={filters.track === track ? "page" : undefined}
-            href={trackHref(track)}
-          >
-            <TrackIcon track={track} />
-            {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
-            <span>{entries.filter((entry) => entry.track === track).length}</span>
-          </InstantLink>
-        ))}
-      </nav>
+      {TRACKS.length > 1 ? (
+        <nav className="dx-mtabs" aria-label={tx(locale, "Cara kontribusi", "How to contribute")}>
+          {TRACKS.map((track) => (
+            <InstantLink
+              key={track}
+              className={filters.track === track ? "is-active" : ""}
+              aria-current={filters.track === track ? "page" : undefined}
+              href={trackHref(track)}
+            >
+              <TrackIcon track={track} />
+              {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+              <span>{entries.filter((entry) => entry.track === track).length}</span>
+            </InstantLink>
+          ))}
+        </nav>
+      ) : null}
 
       <FilterPanel active={active}>
-        <FacetGroup className="dx-facet-tracks" title={tx(locale, "Cara kontribusi", "How to contribute")}>
-          {DIRECTORY_TRACKS.map((track) => (
-            <FacetLink
-              key={track}
-              active={filters.track === track}
-              href={trackHref(track)}
-              count={entries.filter((entry) => entry.track === track).length}
-              icon={<TrackIcon track={track} />}
-              note={tx(locale, TRACK_COPY[track].noteId, TRACK_COPY[track].noteEn)}
-            >
-              {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
-            </FacetLink>
-          ))}
-        </FacetGroup>
+        {TRACKS.length > 1 ? (
+          <FacetGroup className="dx-facet-tracks" title={tx(locale, "Cara kontribusi", "How to contribute")}>
+            {TRACKS.map((track) => (
+              <FacetLink
+                key={track}
+                active={filters.track === track}
+                href={trackHref(track)}
+                count={entries.filter((entry) => entry.track === track).length}
+                icon={<TrackIcon track={track} />}
+                note={tx(locale, TRACK_COPY[track].noteId, TRACK_COPY[track].noteEn)}
+              >
+                {tx(locale, TRACK_COPY[track].titleId, TRACK_COPY[track].titleEn)}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+        ) : null}
         {tiers.length > 0 ? (
           <FacetGroup title={tx(locale, "Status PR", "PR status")}>
             {tiers.map(({ tier, count }) => (
