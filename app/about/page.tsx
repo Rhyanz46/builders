@@ -172,8 +172,8 @@ const FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Repo yang saya tahu belum ada. Bisa diusulin?",
     "A repo I know is missing. Can I suggest it?",
-    "Bisa. Klik “Usulkan project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
-    "Yes. Press “Suggest a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
+    "Bisa. Klik “Tambah project”, pilih “Repo open source”, lalu pilih alasan kenapa repo itu layak. Setelah dicek admin, repo-nya masuk direktori.",
+    "Yes. Press “Add a project”, choose “An open source repo”, and pick why it belongs. Once an admin has checked it, the repo joins the directory.",
   ],
   [
     "Kenapa masuknya pakai GitHub?",
@@ -353,7 +353,7 @@ export default async function AboutPage() {
               {tx(locale, "Lihat direktori", "Browse the directory")}
             </Link>
             <Link className="ab-button" href="/submit">
-              <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+              <span aria-hidden="true">+</span> {tx(locale, "Tambah project", "Add a project")}
             </Link>
             {waCommunityUrl ? (
               <a className="ab-button" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">

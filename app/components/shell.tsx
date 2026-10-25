@@ -45,7 +45,7 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
  * The directory is the site, so the menu is short: the directory itself and
  * what members are doing in open source, first in the menu on a laptop and
  * given the bottom bar on a phone. Adding to the directory is the
- * header's one button, "Suggest a project", which asks whether it is a repo
+ * header's one button, "Add a project", which asks whether it is a repo
  * or a product.
  */
 const PRIMARY_LINKS: NavLink[] = [
@@ -293,7 +293,7 @@ async function VisitorHeader({
                 </Link>
                 <AccountMenu viewer={viewer} waiting={waiting} admin={admin} locale={locale} />
                 <Link className="primary-action" href="/submit">
-                  <span aria-hidden="true">+</span> {tx(locale, "Usulkan project", "Suggest a project")}
+                  <span aria-hidden="true">+</span> {tx(locale, "Tambah project", "Add a project")}
                 </Link>
               </>
             ) : (
@@ -359,7 +359,7 @@ function AccountMenu({ viewer, waiting, admin, locale }: { viewer: Viewer; waiti
           </Link>
           <Link href="/submit">
             <HeaderIcon name="add" />
-            <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
+            <span>{tx(locale, "Tambah project", "Add a project")}</span>
           </Link>
           <Link href="/account/language">
             <HeaderIcon name="language" />
@@ -429,7 +429,7 @@ function MobileHeaderMenu({
         {viewer ? (
           <Link className="mobile-project-action" href="/submit">
             <HeaderIcon name="add" />
-            <span>{tx(locale, "Usulkan project", "Suggest a project")}</span>
+            <span>{tx(locale, "Tambah project", "Add a project")}</span>
           </Link>
         ) : (
           <Link className="mobile-project-action" href="/signin">
@@ -516,7 +516,7 @@ export async function SiteFooter() {
       <p>{tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}</p>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
-        <Link href="/submit">{tx(locale, "Usulkan project", "Suggest a project")}</Link>
+        <Link href="/submit">{tx(locale, "Tambah project", "Add a project")}</Link>
         <Link href="/how-it-works">{tx(locale, "Cara kerjanya", "How it works")}</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
         <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
