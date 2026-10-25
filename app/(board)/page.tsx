@@ -1,13 +1,12 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { cookies } from "next/headers";
 import Link from "@/app/components/responsive-link";
 import { shareCard, waCommunityUrl } from "../content";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
-import { DismissibleBanner } from "../components/dismissible-banner";
+import { ActivityBanner } from "../components/activity-banner";
 import { listAdminPicks, listOssMembers, listProjects, listRepoSignals } from "../lib/data";
 import { readPublicly } from "../lib/public-read";
 import { projectBlurb } from "../lib/brief";
@@ -158,32 +157,6 @@ async function JoinCta({ locale }: { locale: Locale }) {
         </a>
       ) : null}
     </>
-  );
-}
-
-const ACTIVITY_BANNER_COOKIE = "builders_activity_banner_closed";
-
-/**
- * A member whose GitHub activity is not shown yet is reminded above the
- * directory: the loop the site runs on (see /how-it-works) only counts merged
- * PRs it can see. A banner rather than the heading's button, so it can be
- * closed by somebody who has decided not to, for a month at a time.
- */
-async function ActivityBanner({ locale }: { locale: Locale }) {
-  const [viewer, cookieStore] = await Promise.all([currentViewer(), cookies()]);
-  if (!viewer || (viewer.github && viewer.githubActivityShown)) return null;
-  if (cookieStore.get(ACTIVITY_BANNER_COOKIE)?.value === "1") return null;
-
-  return (
-    <DismissibleBanner cookie={ACTIVITY_BANNER_COOKIE} closeLabel={tx(locale, "Tutup pengingat", "Close the reminder")}>
-      <strong>{tx(locale, "Aktivitas GitHub-mu belum tampil.", "Your GitHub activity is not shown yet.")}</strong>{" "}
-      {tx(
-        locale,
-        "Nyalakan biar PR-mu yang di-merge muncul di halaman Aktivitas dan profilmu.",
-        "Turn it on so your merged PRs show on the Activity page and your profile.",
-      )}{" "}
-      <Link href="/account/profile#github-account">{tx(locale, "Tampilkan sekarang", "Show it now")}</Link>
-    </DismissibleBanner>
   );
 }
 
