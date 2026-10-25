@@ -3,12 +3,15 @@ import {
   isDirectoryOpening,
   isDirectorySort,
   isDirectoryScope,
-  isDirectoryTrack,
   isPRTier,
   type DirectoryFilters,
+  type DirectoryTrack,
 } from "./directory";
 import { isStage } from "./stages";
 import { isOss } from "./site";
+
+/** The directory's one path on this site. */
+const SITE_TRACK: DirectoryTrack = isOss ? "github" : "role";
 
 /**
  * The directory's address, both ways: what a URL asks for, and the URL for a
@@ -40,7 +43,6 @@ function readAll(query: Query, key: string): string[] {
  * so with no choice made the GitHub path is the one showing.
  */
 export function readFilters(query: Query): DirectoryFilters {
-  const track = read(query, "track");
   // `source` was the sidebar's community-or-recommended group that the toggle
   // replaced; an old link keeps meaning roughly what it did.
   const legacy = read(query, "source");
@@ -49,8 +51,8 @@ export function readFilters(query: Query): DirectoryFilters {
   const open = read(query, "open");
   const sort = read(query, "sort");
   return {
-    // The open source site has only the code path.
-    track: !isOss && isDirectoryTrack(track) ? track : "github",
+    // Each site has one path: code on the open source site, products on builders.
+    track: SITE_TRACK,
     scope: isDirectoryScope(scope) ? scope : "",
     open: isDirectoryOpening(open) ? open : "",
     pr: readAll(query, "pr").filter(isPRTier),
@@ -71,7 +73,7 @@ export function readPage(query: Query): string {
 
 export function pathFor(filters: DirectoryFilters, page = 1): string {
   const params = new URLSearchParams();
-  if (filters.track !== "github") params.set("track", filters.track);
+  if (filters.track !== SITE_TRACK) params.set("track", filters.track);
   if (filters.scope) params.set("scope", filters.scope);
   if (filters.open) params.set("open", filters.open);
   for (const tier of filters.pr ?? []) params.append("pr", tier);

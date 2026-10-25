@@ -13,10 +13,10 @@ export async function generateMetadata(): Promise<Metadata> {
     locale,
     isOss
       ? "Kontribusi ke open source, bareng-bareng. Temukan repo open source, lokal maupun global, yang siap menerima kontribusimu."
-      : "Kontribusi dan bawa dampak, bareng-bareng. Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
+      : "Bangun produk, bareng-bareng. Temukan produk buatan member komunitas swegrowth, ikuti progresnya, dan bantu lewat peranmu.",
     isOss
       ? "Contributing to open source, together. Find open source repos, local and global, that are ready for your contribution."
-      : "Contribute and deliver impact, together. Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
+      : "Building products, together. Find products by swegrowth community members, follow their progress, and help in your role.",
   );
   return {
     title,
@@ -78,9 +78,10 @@ const ROLES: readonly (readonly [string, string, string, string])[] = [
  * Why the circle helps, not only the list: what being among people doing the
  * same thing gives you that a directory alone does not. Each point is
  * something the site already does — the friend badge, maintainers in the
- * group, the Activity feed — said as what it means for you.
+ * group, the Activity feed — said as what it means for you. The builders site
+ * says the same of building a product.
  */
-const TOGETHER: readonly (readonly [string, string, string, string])[] = [
+const OSS_TOGETHER: readonly (readonly [string, string, string, string])[] = [
   [
     "Ada yang udah duluan",
     "Someone has been there",
@@ -107,8 +108,35 @@ const TOGETHER: readonly (readonly [string, string, string, string])[] = [
   ],
 ];
 
-/** Who the place is for. Plain on purpose: what each gets, not a pitch. */
-/** Who the place is for: the builder, then contributors — engineers first. */
+const BUILDERS_TOGETHER: readonly (readonly [string, string, string, string])[] = [
+  [
+    "Teman satu tim",
+    "Teammates, not strangers",
+    "Peran yang kamu buka dibaca orang satu komunitas. Yang ngajuin diri bukan orang asing, dan kamu bisa cek profil serta karyanya dulu.",
+    "The roles you open are read by people from the same community. Whoever offers is no stranger, and you can look at their profile and work first.",
+  ],
+  [
+    "Masukan lebih awal",
+    "Feedback early",
+    "Member lain nyobain produkmu dari tahap ide, jadi masukan datang sebelum kamu terlanjur jauh.",
+    "Other members try your product from the idea stage, so feedback comes before you have gone too far.",
+  ],
+  [
+    "Progres yang kelihatan",
+    "Progress you can see",
+    "Tiap kabar terbaru dan tahap baru tercatat di produk dan profilmu. Lihat produk teman bergerak bikin kamu ikut ngegas.",
+    "Every update and every new stage is recorded on your product and profile. Seeing a friend's product move makes you push yours too.",
+  ],
+  [
+    "Dua arah",
+    "Both ways",
+    "Yang membantu dapat pengalaman dan portofolio nyata. Builder dapat bantuan yang selama ini nggak kunjung datang.",
+    "Those who help get real experience and a real portfolio. Builders get the help that never used to come.",
+  ],
+];
+
+const TOGETHER = isOss ? OSS_TOGETHER : BUILDERS_TOGETHER;
+
 /** Each point's colour, in TOGETHER's order: a friend's badge, a known reviewer, the Activity feed, both sides helped. */
 const TOGETHER_TONES = ["tone-pick", "tone-account", "tone-done", "tone-wa"];
 
@@ -122,8 +150,12 @@ const ALL_AUDIENCES: readonly (readonly [string, string, string, string, string]
     "tone-account",
     "Engineer",
     "Engineers",
-    "Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya.",
-    "Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status.",
+    isOss
+      ? "Cari repo yang beneran nerima PR, lokal maupun global, lengkap dengan bahasa, isu pemula, dan status PR-nya."
+      : "Gabung ke tim produk member sebagai engineer, atau bangun produkmu sendiri dan cari teman tim di sini.",
+    isOss
+      ? "Find repos that genuinely take PRs, local or global, with their language, starter issues and PR status."
+      : "Join a member's product team as an engineer, or build your own and find teammates here.",
   ],
   [
     "tone-pick",
@@ -136,8 +168,8 @@ const ALL_AUDIENCES: readonly (readonly [string, string, string, string, string]
     "tone-done",
     "Builder",
     "Builders",
-    "Punya project, open source atau bukan? Daftarin di sini dan buka peran yang kamu cari, biar kontributor bisa nemu.",
-    "Building a project, open source or not? List it here and open the roles you are looking for, so contributors can find it.",
+    "Punya produk? Daftarin di sini, tulis progresnya, dan buka peran yang kamu cari.",
+    "Building a product? List it here, write how it is going, and open the roles you are looking for.",
   ],
   [
     "tone-done",
@@ -157,16 +189,19 @@ const BUILDERS_ONLY_FAQ = new Set([
   "Do I have to open a role?",
 ]);
 
+/** Questions about open source repos and GitHub, which only the open source site has. */
+const OSS_ONLY_FAQ = new Set(["A repo I know is missing. Can I suggest it?", "Why sign in with GitHub?"]);
+
 const ALL_FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     `${site.name} itu apa?`,
     `What is ${site.name}?`,
     isOss
       ? "Platform komunitas swegrowth buat nemuin repo open source yang terbuka buat kontributor, berkontribusi, dan bikin kontribusinya kelihatan."
-      : "Platform komunitas swegrowth buat nemuin project yang terbuka buat kontributor—repo open source maupun produk dari builder Indonesia—berkontribusi, dan bikin kontribusinya kelihatan.",
+      : "Platform komunitas swegrowth buat member yang lagi bangun produk: tunjukin progresnya, buka peran, dan temuin teman tim—dari ide sampai rilis.",
     isOss
       ? "The swegrowth community's platform for finding open source repos open to contributors, contributing, and making that contribution visible."
-      : "The swegrowth community's platform for finding projects open to contributors—open source repos and products from Indonesian builders—contributing, and making that contribution visible.",
+      : "The swegrowth community's platform for members building products: show the progress, open roles, and find teammates—from idea to launch.",
   ],
   [
     `Bedanya ${site.name} sama WA Community?`,
@@ -183,8 +218,8 @@ const ALL_FAQ: readonly (readonly [string, string, string, string])[] = [
   [
     "Saya bukan programmer. Masih bisa kontribusi?",
     "I am not a programmer. Can I still contribute?",
-    "Bisa. Project member sering nyari desainer, PM, peneliti, penulis, atau marketing—lihat tab “Peran lain” di direktori.",
-    "Yes. Members' projects often look for designers, PMs, researchers, writers or marketers—see the “Other roles” tab in the directory.",
+    "Bisa. Produk member sering nyari desainer, PM, peneliti, penulis, atau marketing—pilih “Lagi cari bantuan” di direktori.",
+    "Yes. Members' products often look for designers, PMs, researchers, writers or marketers—pick “Looking for help” in the directory.",
   ],
   [
     "Project saya masih ide dan berantakan. Boleh ditaruh?",
@@ -228,7 +263,7 @@ const ALL_FAQ: readonly (readonly [string, string, string, string])[] = [
   ],
 ];
 
-const FAQ = ALL_FAQ.filter(([, questionEn]) => !isOss || !BUILDERS_ONLY_FAQ.has(questionEn));
+const FAQ = ALL_FAQ.filter(([, questionEn]) => !(isOss ? BUILDERS_ONLY_FAQ : OSS_ONLY_FAQ).has(questionEn));
 
 export default async function AboutPage() {
   const locale = await currentLocale();
@@ -244,11 +279,17 @@ export default async function AboutPage() {
           <div className="ab-story">
             <p>
               <strong>{tx(locale, "Bikin project sendirian itu melelahkan.", "Building a project alone is exhausting.")}</strong>{" "}
-              {tx(
-                locale,
-                "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
-                "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
-              )}
+              {isOss
+                ? tx(
+                    locale,
+                    "Maintainer open source nungguin kontributor yang nggak kunjung datang, dan solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama.",
+                    "Open source maintainers wait for contributors who never come, and solo builders do everything themselves—the code, the design, even finding the first users.",
+                  )
+                : tx(
+                    locale,
+                    "Solo builder ngerjain semuanya sendiri—kode, desain, sampai nyari user pertama—dan progresnya nggak ada yang lihat.",
+                    "Solo builders do everything themselves—the code, the design, even finding the first users—and nobody sees the progress.",
+                  )}
             </p>
             <p>
               <strong>{tx(locale, "Mau kontribusi juga nggak gampang.", "Contributing isn't easy either.")}</strong>{" "}
@@ -269,8 +310,8 @@ export default async function AboutPage() {
                     )
                   : tx(
                       locale,
-                      "Temukan repo open source, lokal maupun global, dan produk buatan builder Indonesia yang siap menerima kontribusimu.",
-                      "Find open source repos, local and global, and products by Indonesian builders that are ready for your contribution.",
+                      "Temukan produk buatan member komunitas yang lagi dibangun, ikuti progresnya, dan bantu lewat peranmu.",
+                      "Find products community members are building, follow their progress, and help in your role.",
                     )}
               </strong>
             </p>
@@ -283,8 +324,8 @@ export default async function AboutPage() {
                   )
                 : tx(
                     locale,
-                    "Tiap project nunjukin apakah lagi nerima PR, isu mana yang cocok buat mulai, dan peran apa yang dicari. Lagi bikin project sendiri? Tambahin ke direktori.",
-                    "Each project shows whether it's taking PRs, where to start, and which roles it's looking for. Building something yourself? Add it to the directory.",
+                    "Tiap produk nunjukin tahapnya, kabar terbarunya, dan peran yang dicari. Lagi bikin produk sendiri? Daftarin ke direktori.",
+                    "Each product shows its stage, its latest update, and the roles it's looking for. Building one yourself? List it in the directory.",
                   )}
             </p>
           </div>
@@ -294,37 +335,58 @@ export default async function AboutPage() {
         <section id="how" className="ab-section" aria-labelledby="how-title">
           <h2 id="how-title">{tx(locale, `Di ${site.name} ini kita ngapain sebenarnya?`, `So what do we actually do on ${site.name}?`)}</h2>
           <p className="ab-answer">
-            {tx(
-              locale,
-              `Kontribusi ke open source, bareng-bareng. ${site.name} itu komunitas orang yang sama-sama mau aktif di open source: kita nemuin project yang beneran nerima kontributor, ngirim kontribusi ke sana, dan saling lihat progres satu sama lain, biar yang lain ikut berani mulai.`,
-              `Contributing to open source, together. ${site.name} is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.`,
-            )}
+            {isOss
+              ? tx(
+                  locale,
+                  `Kontribusi ke open source, bareng-bareng. ${site.name} itu komunitas orang yang sama-sama mau aktif di open source: kita nemuin project yang beneran nerima kontributor, ngirim kontribusi ke sana, dan saling lihat progres satu sama lain, biar yang lain ikut berani mulai.`,
+                  `Contributing to open source, together. ${site.name} is a community of people who all want to be active in open source: we find projects that genuinely take contributors, send them contributions, and see each other's progress, so others find the nerve to start too.`,
+                )
+              : tx(
+                  locale,
+                  "Bangun produk, bareng-bareng. Builders itu tempat member swegrowth nunjukin produk yang lagi dibangun, nyari teman tim lewat peran, dan saling lihat progresnya.",
+                  "Building products, together. Builders is where swegrowth members show the products they are building, find teammates through roles, and see each other's progress.",
+                )}
           </p>
           <p className="ab-lead">
-            {tx(
-              locale,
-              `${site.name} itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa member yang PR-nya di-merge ke project orang lain tiap bulan.`,
-              `${site.name} is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.`,
-            )}
+            {isOss
+              ? tx(
+                  locale,
+                  `${site.name} itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa member yang PR-nya di-merge ke project orang lain tiap bulan.`,
+                  `${site.name} is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many members get a PR merged into someone else's project each month.`,
+                )
+              : tx(
+                  locale,
+                  "Builders itu platformnya; komunitasnya Software Engineer Growth (swegrowth). Ukuran yang kita pegang bukan jumlah pendaftar, tapi berapa produk yang terus bergerak—kabar terbaru, tahap baru, peran terisi—tiap bulan.",
+                  "Builders is the platform; the community behind it is Software Engineer Growth (swegrowth). The number we watch is not sign-ups but how many products keep moving—a new update, a new stage, a role filled—each month.",
+                )}
           </p>
           <p className="hw-more">
             <Link className="ab-more" href="/how-it-works">
               {tx(locale, "Lihat cara kerjanya", "See how it works")} <Arrow />
             </Link>
-            <Link className="ab-more" href="/activity">
-              {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
-            </Link>
+            {/* Members' pull requests are the open source site's feed. */}
+            {isOss ? (
+              <Link className="ab-more" href="/activity">
+                {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
+              </Link>
+            ) : null}
           </p>
         </section>
 
         <section id="why-together" className="ab-section" aria-labelledby="together-title">
           <h2 id="together-title">{tx(locale, "Kenapa harus bareng-bareng?", "Why together?")}</h2>
           <p className="ab-lead">
-            {tx(
-              locale,
-              "Kontribusi ke open source sendirian itu gampang berhenti di tengah jalan: nggak tahu mulai dari mana, PR nggak ada yang review, lama-lama lupa. Di sekumpulan ini, kamu nggak mulai dari nol.",
-              "Contributing to open source alone stalls easily: you don't know where to start, nobody reviews your PR, and after a while you forget. In this circle, you don't start from zero.",
-            )}
+            {isOss
+              ? tx(
+                  locale,
+                  "Kontribusi ke open source sendirian itu gampang berhenti di tengah jalan: nggak tahu mulai dari mana, PR nggak ada yang review, lama-lama lupa. Di sekumpulan ini, kamu nggak mulai dari nol.",
+                  "Contributing to open source alone stalls easily: you don't know where to start, nobody reviews your PR, and after a while you forget. In this circle, you don't start from zero.",
+                )
+              : tx(
+                  locale,
+                  "Bangun produk sendirian itu gampang mandek di tengah jalan: nggak ada yang nyobain, nggak ada teman tim, lama-lama ditinggal. Di sekumpulan ini, kamu nggak mulai dari nol.",
+                  "Building a product alone stalls easily: nobody tries it, there is no team, and after a while it is left behind. In this circle, you don't start from zero.",
+                )}
           </p>
           <ul className="ab-cards ab-steps">
             {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn], index) => (
@@ -335,11 +397,17 @@ export default async function AboutPage() {
             ))}
           </ul>
           <p className="ab-answer">
-            {tx(
-              locale,
-              "Harapannya: makin banyak engineer Indonesia yang rutin kontribusi ke open source, dan project buatan kita nggak lagi dikerjain sendirian.",
-              "The hope: more and more Indonesian engineers contributing to open source as a habit, and the projects we build no longer built alone.",
-            )}
+            {isOss
+              ? tx(
+                  locale,
+                  "Harapannya: makin banyak engineer Indonesia yang rutin kontribusi ke open source, dan project buatan kita nggak lagi dikerjain sendirian.",
+                  "The hope: more and more Indonesian engineers contributing to open source as a habit, and the projects we build no longer built alone.",
+                )
+              : tx(
+                  locale,
+                  "Harapannya: makin banyak produk buatan member yang sampai ke rilis, dan nggak ada lagi yang dikerjain sendirian.",
+                  "The hope: more and more members' products reaching launch, and none of them built alone.",
+                )}
           </p>
         </section>
 
@@ -376,8 +444,8 @@ export default async function AboutPage() {
               ))}
             </ul>
 
-            <Link className="ab-more" href="/?track=role">
-              {tx(locale, "Lihat project yang lagi cari peran lain", "See projects looking for other roles")} <Arrow />
+            <Link className="ab-more" href="/?open=roles">
+              {tx(locale, "Lihat produk yang lagi cari bantuan", "See products looking for help")} <Arrow />
             </Link>
           </section>
         )}
@@ -400,15 +468,15 @@ export default async function AboutPage() {
           <p>
             {tx(
               locale,
-              isOss ? "Cari repo yang pas di direktori. Tahu repo yang layak? Usulkan juga." : "Cari project yang pas di direktori. Punya project sendiri? Daftarin juga.",
-              isOss ? "Find a repo that fits in the directory. Know one that belongs? Suggest it too." : "Find a project that fits in the directory. Have one of your own? List it too.",
+              isOss ? "Cari repo yang pas di direktori. Tahu repo yang layak? Usulkan juga." : "Cari produk yang pas di direktori. Punya produk sendiri? Daftarin juga.",
+              isOss ? "Find a repo that fits in the directory. Know one that belongs? Suggest it too." : "Find a product that fits in the directory. Have one of your own? List it too.",
             )}
           </p>
           <div className="ab-cta-actions">
             <Link className="ab-button ab-button-primary" href="/">
               {tx(locale, "Lihat direktori", "Browse the directory")}
             </Link>
-            <Link className="ab-button" href={isOss ? "/recommend" : "/submit"}>
+            <Link className="ab-button" href={isOss ? "/recommend" : "/new"}>
               <span aria-hidden="true">+</span> {isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project")}
             </Link>
             {waCommunityUrl ? (

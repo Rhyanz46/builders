@@ -11,7 +11,6 @@ import { LinkIcon } from "./link-icons";
 import { StarCount, StarLink } from "./star-button";
 import { RelativeTime } from "./relative-time";
 import {
-  DIRECTORY_TRACKS,
   badgeCounts,
   directoryFacets,
   filterDirectory,
@@ -38,8 +37,8 @@ import { tx, type Locale } from "../lib/locale";
 import { isOss } from "../lib/site";
 import { stageLabel, stageMeta } from "../lib/stages";
 
-/** The ways to contribute this site lists; the open source site has only the code path. */
-const TRACKS: readonly DirectoryTrack[] = isOss ? ["github"] : DIRECTORY_TRACKS;
+/** The one path each site lists: code on the open source site, products on builders. */
+const TRACKS: readonly DirectoryTrack[] = isOss ? ["github"] : ["role"];
 
 /** How long typing rests before the address catches up. Browsers throttle history writes. */
 const SEARCH_SETTLE_MS = 300;
@@ -832,13 +831,16 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
           language sits in the card's meta line instead. */}
       {code ? null : (
         <div className="dx-cell-meta" role="cell">
-          <span className="dx-roles">
-            {/* The column header says this on a wide table; a stacked card
-                has no header, so the chips would otherwise be unexplained. */}
-            <span className="dx-roles-label">{tx(locale, "Mencari:", "Looking for:")}</span>
-            {entry.labels.slice(0, 2).map((label) => <span key={label} className="dx-role">{label}</span>)}
-            {entry.labels.length > 2 ? <span className="dx-muted">+{entry.labels.length - 2}</span> : null}
-          </span>
+          {/* A product asking for nothing has no chips, and no label to explain them. */}
+          {entry.labels.length > 0 ? (
+            <span className="dx-roles">
+              {/* The column header says this on a wide table; a stacked card
+                  has no header, so the chips would otherwise be unexplained. */}
+              <span className="dx-roles-label">{tx(locale, "Mencari:", "Looking for:")}</span>
+              {entry.labels.slice(0, 2).map((label) => <span key={label} className="dx-role">{label}</span>)}
+              {entry.labels.length > 2 ? <span className="dx-muted">+{entry.labels.length - 2}</span> : null}
+            </span>
+          ) : null}
         </div>
       )}
 
@@ -853,7 +855,8 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
           </a>
         ) : (
           <Link className="dx-action" href={entry.actionHref}>
-            {tx(locale, "Ajukan diri", "Offer to help")} <span aria-hidden="true">→</span>
+            {entry.hasOpenRoles ? tx(locale, "Ajukan diri", "Offer to help") : tx(locale, "Lihat produk", "See the product")}{" "}
+            <span aria-hidden="true">→</span>
           </Link>
         )}
       </div>

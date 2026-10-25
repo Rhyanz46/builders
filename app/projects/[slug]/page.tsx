@@ -14,9 +14,10 @@ import { RoleFields } from "../../components/role-fields";
 import { accessOf, canManage } from "../../lib/access";
 import { currentViewer } from "../../lib/session";
 import { ProjectLogo } from "../../components/project-logo";
-import { isGitHubRepositoryUrl } from "../../lib/github";
+import { parseGitHubRepositoryUrl } from "../../lib/github";
+import { ossUrl } from "../../lib/site";
 import { currentLocale } from "../../lib/locale-server";
-import { tx } from "../../lib/locale";
+import { tx, type Locale } from "../../lib/locale";
 
 type Params = Promise<{ slug: string }>;
 
@@ -139,9 +140,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
                 ) : null}
                 {project.repoUrl ? (
                   <li>
-                    <a href={project.repoUrl} target="_blank" rel="noreferrer">
-                      {isGitHubRepositoryUrl(project.repoUrl) ? tx(locale, "Lihat repositori GitHub", "View GitHub repository") : tx(locale, "Repositori", "Repository")} <Arrow diagonal />
-                    </a>
+                    <RepositoryLink repoUrl={project.repoUrl} locale={locale} />
                   </li>
                 ) : null}
               </ul>
@@ -258,5 +257,26 @@ export default async function ProjectPage({ params }: { params: Params }) {
 
       <SiteFooter />
     </>
+  );
+}
+
+/**
+ * A product's repository. Code contributions are the open source site's, so a
+ * GitHub repository is shown there, where its card and its starter issues are,
+ * rather than here; any other host is just a link.
+ */
+function RepositoryLink({ repoUrl, locale }: { repoUrl: string; locale: Locale }) {
+  const repository = parseGitHubRepositoryUrl(repoUrl);
+  if (!repository) {
+    return (
+      <a href={repoUrl} target="_blank" rel="noreferrer">
+        {tx(locale, "Repositori", "Repository")} <Arrow diagonal />
+      </a>
+    );
+  }
+  return (
+    <a href={ossUrl(`/?q=${encodeURIComponent(`${repository.owner}/${repository.repo}`)}`)} target="_blank" rel="noreferrer">
+      {tx(locale, "Kontribusi kode di oss.swegrowth.id", "Contribute code on oss.swegrowth.id")} <Arrow diagonal />
+    </a>
   );
 }

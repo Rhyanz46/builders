@@ -58,10 +58,10 @@ export default async function AdminPage({
   const editing = all.find((repo) => repo.id === editId);
   const pickedRepos = new Set(picks.repoIds);
   const pickedProjects = new Set(picks.projectIds);
-  // The products the directory lists: a GitHub repository, or a seat open —
-  // on the open source site, only the ones with a repository.
+  // The products the directory lists.
   const listed = products
-    .filter((project) => project.repoUrl || (!isOss && project.openSeatCount > 0))
+    // On the open source site only the ones with a repository; on builders, every product.
+    .filter((project) => (isOss ? Boolean(project.repoUrl) : true))
     .toSorted((a, b) => Number(pickedProjects.has(b.id)) - Number(pickedProjects.has(a.id)));
 
   return (
@@ -71,13 +71,16 @@ export default async function AdminPage({
       <main id="main-content" className="dx-page adm-page">
         <header className="ob-head adm-head">
           <p className="ob-kicker">Admin</p>
-          <h1>{tx(locale, "Katalog open source", "Open source catalogue")}</h1>
+          {/* The repo catalogue is the open source site's; builders curates products. */}
+          <h1>{isOss ? tx(locale, "Katalog open source", "Open source catalogue") : tx(locale, "Produk member", "Members' products")}</h1>
           <p>
-            {tx(
-              locale,
-              `${pending.length} menunggu review · ${approved.length} di direktori · ${rejected.length} ditolak`,
-              `${pending.length} awaiting review · ${approved.length} in the directory · ${rejected.length} rejected`,
-            )}
+            {isOss
+              ? tx(
+                  locale,
+                  `${pending.length} menunggu review · ${approved.length} di direktori · ${rejected.length} ditolak`,
+                  `${pending.length} awaiting review · ${approved.length} in the directory · ${rejected.length} rejected`,
+                )
+              : tx(locale, `${listed.length} produk di direktori`, `${listed.length} products in the directory`)}
           </p>
         </header>
 
@@ -85,36 +88,40 @@ export default async function AdminPage({
           <p className="ob-notice" role="status">{tx(locale, `Tersimpan: ${saved}`, `Saved: ${saved}`)}</p>
         ) : null}
 
-        {editing ? (
-          <section className="ob-card adm-edit" aria-labelledby="edit-heading">
-            <div className="adm-section-head">
-              <h2 id="edit-heading">{tx(locale, `Edit ${repoSlug(editing)}`, `Edit ${repoSlug(editing)}`)}</h2>
-              <Link href="/admin">{tx(locale, "Batal", "Cancel")}</Link>
-            </div>
-            <RepoForm
-              key={editing.id}
-              mode="edit"
-              id={editing.id}
-              initial={{
-                repo: repoSlug(editing),
-                list: editing.list,
-                reasons: editing.reasons,
-                why: editing.why,
-                summary: editing.summary,
-                indonesian: editing.indonesian,
-                starterLabel: editing.starterLabel,
-              }}
-            />
-          </section>
-        ) : null}
+        {isOss ? (
+          <>
+            {editing ? (
+              <section className="ob-card adm-edit" aria-labelledby="edit-heading">
+                <div className="adm-section-head">
+                  <h2 id="edit-heading">{tx(locale, `Edit ${repoSlug(editing)}`, `Edit ${repoSlug(editing)}`)}</h2>
+                  <Link href="/admin">{tx(locale, "Batal", "Cancel")}</Link>
+                </div>
+                <RepoForm
+                  key={editing.id}
+                  mode="edit"
+                  id={editing.id}
+                  initial={{
+                    repo: repoSlug(editing),
+                    list: editing.list,
+                    reasons: editing.reasons,
+                    why: editing.why,
+                    summary: editing.summary,
+                    indonesian: editing.indonesian,
+                    starterLabel: editing.starterLabel,
+                  }}
+                />
+              </section>
+            ) : null}
 
-        <Section title={tx(locale, "Menunggu review", "Awaiting review")} repos={pending} picked={pickedRepos} empty={tx(locale, "Tidak ada usulan baru.", "No new suggestions.")} locale={locale} />
-        <Section title={tx(locale, "Di direktori", "In the directory")} repos={approved} picked={pickedRepos} empty={tx(locale, "Belum ada repo yang disetujui.", "No approved repos yet.")} locale={locale} />
-        {rejected.length > 0 ? (
-          <details className="adm-rejected">
-            <summary>{tx(locale, `Ditolak (${rejected.length})`, `Rejected (${rejected.length})`)}</summary>
-            <Section title="" repos={rejected} picked={pickedRepos} empty="" locale={locale} />
-          </details>
+            <Section title={tx(locale, "Menunggu review", "Awaiting review")} repos={pending} picked={pickedRepos} empty={tx(locale, "Tidak ada usulan baru.", "No new suggestions.")} locale={locale} />
+            <Section title={tx(locale, "Di direktori", "In the directory")} repos={approved} picked={pickedRepos} empty={tx(locale, "Belum ada repo yang disetujui.", "No approved repos yet.")} locale={locale} />
+            {rejected.length > 0 ? (
+              <details className="adm-rejected">
+                <summary>{tx(locale, `Ditolak (${rejected.length})`, `Rejected (${rejected.length})`)}</summary>
+                <Section title="" repos={rejected} picked={pickedRepos} empty="" locale={locale} />
+              </details>
+            ) : null}
+          </>
         ) : null}
 
         <section className="adm-section" aria-labelledby="products-heading">
@@ -124,8 +131,8 @@ export default async function AdminPage({
           <p className="adm-note">
             {tx(
               locale,
-              "Pilihan admin tampil paling atas di direktori, dengan badge. Yang tidak menerima PR tidak ikut naik di tab Kode.",
-              "Admin's picks come first in the directory, with a badge. On the code path, one not taking PRs does not rise.",
+              "Pilihan admin tampil paling atas di direktori, dengan badge. Yang tidak menerima PR tidak ikut naik di direktori open source.",
+              "Admin's picks come first in the directory, with a badge. On the open source directory, one not taking PRs does not rise.",
             )}
           </p>
           {listed.length > 0 ? (
@@ -137,11 +144,13 @@ export default async function AdminPage({
           )}
         </section>
 
-        <section className="ob-card adm-add" aria-labelledby="add-heading">
-          <h2 id="add-heading">{tx(locale, "Tambah repo langsung", "Add a repo directly")}</h2>
-          <p className="adm-note">{tx(locale, "Langsung tampil di direktori, tanpa antrean review.", "Shows in the directory straight away, without the review queue.")}</p>
-          <RepoForm mode="add" />
-        </section>
+        {isOss ? (
+          <section className="ob-card adm-add" aria-labelledby="add-heading">
+            <h2 id="add-heading">{tx(locale, "Tambah repo langsung", "Add a repo directly")}</h2>
+            <p className="adm-note">{tx(locale, "Langsung tampil di direktori, tanpa antrean review.", "Shows in the directory straight away, without the review queue.")}</p>
+            <RepoForm mode="add" />
+          </section>
+        ) : null}
       </main>
 
       <SiteFooter />

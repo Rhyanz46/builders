@@ -12,16 +12,16 @@ export async function howItWorksMetadata(track: Track): Promise<Metadata> {
   const title =
     track === "github"
       ? tx(locale, `Cara kerjanya: kode di GitHub — ${site.name}`, `How it works: code on GitHub — ${site.name}`)
-      : tx(locale, `Cara kerjanya: peran lain — ${site.name}`, `How it works: other roles — ${site.name}`);
+      : tx(locale, `Cara kerjanya — ${site.name}`, `How it works — ${site.name}`);
   const description =
     track === "github"
       ? tx(locale, `Dari masuk sampai PR pertamamu di-merge ke repo open source, bareng komunitas ${site.name}.`, `From signing in to your first PR merged into an open source repo, with the ${site.name} community.`)
-      : tx(locale, "Bantu produk member sebagai desainer, product, riset, konten, marketing, atau QA, dari masuk sampai jadi bagian timnya.", "Help members' products in design, product, research, content, marketing or QA, from signing in to being on the team.");
+      : tx(locale, "Bantu produk member sebagai engineer, desainer, product, riset, konten, marketing, atau QA, dari masuk sampai jadi bagian timnya.", "Help members' products as an engineer, in design, product, research, content, marketing or QA, from signing in to being on the team.");
   return {
     title,
     description,
-    alternates: { canonical: TRACK_PATHS[track] },
-    openGraph: shareCard({ title, description, url: TRACK_PATHS[track] }),
+    alternates: { canonical: "/how-it-works" },
+    openGraph: shareCard({ title, description, url: "/how-it-works" }),
   };
 }
 
@@ -75,8 +75,11 @@ type Step = {
 /** The two ways to contribute, named as the directory's tabs name them. */
 export type Track = "github" | "role";
 
-/** Where each walk-through lives: one static page per track, so neither waits on the address. */
-const TRACK_PATHS: Record<Track, string> = { github: "/how-it-works", role: "/how-it-works/roles" };
+/**
+ * Each site walks through one track at /how-it-works: the open source site the
+ * code path, the builders site the roles one.
+ */
+export const SITE_TRACK: Track = isOss ? "github" : "role";
 
 /**
  * A first contribution, step by step, naming what there is to press — one
@@ -125,10 +128,10 @@ function steps(track: Track, locale: Locale): Step[] {
         title: tx(locale, "Pilih peran", "Pick a role"),
         body: tx(
           locale,
-          "Di direktori, tab Peran lain berisi produk member yang lagi cari desainer, product, riset, konten, marketing, atau QA. Tiap kartu nunjukin peran yang dibuka dan perkiraan waktunya.",
-          "In the directory, the Other roles tab lists members' products looking for design, product, research, content, marketing or QA help. Each card shows the roles open and roughly how much time they take.",
+          "Di direktori, pilih \"Lagi cari bantuan\" untuk produk member yang lagi cari desainer, product, riset, konten, marketing, atau QA. Tiap kartu nunjukin peran yang dibuka dan perkiraan waktunya.",
+          "In the directory, pick \"Looking for help\" for members' products that need design, product, research, content, marketing or QA help. Each card shows the roles open and roughly how much time they take.",
         ),
-        action: { href: "/?track=role", label: tx(locale, "Buka Peran lain", "Open Other roles") },
+        action: { href: "/?open=roles", label: tx(locale, "Buka direktori", "Open the directory") },
       },
       {
         tone: "work",
@@ -201,11 +204,10 @@ function steps(track: Track, locale: Locale): Step[] {
 
 export async function HowItWorks({ track }: { track: Track }) {
   const locale = await currentLocale();
-  const href = (to: Track) => TRACK_PATHS[to];
 
   return (
     <>
-      <SiteHeader returnTo={href(track)} active="how" />
+      <SiteHeader returnTo="/how-it-works" active="how" />
 
       <main id="main-content" className="ab-page hw-page">
         <header className="ab-intro" aria-labelledby="how-title">
@@ -219,22 +221,10 @@ export async function HowItWorks({ track }: { track: Track }) {
                 )
               : tx(
                   locale,
-                  "Bukan programmer? Produk member juga butuh desainer, product, riset, konten, marketing, dan QA. Dari masuk sampai kamu jadi bagian timnya.",
-                  "Not a programmer? Members' products need design, product, research, content, marketing and QA too. From signing in to being on the team.",
+                  "Produk member butuh engineer, desainer, product, riset, konten, marketing, dan QA. Dari masuk sampai kamu jadi bagian timnya.",
+                  "Members' products need engineers, design, product, research, content, marketing and QA. From signing in to being on the team.",
                 )}
           </p>
-          {/* Named and ordered as the directory's own tabs. The open source
-              site walks through the code path only. */}
-          {isOss ? null : (
-            <nav className="dx-scope hw-tracks" aria-label={tx(locale, "Cara kontribusi", "How you contribute")}>
-              <Link href={href("github")} className={track === "github" ? "is-active" : ""} aria-current={track === "github" ? "page" : undefined}>
-                {tx(locale, "Kode di GitHub", "Code on GitHub")}
-              </Link>
-              <Link href={href("role")} className={track === "role" ? "is-active" : ""} aria-current={track === "role" ? "page" : undefined}>
-                {tx(locale, "Peran lain", "Other roles")}
-              </Link>
-            </nav>
-          )}
         </header>
 
         <ol className="hw-steps">

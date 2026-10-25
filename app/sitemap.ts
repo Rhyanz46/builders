@@ -20,8 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/activity`, changeFrequency: "daily", priority: 0.6 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/how-it-works`, changeFrequency: "monthly", priority: 0.6 },
-    // Roles and products are the builders site's; the open source site redirects them there.
-    ...(isOss ? [] : [{ url: `${siteUrl}/how-it-works/roles`, changeFrequency: "monthly" as const, priority: 0.5 }]),
     { url: `${siteUrl}/feedback`, changeFrequency: "monthly", priority: 0.4 },
   ];
 

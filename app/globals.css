@@ -463,12 +463,6 @@ a.seat-chip:hover { border-color: var(--ink); }
   gap: 6px; letter-spacing: .06em; padding: 5px 10px; text-transform: uppercase; white-space: nowrap;
 }
 .stage-badge i { background: currentColor; border-radius: 50%; height: 6px; opacity: .75; width: 6px; }
-.github-contribute-badge {
-  align-items: center; background: light-dark(#282828, #dfdfdf); border-radius: 99px; color: light-dark(#ffffff, #1f1f1f); display: inline-flex;
-  font-size: 10px; font-weight: 750; gap: 5px; letter-spacing: .025em; padding: 6px 10px; width: fit-content;
-}
-.github-contribute-badge:hover { background: #0969da; color: light-dark(#ffffff, #1f1f1f); }
-.github-contribute-badge .arrow { height: 11px; width: 11px; }
 .project-head-badges { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
 /* Solid rather than translucent, one step deeper than the tile beside it. */
 .stage-idea { background: light-dark(#f8ddcb, #1e1e1e); color: light-dark(#a8401b, #f08c6c); }

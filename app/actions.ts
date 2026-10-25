@@ -285,21 +285,11 @@ export async function createProject(_state: CreateState, formData: FormData): Pr
     errors.highlight = tx(locale, "Tuliskan deskripsi singkat agar orang memahami idenya.", "Write a short description so people can understand the idea.");
   }
   /*
-   * What the project is asking for.
-   *
-   * The directory lists a product on the code path when it has a GitHub
-   * repository and on the role path when it has an open role — and nowhere
-   * otherwise. A project asking for neither would be saved and then shown to
-   * nobody, so one of the two is required. The rest of the brief can be
-   * written later from the project's edit page.
+   * What the project is asking for: optional. The builders directory lists
+   * every active product, so one asking for neither PRs nor a role still
+   * shows; taking PRs also puts its repository on the open source site. The
+   * rest of the brief can be written later from the project's edit page.
    */
-  if (values.openSeat !== "yes" && values.openForGitHubContributions !== "yes") {
-    errors.help = tx(
-      locale,
-      "Pilih minimal satu: terima PR di GitHub, atau cari orang untuk sebuah peran. Tanpa itu proyekmu tidak tampil di direktori.",
-      "Choose at least one: take pull requests on GitHub, or look for someone for a role. Without one, your project does not show in the directory.",
-    );
-  }
   if (values.openSeat === "yes") {
     if (!isRole(values.seatRole)) errors.seatRole = tx(locale, "Pilih peran yang sedang kamu cari.", "Choose the role you are looking for.");
     if (values.seatRole === "other" && !values.seatRoleTitle) {
