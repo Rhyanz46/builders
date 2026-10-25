@@ -13,6 +13,7 @@ import {
   prTierCounts,
   productEntries,
   repoEntry,
+  sharedBy,
   stageCounts,
 } from "../app/lib/directory.ts";
 // Fixtures, not the catalogue: the catalogue lives in the database now.
@@ -409,4 +410,22 @@ test("an admin's pick comes first in the path's own order, but only while it tak
     productEntries(p, describe, roleName, "en"),
   );
   assert.deepEqual(filterDirectory(roles, { ...none, track: "role" }).map((e) => e.name), ["B", "A"]);
+});
+
+test("a repo credits whoever shared it, by how they stand to it", () => {
+  const ana = { username: "ana", name: "Ana" };
+  const member = (handle, contributions = []) => [{ username: "ana", name: "Ana", handle, contributions }];
+  // Their GitHub username owns it.
+  assert.equal(sharedBy("Ana/Tool", ana, member("ana")).role, "owner");
+  // Their record says they maintain it, or contributed to it.
+  assert.equal(sharedBy("acme/tool", ana, member("ana", [{ repo: "acme/tool", relation: "maintainer" }])).role, "maintainer");
+  assert.equal(sharedBy("acme/tool", ana, member("ana", [{ repo: "acme/tool", relation: "contributor" }])).role, "contributor");
+  // Somebody else's work they vouch for.
+  assert.deepEqual(sharedBy("acme/tool", ana, member("ana")), { username: "ana", name: "Ana", role: "recommender" });
+  assert.equal(sharedBy("acme/tool", ana).role, "recommender");
+  // Nobody to credit: the seed row, an automatic suggestion once reviewed, a deleted account.
+  assert.equal(sharedBy("acme/tool", null), null);
+
+  const entry = repoEntry(repo(), "en", member("ana", [{ repo: "acme/tool", relation: "contributor" }]));
+  assert.deepEqual(entry.sharedBy, { username: "ana", name: "Ana", role: "contributor" });
 });
