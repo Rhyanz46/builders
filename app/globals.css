@@ -1715,8 +1715,9 @@ form button[aria-busy="true"]::after,
 .dx-badge { background: light-dark(#fffbeb, #231d11); border-color: light-dark(#fde68a, #4f3d19); color: light-dark(#92400e, #d4a34a); }
 .dx-badge-icon { fill: none; flex: none; height: 13px; stroke: currentColor; stroke-width: 2.2; width: 13px; }
 /* An admin's pick reads as a stamp, apart from the amber signals about people. */
-.dx-badge.dx-badge-admin-pick { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#ffffff, #09090b); }
-.dx-badge-admin-pick .dx-badge-icon { fill: currentColor; stroke: none; }
+/* An admin's pick: a small amber star beside the name, labelled on hover. */
+.dx-pick { align-self: center; color: light-dark(#d97706, #f59e0b); display: inline-flex; }
+.dx-pick .dx-badge-icon { fill: currentColor; height: 14px; stroke: none; width: 14px; }
 .dx-flag { border-radius: 2px; height: 10px; stroke: none; width: 14px; }
 .dx-badge-faces { display: inline-flex; margin-left: 2px; }
 .dx-badge-faces img {

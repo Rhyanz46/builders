@@ -716,6 +716,14 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
             ) : (
               <Link href={entry.href}>{title}</Link>
             )}
+            {/* An admin's pick is a mark on the name rather than a chip among
+                the badges: it vouches for the project, not for people. */}
+            {entry.adminPick ? (
+              <span className="dx-pick" title={badgeLabel({ kind: "admin-pick" }, locale)}>
+                <BadgeIcon kind="admin-pick" />
+                <span className="sr-only">{badgeLabel({ kind: "admin-pick" }, locale)}</span>
+              </span>
+            ) : null}
             {/* The PR status belongs to the code path. A product asking for
                 both simply appears on both tabs; neither card points at the
                 other. */}
@@ -747,9 +755,11 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
           ) : null}
           {entry.description ? <p className="dx-desc">{entry.description}</p> : null}
           {entry.sharedBy ? <SharedByLine sharedBy={entry.sharedBy} locale={locale} /> : null}
-          {entry.badges.length > 0 ? (
+          {entry.badges.some((badge) => badge.kind !== "admin-pick") ? (
             <ul className="dx-badges" aria-label={tx(locale, "Tanda", "Signals")}>
-              {entry.badges.map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
+              {entry.badges
+                .filter((badge) => badge.kind !== "admin-pick")
+                .map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}
             </ul>
           ) : null}
           {entry.track === "github" && entry.labels.length > 0 ? (
