@@ -17,7 +17,7 @@ import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "recommend" | "admin" | "activity" | "about" | "feedback" | "";
+export type Section = "home" | "recommend" | "admin" | "activity" | "how" | "about" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -53,8 +53,9 @@ const PRIMARY_LINKS: NavLink[] = [
   { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "pull-request" },
 ];
 
-/* The two pages that answer for the site — what this is, and where to say it is broken. */
+/* The pages that answer for the site — how it works, what this is, and where to say it is broken. */
 const SECONDARY_LINKS: NavLink[] = [
+  { href: "/how-it-works", label: "How it works", labelId: "Cara kerja", key: "how", icon: "steps" },
   { href: "/about", label: "About", labelId: "Tentang", key: "about", icon: "about" },
   { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
