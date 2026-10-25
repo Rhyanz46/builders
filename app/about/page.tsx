@@ -340,7 +340,7 @@ export default async function AboutPage() {
           <p className="ab-lead">
             {tx(
               locale,
-              "Kontribusi ke open source sendirian itu gampang berhenti di tengah jalan: nggak tahu mulai dari mana, PR nggak ada yang review, lama-lama lupa. Di circle ini, kamu nggak mulai dari nol.",
+              "Kontribusi ke open source sendirian itu gampang berhenti di tengah jalan: nggak tahu mulai dari mana, PR nggak ada yang review, lama-lama lupa. Di sekumpulan ini, kamu nggak mulai dari nol.",
               "Contributing to open source alone stalls easily: you don't know where to start, nobody reviews your PR, and after a while you forget. In this circle, you don't start from zero.",
             )}
           </p>
