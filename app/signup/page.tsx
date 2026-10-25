@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { safeNextPath } from "../lib/urls";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 /*
  * Allowed to block.
@@ -18,7 +19,7 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Buat akun — Builders", "Create an account — Builders"),
+    title: tx(locale, `Buat akun — ${site.name}`, `Create an account — ${site.name}`),
     description: tx(locale, "Buat akun untuk menampilkan apa yang kamu bangun dan membantu proyek lain.", "Create an account to show what you are building and help with other projects."),
     robots: { index: false },
   };

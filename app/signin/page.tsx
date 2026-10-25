@@ -8,6 +8,7 @@ import { safeNextPath } from "../lib/urls";
 import { supabaseConfigured } from "../lib/supabase";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 /*
  * Allowed to block.
@@ -23,7 +24,7 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Masuk — Builders", "Sign in — Builders"),
+    title: tx(locale, `Masuk — ${site.name}`, `Sign in — ${site.name}`),
     description: tx(locale, "Masuk untuk menampilkan proyekmu, bergabung dalam diskusi, dan membantu membangun proyek orang lain.", "Sign in to show your projects, join discussions, and help build other people's projects."),
     robots: { index: false },
   };
@@ -73,7 +74,7 @@ export default async function SignInPage({ searchParams }: { searchParams?: Sear
 
       <main id="main-content" className="signin-simple">
         <section className="signin-simple-card" aria-labelledby="signin-heading">
-          <h1 id="signin-heading">{tx(locale, "Masuk ke Builders", "Sign in to Builders")}</h1>
+          <h1 id="signin-heading">{tx(locale, `Masuk ke ${site.name}`, `Sign in to ${site.name}`)}</h1>
           <p className="signin-simple-lede">
             {way === "email"
               ? tx(locale, "Untuk akun yang dibuat dengan email dan kata sandi.", "For accounts made with an email and password.")

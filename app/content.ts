@@ -1,5 +1,7 @@
-/** Canonical origin for metadata, share cards, and the sitemap. */
-export const siteUrl = "https://builders.swegrowth.id";
+import { site } from "./lib/site";
+
+/** Canonical origin for metadata, share cards, and the sitemap — this build's site (see lib/site.ts). */
+export const siteUrl = site.url;
 
 /** This site's own repository, `owner/name` — the site is open source too. */
 export const sourceRepo = "swegrowthid/builders";

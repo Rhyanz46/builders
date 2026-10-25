@@ -14,14 +14,15 @@ import { activityStats, dayKey, type GitHubActivityEntry } from "../lib/github-a
 import { readPublicly } from "../lib/public-read";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Aktivitas — Builders", "Activity — Builders");
+  const title = tx(locale, `Aktivitas — ${site.name}`, `Activity — ${site.name}`);
   const description = tx(
     locale,
-    "Kontribusi open source member Builders, langsung dari GitHub: pull request yang di-merge, yang sedang direview, dan kesibukan di repo sendiri.",
-    "Builders members' open source work, straight from GitHub: merged pull requests, ones in review, and what they are building on their own repositories.",
+    `Kontribusi open source member ${site.name}, langsung dari GitHub: pull request yang di-merge, yang sedang direview, dan kesibukan di repo sendiri.`,
+    `${site.name} members' open source work, straight from GitHub: merged pull requests, ones in review, and what they are building on their own repositories.`,
   );
   return { title, description, alternates: { canonical: "/activity" }, openGraph: shareCard({ title, description, url: "/activity" }) };
 }

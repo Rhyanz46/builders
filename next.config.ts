@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { builderUrl, isOss } from "./app/lib/site";
 
 /**
  * Cache Components is what makes this site cheap to serve.
@@ -20,6 +21,23 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   async redirects() {
     return [
+      // The open source site has none of the work of running a product: its
+      // pages live on the builders site, so a link to one still lands. Not
+      // permanent, so moving a page between the two stays possible. The query
+      // string goes along by default.
+      ...(isOss
+        ? [
+            { source: "/new", destination: builderUrl("/new"), permanent: false },
+            { source: "/projects/:path*", destination: builderUrl("/projects/:path*"), permanent: false },
+            { source: "/inbox", destination: builderUrl("/inbox"), permanent: false },
+            { source: "/how-it-works/roles", destination: builderUrl("/how-it-works/roles"), permanent: false },
+            { source: "/", has: [{ type: "query" as const, key: "track", value: "role" }], destination: builderUrl("/"), permanent: false },
+            { source: "/explore", destination: builderUrl("/?track=role"), permanent: false },
+            { source: "/kolaborasi", destination: builderUrl("/?track=role"), permanent: false },
+            // Its "add a project" is suggesting a repo.
+            { source: "/submit", destination: "/recommend", permanent: false },
+          ]
+        : []),
       // The old board and the talent pool are gone; the directory covers both.
       { source: "/explore", destination: "/?track=role", permanent: true },
       { source: "/kolaborasi", destination: "/?track=role", permanent: true },

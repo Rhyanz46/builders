@@ -6,6 +6,7 @@ import { currentViewer } from "../../lib/session";
 import { supabaseConfigured } from "../../lib/supabase";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
+import { site } from "../../lib/site";
 
 /*
  * Allowed to block.
@@ -21,8 +22,8 @@ export const instant = false;
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   return {
-    title: tx(locale, "Kata sandi baru — Builders", "New password — Builders"),
-    description: tx(locale, "Buat kata sandi baru untuk akun Builders.", "Set a new password for your Builders account."),
+    title: tx(locale, `Kata sandi baru — ${site.name}`, `New password — ${site.name}`),
+    description: tx(locale, `Buat kata sandi baru untuk akun ${site.name}.`, `Set a new password for your ${site.name} account.`),
     robots: { index: false },
   };
 }

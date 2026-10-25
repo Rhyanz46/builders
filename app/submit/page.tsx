@@ -3,10 +3,11 @@ import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
+import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, "Tambah project — Builders", "Add a project — Builders");
+  const title = tx(locale, `Tambah project — ${site.name}`, `Add a project — ${site.name}`);
   const description = tx(
     locale,
     "Usulkan repo open source untuk dikirimi PR, atau daftarkan produk yang butuh bantuan di peran lain.",

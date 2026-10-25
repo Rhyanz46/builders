@@ -4,6 +4,7 @@ import { resilientSupabaseFetch } from "./app/lib/resilient-fetch";
 import { sameOriginRedirect } from "./app/lib/redirect";
 import { originFromHeaders, strayCodeTarget } from "./app/lib/urls";
 import { isLocale, LANGUAGE_COOKIE, LANGUAGE_PARAM } from "./app/lib/locale";
+import { authCookieOptions } from "./app/lib/site";
 
 /**
  * Keeps the Supabase session cookie fresh.
@@ -60,6 +61,7 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(url, anonKey, {
     global: { fetch: resilientSupabaseFetch },
+    cookieOptions: authCookieOptions,
     cookies: {
       getAll() {
         return request.cookies.getAll();

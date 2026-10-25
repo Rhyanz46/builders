@@ -28,6 +28,7 @@ import { stageLabel } from "../../lib/stages";
 import { currentViewer } from "../../lib/session";
 import { currentLocale } from "../../lib/locale-server";
 import { tx, type Locale } from "../../lib/locale";
+import { isOss, site } from "../../lib/site";
 
 type Params = Promise<{ username: string }>;
 
@@ -49,19 +50,19 @@ export async function generateStaticParams(): Promise<{ username: string }[]> {
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const [{ username }, locale] = await Promise.all([params, currentLocale()]);
   const person = await getPerson(username);
-  if (!person) return { title: tx(locale, "Orang tidak ditemukan — Builders", "Person not found — Builders") };
+  if (!person) return { title: tx(locale, `Orang tidak ditemukan — ${site.name}`, `Person not found — ${site.name}`) };
 
   const description =
-    person.headline || tx(locale, `Hal yang sedang dibangun dan dibantu ${person.name} di Builders.`, `What ${person.name} is building and contributing to on Builders.`);
+    person.headline || tx(locale, `Hal yang sedang dibangun dan dibantu ${person.name} di ${site.name}.`, `What ${person.name} is building and contributing to on ${site.name}.`);
 
   return {
-    title: `${person.name} — Builders`,
+    title: `${person.name} — ${site.name}`,
     description,
     alternates: { canonical: `/u/${person.username}` },
     // The card image comes from opengraph-image.tsx beside this file.
     openGraph: {
       type: "profile",
-      title: `${person.name} — Builders`,
+      title: `${person.name} — ${site.name}`,
       description,
       url: `/u/${person.username}`,
     },
@@ -146,7 +147,7 @@ export default async function ProfilePage({
           <div className="pf-identity">
             <h1>{person.name}</h1>
             <p className="pf-role">
-              {person.profession || tx(locale, "Anggota Builders", "Builders member")}
+              {person.profession || tx(locale, `Anggota ${site.name}`, `${site.name} member`)}
               <span>@{person.username}</span>
             </p>
             {person.headline ? <p className="pf-headline">{person.headline}</p> : null}
@@ -172,8 +173,13 @@ export default async function ProfilePage({
         <ul className="pf-stats" aria-label={tx(locale, "Ringkasan", "Summary")}>
           <Stat value={contributed} label={tx(locale, "repo dikontribusi", "repos contributed to")} />
           <Stat value={maintained} label={tx(locale, "repo di-maintain", "repos maintained")} />
-          <Stat value={owned.length} label={tx(locale, "produk dibangun", "products built")} />
-          <Stat value={contributing.length} label={tx(locale, "produk dibantu", "products helped")} />
+          {/* Products and the work on them belong to the builders site. */}
+          {isOss ? null : (
+            <>
+              <Stat value={owned.length} label={tx(locale, "produk dibangun", "products built")} />
+              <Stat value={contributing.length} label={tx(locale, "produk dibantu", "products helped")} />
+            </>
+          )}
           {stats.since ? <Stat value={monthYear(stats.since, locale)} label={tx(locale, "aktif sejak", "active since")} /> : null}
         </ul>
 
@@ -193,85 +199,91 @@ export default async function ProfilePage({
               )}
             </section>
 
-            {owned.length > 0 || isSelf ? (
-              <section className="pf-section" aria-labelledby="owned-heading">
-                <div className="pf-section-head">
-                  <h2 id="owned-heading">{tx(locale, "Produk yang dibangun", "Products built")}</h2>
-                  {isSelf ? <Link href="/new">{tx(locale, "+ Daftarkan", "+ List one")}</Link> : null}
-                </div>
-                {owned.length > 0 ? (
-                  <ul className="pf-products">
-                    {owned.map((project) => <ProductRow key={project.id} project={project} locale={locale} />)}
-                  </ul>
-                ) : (
-                  <p className="oss-record-empty">{tx(locale, "Belum ada produk.", "No products yet.")}</p>
-                )}
-              </section>
-            ) : null}
+            {/* Products built, products helped, and the work trail of events on
+                them: builders only. The open source site shows the record above. */}
+            {isOss ? null : (
+              <>
+                {owned.length > 0 || isSelf ? (
+                  <section className="pf-section" aria-labelledby="owned-heading">
+                    <div className="pf-section-head">
+                      <h2 id="owned-heading">{tx(locale, "Produk yang dibangun", "Products built")}</h2>
+                      {isSelf ? <Link href="/new">{tx(locale, "+ Daftarkan", "+ List one")}</Link> : null}
+                    </div>
+                    {owned.length > 0 ? (
+                      <ul className="pf-products">
+                        {owned.map((project) => <ProductRow key={project.id} project={project} locale={locale} />)}
+                      </ul>
+                    ) : (
+                      <p className="oss-record-empty">{tx(locale, "Belum ada produk.", "No products yet.")}</p>
+                    )}
+                  </section>
+                ) : null}
 
-            {contributing.length > 0 ? (
-              <section className="pf-section" aria-labelledby="helping-heading">
-                <div className="pf-section-head">
-                  <h2 id="helping-heading">{tx(locale, "Membantu di", "Helping on")}</h2>
-                </div>
-                <ul className="pf-products">
-                  {contributing.map((project) => <ProductRow key={project.id} project={project} locale={locale} />)}
-                </ul>
-              </section>
-            ) : null}
-
-            <section className="pf-section" aria-labelledby="activity-heading">
-              <div className="pf-section-head">
-                <h2 id="activity-heading">{tx(locale, "Jejak karya", "Work trail")}</h2>
-                <div className="pf-trail-modes">
-                  <Link className={showAll ? "" : "is-active"} href={trailPath({})}>{tx(locale, "Sorotan", "Highlights")}</Link>
-                  <Link className={showAll ? "is-active" : ""} href={trailPath({ trail: "all" })}>{tx(locale, "Lengkap", "Full")}</Link>
-                </div>
-              </div>
-              <p className="pf-note">
-                {tx(locale, "Dicatat oleh sistem saat pekerjaan berlangsung di Builders — bukan ditambahkan setelahnya.", "Recorded by the system as work happens on Builders — not added afterwards.")}
-              </p>
-
-              {trail.length === 0 ? (
-                <p className="oss-record-empty">
-                  {showAll ? tx(locale, "Belum ada entri.", "No entries yet.") : tx(locale, "Belum ada sorotan.", "No highlights yet.")}
-                </p>
-              ) : (
-                <div className="pf-trail">
-                  <ActivityList events={trail} hidden={isSelf ? person.activityHidden : []} />
-                </div>
-              )}
-
-              {hasOlder ? (
-                <p className="trail-more">
-                  <Link href={trailPath({ trail: showAll ? "all" : undefined, limit: limit + TRAIL_PAGE })}>
-                    {tx(locale, "Muat entri sebelumnya", "Load earlier entries")}
-                  </Link>
-                </p>
-              ) : null}
-
-              {isSelf ? (
-                <details className="owner-tool">
-                  <summary>{tx(locale, "Pilih yang dapat dilihat", "Choose what is visible")}</summary>
-                  <form action={setActivityVisibility}>
-                    <p className="hint">
-                      {tx(locale, "Item yang dicentang muncul di profil publikmu. Item yang tidak dicentang tetap hanya terlihat olehmu—tetap tercatat dan tidak dihapus.", "Checked items appear on your public profile. Unchecked items remain visible only to you—they are still recorded and are not deleted.")}
-                    </p>
-                    <ul className="kind-list">
-                      {EVENT_KINDS.map((kind) => (
-                        <li key={kind}>
-                          <label htmlFor={`show-${kind}`}>
-                            <input id={`show-${kind}`} type="checkbox" name="show" value={kind} defaultChecked={!person.activityHidden.includes(kind)} />
-                            {eventKindLabel(kind, locale)}
-                          </label>
-                        </li>
-                      ))}
+                {contributing.length > 0 ? (
+                  <section className="pf-section" aria-labelledby="helping-heading">
+                    <div className="pf-section-head">
+                      <h2 id="helping-heading">{tx(locale, "Membantu di", "Helping on")}</h2>
+                    </div>
+                    <ul className="pf-products">
+                      {contributing.map((project) => <ProductRow key={project.id} project={project} locale={locale} />)}
                     </ul>
-                    <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
-                  </form>
-                </details>
-              ) : null}
-            </section>
+                  </section>
+                ) : null}
+
+                <section className="pf-section" aria-labelledby="activity-heading">
+                  <div className="pf-section-head">
+                    <h2 id="activity-heading">{tx(locale, "Jejak karya", "Work trail")}</h2>
+                    <div className="pf-trail-modes">
+                      <Link className={showAll ? "" : "is-active"} href={trailPath({})}>{tx(locale, "Sorotan", "Highlights")}</Link>
+                      <Link className={showAll ? "is-active" : ""} href={trailPath({ trail: "all" })}>{tx(locale, "Lengkap", "Full")}</Link>
+                    </div>
+                  </div>
+                  <p className="pf-note">
+                    {tx(locale, `Dicatat oleh sistem saat pekerjaan berlangsung di ${site.name} — bukan ditambahkan setelahnya.`, `Recorded by the system as work happens on ${site.name} — not added afterwards.`)}
+                  </p>
+
+                  {trail.length === 0 ? (
+                    <p className="oss-record-empty">
+                      {showAll ? tx(locale, "Belum ada entri.", "No entries yet.") : tx(locale, "Belum ada sorotan.", "No highlights yet.")}
+                    </p>
+                  ) : (
+                    <div className="pf-trail">
+                      <ActivityList events={trail} hidden={isSelf ? person.activityHidden : []} />
+                    </div>
+                  )}
+
+                  {hasOlder ? (
+                    <p className="trail-more">
+                      <Link href={trailPath({ trail: showAll ? "all" : undefined, limit: limit + TRAIL_PAGE })}>
+                        {tx(locale, "Muat entri sebelumnya", "Load earlier entries")}
+                      </Link>
+                    </p>
+                  ) : null}
+
+                  {isSelf ? (
+                    <details className="owner-tool">
+                      <summary>{tx(locale, "Pilih yang dapat dilihat", "Choose what is visible")}</summary>
+                      <form action={setActivityVisibility}>
+                        <p className="hint">
+                          {tx(locale, "Item yang dicentang muncul di profil publikmu. Item yang tidak dicentang tetap hanya terlihat olehmu—tetap tercatat dan tidak dihapus.", "Checked items appear on your public profile. Unchecked items remain visible only to you—they are still recorded and are not deleted.")}
+                        </p>
+                        <ul className="kind-list">
+                          {EVENT_KINDS.map((kind) => (
+                            <li key={kind}>
+                              <label htmlFor={`show-${kind}`}>
+                                <input id={`show-${kind}`} type="checkbox" name="show" value={kind} defaultChecked={!person.activityHidden.includes(kind)} />
+                                {eventKindLabel(kind, locale)}
+                              </label>
+                            </li>
+                          ))}
+                        </ul>
+                        <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Simpan", "Save")}</SubmitButton>
+                      </form>
+                    </details>
+                  ) : null}
+                </section>
+              </>
+            )}
           </div>
 
           <aside className="pf-side">

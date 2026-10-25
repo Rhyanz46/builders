@@ -3,6 +3,7 @@ import { getPerson, getPersonStats, getPortfolio } from "../../lib/data";
 import { monthYear } from "../../components/pieces";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
+import { site } from "../../lib/site";
 
 /**
  * The share card for a profile — the page doing the actual promoting when a
@@ -11,7 +12,7 @@ import { tx } from "../../lib/locale";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Builders";
+export const alt = site.name;
 
 const PAPER = "#f8f6f0";
 const INK = "#183d34";
@@ -38,7 +39,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
             fontWeight: 700,
           }}
         >
-          Builders
+          {site.name}
         </div>
       ),
       size,
