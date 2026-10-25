@@ -177,7 +177,7 @@ export default async function ProfilePage({
           {stats.since ? <Stat value={monthYear(stats.since, locale)} label={tx(locale, "aktif sejak", "active since")} /> : null}
         </ul>
 
-        {isSelf ? <SelfNote person={person} owned={owned} ossCount={records.length} locale={locale} /> : null}
+        {isSelf ? <SelfNote person={person} owned={owned} locale={locale} /> : null}
 
         <div className="pf-layout">
           <div className="pf-main">
@@ -349,15 +349,13 @@ function ProductRow({ project, locale }: { project: ProjectSummary; locale: Loca
 function SelfNote({
   person,
   owned,
-  ossCount,
   locale,
 }: {
   person: Person;
   owned: ProjectSummary[];
-  ossCount: number;
   locale: Locale;
 }) {
-  const remaining = remainingSteps(nextSteps({ person, owned, ossCount, locale }));
+  const remaining = remainingSteps(nextSteps({ person, owned, locale }));
   if (remaining.length === 0) return null;
 
   return (

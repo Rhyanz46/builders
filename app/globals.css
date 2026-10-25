@@ -1360,36 +1360,6 @@ body:has(main.discovery-page), body:has(main.people-page) { background: light-da
 
 .next-steps { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
 
-.start-project-list { display: grid; gap: 14px; list-style: none; margin: 0; padding: 0; }
-.start-project-row {
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
-}
-.start-project-head { align-items: center; display: grid; gap: 14px; grid-template-columns: auto minmax(0, 1fr) auto; }
-.start-project-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-width: 0; }
-.start-project-title h3 { font-size: 18px; font-weight: 700; letter-spacing: -.03em; margin: 0; }
-.start-project-title h3 a:hover { color: light-dark(#5f5f5f, #b2b2b2); }
-.start-project-edit {
-  border: 1px solid var(--line-2); border-radius: 11px; font-size: 13px; font-weight: 640;
-  padding: 9px 14px; white-space: nowrap;
-}
-.start-project-edit:hover { border-color: var(--ink); }
-.start-now-form { border-top: 1px solid var(--line-soft); margin-top: 16px; padding-top: 14px; }
-.start-now-form label {
-  color: var(--muted); display: block; font-size: 12px; font-weight: 660; letter-spacing: .04em;
-  margin-bottom: 7px; text-transform: uppercase;
-}
-.start-now-row { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
-.start-now-row input { margin: 0; }
-.start-now-row button { white-space: nowrap; }
-.start-project-seats { color: var(--muted); font-size: 13px; margin: 12px 0 0; }
-.start-project-seats a { border-bottom: 1px solid var(--line-2); }
-
-@media (max-width: 720px) {
-  .start-project-head { grid-template-columns: auto minmax(0, 1fr); }
-  .start-project-edit { grid-column: 2; justify-self: start; }
-  .start-now-row { grid-template-columns: 1fr; }
-  .start-now-row button { justify-content: center; width: 100%; }
-}
 /* The two cards on /account/language. */
 .language-picker {
   display: grid;
@@ -2128,12 +2098,8 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .ob-step-copy h3 { align-items: center; display: flex; flex-wrap: wrap; font-size: 16px; font-weight: 650; gap: 8px; margin: 3px 0 4px; }
 .ob-step-state { background: light-dark(#ecfdf3, #131d17); border-radius: 99px; color: light-dark(#047857, #6dbe9d); font-size: 11px; font-weight: 650; padding: 2px 8px; }
 .ob-step-copy > p { color: var(--dx-muted); font-size: 14px; line-height: 1.55; margin: 0; }
-.ob-welcome { color: var(--dx-text); font-size: 15px; line-height: 1.6; margin: 10px 0 0; max-width: 62ch; }
-.ob-welcome a { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
-.ob-wa-list { color: var(--dx-text); display: grid; font-size: 13.5px; gap: 4px; line-height: 1.5; margin: 10px 0 0; padding-left: 18px; }
 .ob-step-edit { color: var(--dx-muted); font-size: 13px; font-weight: 600; padding-top: 6px; }
 .ob-step-edit:hover { color: var(--dx-ink); }
-.ob-steps-quiet .ob-step-mark { border-color: var(--dx-line); color: var(--dx-faint); }
 .ob-next {
   align-items: center; background: var(--dx-ink); border-radius: 14px; color: light-dark(#fff, #1f1f1f); display: flex; gap: 16px;
   justify-content: space-between; margin-top: 16px; padding: 18px 20px;

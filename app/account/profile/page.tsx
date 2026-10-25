@@ -95,7 +95,7 @@ export default async function EditProfilePage({
           ) : (
             <OssRecordEmpty self={false} locale={locale} />
           )}
-          <OssAddForm returnTo="/account/profile" status={ossStatus} locale={locale} />
+          <OssAddForm status={ossStatus} locale={locale} />
         </section>
 
         <ProfileForm

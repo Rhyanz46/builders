@@ -26,33 +26,19 @@ export function OssStatus({ status, locale }: { status: string; locale: Locale }
   return <p className={`oss-status ${status === "invalid" ? "is-error" : ""}`} role="status">{message}</p>;
 }
 
-export function OssAddForm({
-  returnTo,
-  status,
-  locale,
-  children,
-}: {
-  /** `/get-started?all=1` comes back to onboarding; anything else, to the editor. */
-  returnTo: string;
-  status: string;
-  locale: Locale;
-  children?: React.ReactNode;
-}) {
-  const id = returnTo.startsWith("/get-started") ? "ob-repo" : "profile-repo";
+export function OssAddForm({ status, locale }: { status: string; locale: Locale }) {
   return (
     <form className="oss-add-form" action={addOssContribution}>
       <OssStatus status={status} locale={locale} />
-      <input type="hidden" name="returnTo" value={returnTo} />
       <div className="oss-add-row">
-        <label className="sr-only" htmlFor={id}>{tx(locale, "Repo GitHub", "GitHub repo")}</label>
-        <input id={id} name="repo" type="text" required placeholder={tx(locale, "owner/repo atau URL GitHub", "owner/repo or a GitHub URL")} autoComplete="off" />
+        <label className="sr-only" htmlFor="profile-repo">{tx(locale, "Repo GitHub", "GitHub repo")}</label>
+        <input id="profile-repo" name="repo" type="text" required placeholder={tx(locale, "owner/repo atau URL GitHub", "owner/repo or a GitHub URL")} autoComplete="off" />
         <select name="relation" defaultValue="contributor" aria-label={tx(locale, "Peranmu di repo ini", "Your part in this repo")}>
           <option value="contributor">{tx(locale, "Kontributor", "Contributor")}</option>
           <option value="maintainer">Maintainer</option>
         </select>
         <SubmitButton pendingLabel={tx(locale, "Menyimpan…", "Saving…")}>{tx(locale, "Tambah", "Add")}</SubmitButton>
       </div>
-      {children}
     </form>
   );
 }

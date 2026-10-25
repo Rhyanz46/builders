@@ -8,16 +8,19 @@
  *   1. link GitHub and show its activity — the account every contribution
  *      here is made with, the face on a directory badge, and the merged PRs
  *      on /activity that make the next person try;
- *   2. list the repos you have contributed to or maintain — those become the
- *      "a friend has contributed" and "maintainer in our group" badges;
- *   3. say who you are — profession, skills, a line about you — so somebody
- *      who sees your face on a badge knows who to ask;
- *   4. join the WA Community — where the talking happens: questions, reviews,
+ *   2. join the WA Community — where the talking happens: questions, reviews,
  *      merged PRs cheered. Nobody here can see who is in a WhatsApp group, so
- *      it counts as done once the button has been pressed.
+ *      it counts as done once the button has been pressed;
+ *   3. say who you are — profession, skills, a line about you — so somebody
+ *      who sees your face on a badge knows who to ask.
+ *
+ * The repos somebody has contributed to are not a step: GitHub records them
+ * once the activity is shown, and older ones can still be typed in on the
+ * profile.
  *
  * Listing a product of your own is offered, never owed: most people here come
- * to contribute, not to found something.
+ * to contribute, not to found something. /get-started asks which of the two
+ * somebody came for first, and shows that path's steps — see `stepsFor`.
  *
  * Deliberately a list of named things rather than a percentage. A profile is
  * not a form to fill to 100%.
@@ -33,20 +36,7 @@ import { tx, type Locale } from "./locale";
 /** Set when the WA Community button on /get-started is pressed; read back as that step's `done`. */
 export const WA_JOINED_COOKIE = "builders_wa_joined";
 
-/**
- * What the WA Community is for, said on its step so that joining reads as
- * the next part of contributing rather than one more group to mute.
- */
-export function waActivities(locale: Locale): string[] {
-  return [
-    tx(locale, "Tanya kalau mentok: setup repo, issue mana yang cocok buat mulai, cara baca codebase-nya.", "Ask when you are stuck: setting a repo up, which issue to start with, how to find your way around the code."),
-    tx(locale, "Cari teman yang pernah kontribusi ke repo yang sama, atau minta review sebelum PR-mu dikirim.", "Find somebody who has contributed to the same repo, or ask for a review before your PR goes out."),
-    tx(locale, "Ngerjain issue bareng: bagi tugas, pairing, atau sesi kontribusi rutin.", "Work on issues together: split the work, pair, or join a regular contribution session."),
-    tx(locale, "Share PR yang di-merge dan repo baru yang layak masuk direktori—dirayain bareng.", "Share merged PRs and new repos worth adding to the directory—and cheer them on together."),
-  ];
-}
-
-export type NextStepId = "github" | "oss" | "talent" | "wa" | "project" | "now" | "role";
+export type NextStepId = "github" | "wa" | "talent" | "project" | "now" | "role";
 
 export type NextStep = {
   id: NextStepId;
@@ -87,15 +77,12 @@ export type StepProject = {
 export function nextSteps({
   person,
   owned,
-  ossCount = 0,
   waUrl = "",
   waJoined = false,
   locale = "en",
 }: {
   person: StepPerson;
   owned: StepProject[];
-  /** Rows in the person's open source record. */
-  ossCount?: number;
   /** The WA Community's invite; no step without one. */
   waUrl?: string;
   /** They pressed the WA Community button, on this browser. */
@@ -115,18 +102,23 @@ export function nextSteps({
       cta: tx(locale, "Tambah GitHub", "Add GitHub"),
       done: githubHandle(person.github) !== "" && person.githubActivityShown === true,
     },
-    {
-      id: "oss",
-      title: tx(locale, "Catat repo yang pernah kamu kontribusi", "List the repos you have contributed to"),
-      blurb: tx(
-        locale,
-        "Atau yang kamu maintain. Setiap repo yang kamu catat memberi badge di direktori — tanda bagi pemula bahwa ada teman yang sudah lewat jalan itu.",
-        "Or the ones you maintain. Every repo you list puts a badge on the directory — a sign to newcomers that a friend has been there.",
-      ),
-      href: "/account/profile#open-source",
-      cta: tx(locale, "Catat repo", "List a repo"),
-      done: ossCount > 0,
-    },
+    ...(waUrl
+      ? [
+          {
+            id: "wa" as const,
+            title: tx(locale, "Gabung WA Community", "Join the WA Community"),
+            blurb: tx(
+              locale,
+              "Interaksi paling aktif ada di sana: tanya kalau mentok, cari reviewer, dan rayain PR yang di-merge.",
+              "Where most of the talking happens: ask when you are stuck, find a reviewer, and cheer merged PRs.",
+            ),
+            href: waUrl,
+            cta: tx(locale, "Gabung WA", "Join on WA"),
+            done: waJoined,
+            external: true,
+          },
+        ]
+      : []),
     {
       id: "talent",
       title: tx(locale, "Ceritakan siapa kamu", "Say who you are"),
@@ -139,23 +131,6 @@ export function nextSteps({
       cta: tx(locale, "Lengkapi profil", "Complete profile"),
       done: profileReady(person),
     },
-    ...(waUrl
-      ? [
-          {
-            id: "wa" as const,
-            title: tx(locale, "Gabung WA Community", "Join the WA Community"),
-            blurb: tx(
-              locale,
-              "Interaksi paling aktif ada di sana. Di sini tempat nemu project dan nyatat kontribusi; ngobrolnya di WA.",
-              "That is where most of the talking happens. This site is for finding projects and keeping the record; the conversation is on WA.",
-            ),
-            href: waUrl,
-            cta: tx(locale, "Gabung WA", "Join on WA"),
-            done: waJoined,
-            external: true,
-          },
-        ]
-      : []),
     {
       id: "project",
       title: tx(locale, "Punya produk yang butuh kontributor?", "Have a product that needs contributors?"),
@@ -205,6 +180,27 @@ export function nextSteps({
   }
 
   return steps;
+}
+
+/** Why somebody is here, asked first on /get-started. */
+export const ONBOARDING_PATHS = ["contribute", "founder"] as const;
+export type OnboardingPath = (typeof ONBOARDING_PATHS)[number];
+
+export function isOnboardingPath(value: string): value is OnboardingPath {
+  return (ONBOARDING_PATHS as readonly string[]).includes(value);
+}
+
+const PATH_STEPS: Record<OnboardingPath, NextStepId[]> = {
+  // In the order /how-it-works tells it.
+  contribute: ["github", "wa", "talent"],
+  // A founder needs people to know who they are and where to find them
+  // before the product, which is the point of being here.
+  founder: ["talent", "wa", "project", "now", "role"],
+};
+
+/** One path's steps, in that path's order; the ones it does not need are left out. */
+export function stepsFor(path: OnboardingPath, steps: NextStep[]): NextStep[] {
+  return PATH_STEPS[path].flatMap((id) => steps.filter((step) => step.id === id));
 }
 
 /** The steps still owed. Optional ones never appear here. */
