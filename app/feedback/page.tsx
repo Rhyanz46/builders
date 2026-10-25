@@ -45,9 +45,6 @@ export default async function FeedbackPage() {
       <SiteHeader returnTo="/feedback" active="feedback" />
 
       <main id="main-content" className="page-narrow feedback-page">
-        <p className="eyebrow">
-          <span /> {tx(locale, "Masukan", "Feedback")}
-        </p>
         <h1>{tx(locale, "Ada yang ganjil? Bilang aja.", "Something off? Just say so.")}</h1>
         <p className="lede">
           {tx(

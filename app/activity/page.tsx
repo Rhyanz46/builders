@@ -64,8 +64,8 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
         <p>
           {tx(
             locale,
-            "Kontribusi open source member, biar progres satu sama lain kelihatan dan yang lain ikut berani mulai. Tercatat sendiri dari GitHub tiap 30 menit, setelah dinyalakan di profil. ",
-            "Members' open source contributions, so everyone sees each other's progress and others find the nerve to start. Recorded straight from GitHub every 30 minutes, once turned on in a profile. ",
+            "Kontribusi open source member, langsung dari GitHub, biar saling kelihatan dan yang lain ikut mulai. ",
+            "Members' open source contributions, straight from GitHub, so we see each other's and others start too. ",
           )}
           <Link className="ax-head-link" href="/account/profile#github-account">
             {tx(locale, "Tampilkan punyamu", "Show yours")}

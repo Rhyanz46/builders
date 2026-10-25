@@ -653,6 +653,32 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .feedback-elsewhere { border-top: 1px solid var(--line); margin-top: 40px; padding-top: 28px; }
 .feedback-elsewhere p { color: var(--muted); font-size: 13.5px; line-height: 1.7; margin: 0 0 10px; }
 .feedback-elsewhere a { border-bottom: 1px solid var(--line-2); }
+
+/* /feedback in the directory's plainness: its heading size, no boxed form,
+   small choice rows each with a dot in its kind's tone, a small button. */
+.feedback-page { max-width: 760px; padding-top: 40px; }
+.feedback-page h1 { font-size: 26px; font-weight: 650; letter-spacing: -.03em; line-height: 1.2; margin: 0; }
+.feedback-page .lede { color: var(--dx-muted); font-size: 14px; line-height: 1.6; margin: 6px 0 8px; max-width: 62ch; }
+.feedback-page .feedback-github { color: var(--dx-muted); font-size: 13.5px; margin: 0 0 4px; }
+.feedback-page .feedback-github a { border: 0; color: light-dark(#0969da, #4493f8); }
+.feedback-page .feedback-github a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.feedback-page .feedback-form { background: none; border: 0; border-radius: 0; border-top: 1px solid var(--dx-line); margin-top: 20px; padding: 20px 0 0; }
+.feedback-page .type-choice { gap: 6px; }
+.feedback-page .type-choice label { border-color: var(--dx-line); border-radius: 8px; gap: 10px; padding: 9px 12px; }
+.feedback-page .type-choice strong { align-items: center; display: flex; font-size: 13.5px; font-weight: 600; gap: 7px; }
+.feedback-page .type-choice strong::before { background: var(--tone, var(--dx-faint)); border-radius: 50%; content: ""; flex: none; height: 7px; width: 7px; }
+.feedback-page .type-choice small { color: var(--dx-muted); font-size: 12.5px; }
+.feedback-page .type-choice label:has(input:checked) { background: var(--tone-soft, var(--dx-soft)); border-color: var(--tone, var(--dx-ink)); }
+.feedback-page .type-choice input { accent-color: var(--tone, var(--dx-ink)); margin-top: 2px; }
+.feedback-page .primary-button { border-radius: 7px; font-size: 13px; gap: 8px; height: 34px; padding: 0 14px; }
+.feedback-page .primary-button:hover { transform: none; }
+.feedback-page .feedback-sent { background: var(--tone-soft); border: 0; border-radius: 10px; margin-top: 20px; padding: 18px 20px; }
+.feedback-page .feedback-sent h2 { color: var(--tone); font-size: 16px; letter-spacing: -.01em; margin: 0 0 4px; }
+.feedback-page .feedback-sent p { color: var(--dx-text); font-size: 13.5px; line-height: 1.6; margin: 0 0 12px; }
+.feedback-page .feedback-sent button { border-color: var(--dx-line); font-size: 12.5px; padding: 7px 14px; }
+.feedback-page .feedback-elsewhere { border-color: var(--dx-line); margin-top: 28px; padding-top: 18px; }
+.feedback-page .feedback-elsewhere p { color: var(--dx-muted); font-size: 12.5px; }
+.feedback-page .feedback-elsewhere a { border: 0; color: light-dark(#0969da, #4493f8); }
 .step-intro { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 2px 0 20px; }
 
 /* ----------------------------------------- adding a project from a starting point
@@ -2465,6 +2491,7 @@ form.rf label { margin-bottom: 0; }
 .tone-wa { --tone: light-dark(#1a7f37, #3fb950); --tone-soft: light-dark(#dafbe1, #13261a); }
 .tone-pick { --tone: light-dark(#92400e, #d4a34a); --tone-soft: light-dark(#fef3c7, #2a2112); }
 .tone-work { --tone: var(--dx-ink); --tone-soft: var(--dx-soft); }
+.tone-warn { --tone: var(--dx-warm); --tone-soft: var(--dx-warm-soft); }
 .tone-done { --tone: light-dark(#8250df, #b392f0); --tone-soft: light-dark(#fbefff, #241a33); }
 
 /* About and How it works: the directory's sizes and plainness. */

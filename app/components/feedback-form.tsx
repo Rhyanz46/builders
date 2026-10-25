@@ -27,6 +27,15 @@ export function FeedbackForm() {
   return <FeedbackRound key={round} onAgain={() => setRound((n) => n + 1)} />;
 }
 
+/** Each kind's colour, from the site's tones: a bug warm, an idea purple, a muddle amber, praise green. */
+const KIND_TONES: Record<(typeof FEEDBACK_KINDS)[number], string> = {
+  bug: "tone-warn",
+  idea: "tone-done",
+  confusing: "tone-pick",
+  praise: "tone-wa",
+  other: "tone-work",
+};
+
 function FeedbackRound({ onAgain }: { onAgain: () => void }) {
   const [state, formAction, pending] = useActionState(sendFeedback, EMPTY);
   const { locale, tx } = useLanguage();
@@ -34,10 +43,7 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
 
   if (state.sent) {
     return (
-      <div className="feedback-sent" role="status">
-        <p className="eyebrow">
-          <span /> {tx("Terkirim", "Sent")}
-        </p>
+      <div className="feedback-sent tone-wa" role="status">
         <h2>{tx("Makasih, masukanmu sudah masuk.", "Thank you — your feedback is in.")}</h2>
         <p>
           {tx(
@@ -70,7 +76,7 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
 
         <ul className="type-choice" role="radiogroup" aria-labelledby="feedback-kind-label">
           {FEEDBACK_KINDS.map((kind) => (
-            <li key={kind}>
+            <li key={kind} className={KIND_TONES[kind]}>
               <label htmlFor={`kind-${kind}`}>
                 <input
                   id={`kind-${kind}`}
