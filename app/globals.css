@@ -1692,16 +1692,18 @@ form button[aria-busy="true"]::after,
 .dx-logo img { border-radius: 0; height: 100%; object-fit: cover; width: 100%; }
 .dx-row .dx-logo:has(img) { background: var(--dx-soft); border-color: var(--dx-line); }
 .dx-desc {
-  color: var(--dx-text); font-size: 13px; line-height: 1.45; margin: 2px 0 0; overflow: hidden;
+  color: var(--dx-text); font-size: 13px; line-height: 1.45; margin: 4px 0 0; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
 /* Who shared a catalogue repo: a quiet credit under the description. */
-.dx-shared { color: var(--dx-muted); font-size: 12px; line-height: 1.4; margin: 3px 0 0; }
+.dx-shared { color: var(--dx-muted); font-size: 12px; line-height: 1.4; margin: 4px 0 0; }
 .dx-shared a { color: var(--dx-text); font-weight: 600; }
 .dx-shared a:hover { text-decoration: underline; }
 /* Badges are about people, so they speak louder than tags: filled, coloured
    by kind, with the named people's faces when there are any. */
-.dx-badges { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 7px 0 0; padding: 0; }
+/* A card reads in three groups: who and what (name, description, credit) set
+   tight; the chips (badges, then tags) a step below; GitHub's footer line last. */
+.dx-badges { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 10px 0 0; padding: 0; }
 .dx-badge > a, .dx-badge {
   align-items: center; border-radius: 99px; display: inline-flex; font-size: 12px; font-weight: 600; gap: 5px;
 }
@@ -1752,7 +1754,8 @@ form button[aria-busy="true"]::after,
 .dx-facet-link .dx-badge-icon { height: 15px; width: 15px; }
 .dx-facet-link .dx-flag { height: 11px; width: 15px; }
 
-.dx-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 7px 0 0; }
+.dx-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 0; }
+.dx-badges + .dx-tags { margin-top: 6px; }
 .dx-tag {
   border: 1px solid var(--dx-line); border-radius: 5px; color: var(--dx-muted); font-size: 11px;
   line-height: 1; padding: 4px 6px; white-space: nowrap;
@@ -1798,7 +1801,7 @@ form button[aria-busy="true"]::after,
 }
 .dx-star:hover { background: light-dark(#eff2f5, #333338); border-color: light-dark(#c3ccd5, #4e4e54); }
 .dx-star svg { fill: none; flex: none; height: 16px; stroke: var(--dx-muted); stroke-linejoin: round; stroke-width: 1.8; width: 16px; }
-.dx-meta { align-items: center; color: var(--dx-muted); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 16px; margin: 8px 0 0; }
+.dx-meta { align-items: center; color: var(--dx-muted); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 16px; margin: 10px 0 0; }
 .dx-meta .dx-lang { color: var(--dx-text); }
 .dx-meta-stars { align-items: center; display: inline-flex; font-variant-numeric: tabular-nums; gap: 4px; }
 .dx-meta-stars svg { fill: none; height: 14px; stroke: currentColor; stroke-linejoin: round; stroke-width: 1.8; width: 14px; }
