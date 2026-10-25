@@ -2524,6 +2524,7 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 
 /* /how-it-works: the same page frame as /about, its steps as a numbered column. */
 .hw-lead { margin-top: 14px; max-width: 62ch; }
+.hw-tracks { margin-top: 20px; width: fit-content; }
 .hw-steps { display: grid; gap: 12px; list-style: none; margin: 28px 0 0; padding: 0; }
 .hw-step { border: 1px solid var(--dx-line); border-radius: 10px; display: grid; gap: 14px; grid-template-columns: 30px minmax(0, 1fr); padding: 18px; }
 .hw-step-mark {
