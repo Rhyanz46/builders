@@ -2084,48 +2084,53 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
   color: var(--dx-faint); font-family: var(--font-geist-mono), monospace; font-size: 11px; font-weight: 600;
   letter-spacing: .06em; margin: 0 0 8px; text-transform: uppercase;
 }
-.ob-head h1 { font-size: 30px; font-weight: 650; letter-spacing: -.035em; margin: 0; }
-.ob-head p:last-child { color: var(--dx-muted); font-size: 15px; line-height: 1.55; margin: 8px 0 24px; }
+.ob-head h1 { font-size: 26px; font-weight: 650; letter-spacing: -.03em; margin: 0; }
+.ob-head p:last-child { color: var(--dx-muted); font-size: 14px; line-height: 1.55; margin: 6px 0 20px; }
 .submit-choices { display: grid; gap: 10px; list-style: none; margin: 0 auto; max-width: 720px; padding: 0; }
 .submit-choices a {
-  align-items: center; background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 12px;
-  color: var(--dx-ink); display: flex; gap: 16px; padding: 18px 20px; transition: border-color .15s ease, box-shadow .15s ease;
+  align-items: center; background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 10px;
+  color: var(--dx-ink); display: flex; gap: 14px; padding: 14px 16px; transition: border-color .15s ease, box-shadow .15s ease;
 }
 .submit-choices a:hover { border-color: light-dark(#a1a1aa, #5d5d65); box-shadow: 0 6px 18px light-dark(rgba(9, 9, 11, .06), rgba(0, 0, 0, .2)); }
 .submit-choice-icon {
-  align-items: center; background: var(--dx-soft); border-radius: 10px; display: flex; flex: none; height: 42px; justify-content: center; width: 42px;
+  align-items: center; background: var(--tone-soft, var(--dx-soft)); border-radius: 8px; color: var(--tone, var(--dx-ink)); display: flex;
+  flex: none; height: 34px; justify-content: center; width: 34px;
 }
-.submit-choice-icon svg { fill: none; height: 20px; stroke: currentColor; stroke-linecap: round; stroke-width: 1.7; width: 20px; }
+.submit-choice-icon svg { fill: none; height: 18px; stroke: currentColor; stroke-linecap: round; stroke-width: 1.7; width: 18px; }
 .submit-choice-copy { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
-.submit-choice-copy strong { font-size: 16px; font-weight: 650; }
-.submit-choice-copy small { color: var(--dx-muted); font-size: 13.5px; line-height: 1.5; }
+.submit-choice-copy strong { font-size: 14.5px; font-weight: 600; }
+.submit-choice-copy small { color: var(--dx-muted); font-size: 13px; line-height: 1.5; }
 .submit-choice-arrow { color: var(--dx-muted); font-size: 18px; }
-.ob-steps { display: grid; gap: 10px; list-style: none; padding: 0; }
+/* The steps read like /how-it-works: hairline rows, a small number in the
+   step's tone, and its action as a link in the same colour. */
+.ob-steps { list-style: none; margin-bottom: 0; margin-top: 0; padding: 0; }
 .ob-step {
-  align-items: flex-start; background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 14px; display: grid;
-  gap: 14px; grid-template-columns: 32px minmax(0, 1fr) auto; padding: 18px;
+  align-items: flex-start; border-top: 1px solid var(--dx-line); display: grid;
+  gap: 12px; grid-template-columns: 22px minmax(0, 1fr) auto; padding: 14px 0;
   scroll-margin-top: calc(var(--header-h) + 16px);
 }
 .ob-step-mark {
-  align-items: center; border: 1.5px solid var(--dx-ink); border-radius: 50%; color: var(--dx-ink); display: flex;
-  font-size: 13px; font-weight: 700; height: 30px; justify-content: center; width: 30px;
+  align-items: center; background: var(--tone-soft, var(--dx-soft)); border-radius: 50%; color: var(--tone, var(--dx-ink)); display: flex;
+  font-size: 12px; font-weight: 650; height: 22px; justify-content: center; width: 22px;
 }
-.ob-step.is-done { background: light-dark(#fafafa, #1b1b1b); }
-.ob-step.is-done .ob-step-mark { background: #047857; border-color: #047857; color: light-dark(#fff, #1f1f1f); }
-.ob-step-copy h3 { align-items: center; display: flex; flex-wrap: wrap; font-size: 16px; font-weight: 650; gap: 8px; margin: 3px 0 4px; }
+.ob-step.is-done .ob-step-mark { background: light-dark(#ecfdf3, #131d17); color: light-dark(#047857, #6dbe9d); }
+.ob-step-copy h3 { align-items: center; display: flex; flex-wrap: wrap; font-size: 14.5px; font-weight: 600; gap: 8px; margin: 2px 0 3px; }
 .ob-step-state { background: light-dark(#ecfdf3, #131d17); border-radius: 99px; color: light-dark(#047857, #6dbe9d); font-size: 11px; font-weight: 650; padding: 2px 8px; }
-.ob-step-copy > p { color: var(--dx-muted); font-size: 14px; line-height: 1.55; margin: 0; }
-.ob-step-edit { color: var(--dx-muted); font-size: 13px; font-weight: 600; padding-top: 6px; }
+.ob-step-copy > p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 0; }
+.ob-step .dx-action, .ob-next .dx-action {
+  background: none; color: var(--tone, light-dark(#0969da, #4493f8)); height: auto; padding: 2px 0 0;
+}
+.ob-step .dx-action:hover, .ob-next .dx-action:hover { background: none; text-decoration: underline; text-underline-offset: 3px; }
+.ob-step-edit { color: var(--dx-muted); font-size: 13px; font-weight: 600; padding-top: 2px; }
 .ob-step-edit:hover { color: var(--dx-ink); }
+/* What comes after the steps, in the tone of a result. */
 .ob-next {
-  align-items: center; background: var(--dx-ink); border-radius: 14px; color: light-dark(#fff, #1f1f1f); display: flex; gap: 16px;
-  justify-content: space-between; margin-top: 16px; padding: 18px 20px;
+  align-items: center; background: var(--tone-soft); border-radius: 10px; display: flex; gap: 16px;
+  justify-content: space-between; margin-top: 8px; padding: 14px 16px;
 }
 .ob-next div { display: flex; flex-direction: column; gap: 2px; }
-.ob-next strong { font-size: 15px; }
-.ob-next span { color: light-dark(#a1a1aa, #5d5d65); font-size: 13px; }
-.ob-next .dx-action { background: light-dark(#fff, #1f1f1f); color: var(--dx-ink); }
-.ob-next .dx-action:hover { background: light-dark(#e4e4e7, #1d1d1f); }
+.ob-next strong { font-size: 14px; font-weight: 600; }
+.ob-next span { color: var(--dx-muted); font-size: 13px; }
 .ob-extra { margin-top: 36px; }
 .ob-extra h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; margin: 0 0 10px; }
 .ob-skip { font-size: 13px; margin-top: 28px; text-align: center; }
@@ -2453,32 +2458,44 @@ form.rf label { margin-bottom: 0; }
 /* About — the directory's own look: white page, black type, thin rules,
    bordered cards with small radii. Colour only where it means something
    (the PR status dots). */
+/* Colours with a meaning, from the palette the site already uses: blue like its
+   links, green like the WA button, amber like the directory's badges, purple
+   like a merged PR on /activity. A step, card or choice takes one as --tone. */
+.tone-account { --tone: light-dark(#0969da, #4493f8); --tone-soft: light-dark(#ddf4ff, #16243a); }
+.tone-wa { --tone: light-dark(#1a7f37, #3fb950); --tone-soft: light-dark(#dafbe1, #13261a); }
+.tone-pick { --tone: light-dark(#92400e, #d4a34a); --tone-soft: light-dark(#fef3c7, #2a2112); }
+.tone-work { --tone: var(--dx-ink); --tone-soft: var(--dx-soft); }
+.tone-done { --tone: light-dark(#8250df, #b392f0); --tone-soft: light-dark(#fbefff, #241a33); }
+
+/* About and How it works: the directory's sizes and plainness. */
 .ab-page {
   background: light-dark(#fff, #1f1f1f); color: var(--dx-ink);
-  padding: 48px max(var(--gutter), calc((100% - 760px) / 2)) 80px; width: 100%;
+  padding: 40px max(var(--gutter), calc((100% - 760px) / 2)) 72px; width: 100%;
 }
-.ab-intro h1 { font-size: 34px; font-weight: 650; letter-spacing: -.03em; line-height: 1.15; margin: 0; }
-.ab-story { color: var(--dx-text); display: grid; font-size: 15.5px; gap: 14px; line-height: 1.7; margin-top: 24px; }
+.ab-intro h1 { font-size: 26px; font-weight: 650; letter-spacing: -.03em; line-height: 1.2; margin: 0; }
+.ab-story { color: var(--dx-text); display: grid; font-size: 14.5px; gap: 12px; line-height: 1.7; margin-top: 16px; }
 .ab-story p { margin: 0; }
 /* The answer to the problem above, set as a quote. */
 .ab-story .ab-quote {
-  border-left: 3px solid var(--dx-ink);
-  color: var(--dx-ink); font-size: 18px; line-height: 1.5; margin: 8px 0; padding: 2px 0 2px 20px;
+  border-left: 3px solid light-dark(#0969da, #4493f8);
+  color: var(--dx-ink); font-size: 15.5px; line-height: 1.55; margin: 4px 0; padding: 2px 0 2px 16px;
 }
 /* What leads from the problem into the answer. */
-.ab-story .ab-quote-lead { color: var(--dx-muted); display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-.ab-section { border-top: 1px solid var(--dx-line); margin-top: 48px; padding-top: 40px; }
-.ab-section h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.25; margin: 0 0 10px; }
-.ab-subhead { font-size: 16px; font-weight: 650; margin: 32px 0 6px; }
-.ab-lead { color: var(--dx-text); font-size: 15px; line-height: 1.65; margin: 0 0 14px; }
-.ab-cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); list-style: none; margin: 18px 0; padding: 0; }
+.ab-story .ab-quote-lead { color: var(--dx-muted); display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.ab-section { border-top: 1px solid var(--dx-line); margin-top: 32px; padding-top: 26px; }
+.ab-section h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; line-height: 1.3; margin: 0 0 8px; }
+.ab-subhead { font-size: 14.5px; font-weight: 650; margin: 20px 0 4px; }
+.ab-lead { color: var(--dx-muted); font-size: 14px; line-height: 1.65; margin: 0 0 12px; }
+.ab-cards { display: grid; gap: 4px 24px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); list-style: none; margin: 12px 0 16px; padding: 0; }
 .ab-cards-two { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.ab-card { border: 1px solid var(--dx-line); border-radius: 8px; color: inherit; display: block; padding: 16px; }
-.ab-card h3 { font-size: 15px; font-weight: 650; margin: 0 0 6px; }
-.ab-card p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 0; }
-.ab-answer { color: var(--dx-ink); font-size: 17px; font-weight: 550; line-height: 1.55; margin: 0 0 4px; max-width: 62ch; }
-.ab-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 720px) { .ab-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* A hairline row rather than a box; a small dot in the card's tone leads its title. */
+.ab-card { border-top: 1px solid var(--dx-line); color: inherit; display: block; padding: 12px 0; }
+.ab-card h3 { align-items: center; display: flex; font-size: 14px; font-weight: 600; gap: 8px; margin: 0 0 3px; }
+.ab-card h3::before { background: var(--tone, var(--dx-faint)); border-radius: 50%; content: ""; flex: none; height: 7px; width: 7px; }
+.ab-card p { color: var(--dx-muted); font-size: 13px; line-height: 1.6; margin: 0; }
+.ab-answer { color: var(--dx-ink); font-size: 15px; font-weight: 550; line-height: 1.6; margin: 0 0 8px; max-width: 62ch; }
+.ab-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 560px) { .ab-steps { grid-template-columns: 1fr; } }
 .ab-step { align-items: center; background: var(--dx-soft); border-radius: 999px; color: var(--dx-ink); display: inline-flex; font-family: var(--font-geist-mono), monospace; font-size: 12px; font-weight: 600; height: 22px; justify-content: center; margin-bottom: 10px; width: 22px; }
 a.ab-card:hover { border-color: var(--dx-faint); }
 a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
@@ -2489,14 +2506,14 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .ab-list p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 2px 0 0; }
 .ab-list .dx-tier-dot { flex: none; transform: translateY(-1px); }
 .ab-sign { color: var(--dx-muted); flex: none; font-size: 13px; text-align: center; width: 10px; }
-.ab-more { align-items: center; color: var(--dx-ink); display: inline-flex; font-size: 14px; font-weight: 600; gap: 6px; }
+.ab-more { align-items: center; color: light-dark(#0969da, #4493f8); display: inline-flex; font-size: 13.5px; font-weight: 600; gap: 6px; }
 .ab-more:hover { text-decoration: underline; text-underline-offset: 3px; }
 .ab-faq { border: 1px solid var(--dx-line); border-radius: 8px; margin-top: 16px; }
 .ab-faq details + details { border-top: 1px solid var(--dx-line); }
 /* Undoes the site-wide pill summary: here a question is a full-width row. */
 .ab-faq details summary {
-  border: 0; border-radius: 0; cursor: pointer; display: block; font-size: 14.5px; font-weight: 600;
-  list-style: none; margin: 0; padding: 14px 40px 14px 16px; position: relative;
+  border: 0; border-radius: 0; cursor: pointer; display: block; font-size: 14px; font-weight: 600;
+  list-style: none; margin: 0; padding: 12px 40px 12px 14px; position: relative;
 }
 .ab-faq details summary:hover { background: var(--dx-soft); }
 .ab-faq summary::-webkit-details-marker { display: none; }
@@ -2504,27 +2521,26 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .ab-faq details[open] summary::after { content: "−"; }
 .ab-faq details:first-child summary { border-radius: 8px 8px 0 0; }
 .ab-faq details:last-child:not([open]) summary { border-radius: 0 0 8px 8px; }
-.ab-faq p { color: var(--dx-text); font-size: 14px; line-height: 1.65; margin: 0; padding: 0 16px 16px; }
-.ab-cta { background: var(--dx-soft); border-radius: 12px; margin-top: 56px; padding: 32px; }
-.ab-cta h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; margin: 0 0 8px; }
-.ab-cta p { color: var(--dx-text); font-size: 15px; line-height: 1.6; margin: 0; }
-.ab-cta-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.ab-faq p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.65; margin: 0; padding: 0 14px 14px; }
+.ab-cta { background: var(--tone-soft); border-radius: 10px; margin-top: 40px; padding: 22px 24px; }
+.ab-cta h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; margin: 0 0 4px; }
+.ab-cta p { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0; }
+.ab-cta-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .ab-button {
   align-items: center; background: light-dark(#fff, #1f1f1f); border: 1px solid var(--dx-line); border-radius: 6px;
-  color: var(--dx-ink); display: inline-flex; font-size: 13.5px; font-weight: 600; gap: 6px; height: 36px; padding: 0 14px;
+  color: var(--dx-ink); display: inline-flex; font-size: 13px; font-weight: 600; gap: 6px; height: 32px; padding: 0 12px;
 }
 .ab-button:hover { border-color: var(--dx-faint); }
 .ab-button-primary { background: var(--dx-ink); border-color: var(--dx-ink); color: light-dark(#fff, #18181b); }
 .ab-button-primary:hover { background: light-dark(#27272a, #d4d4d8); border-color: light-dark(#27272a, #d4d4d8); }
 @media (max-width: 640px) {
-  .ab-page { padding-top: 32px; }
-  .ab-intro h1 { font-size: 27px; }
-  .ab-cta { padding: 24px 20px; }
+  .ab-page { padding-top: 28px; }
+  .ab-intro h1 { font-size: 24px; }
+  .ab-cta { padding: 18px; }
 }
 
 /* /how-it-works: the directory's plainness — its heading size, hairline rows
    rather than cards, small soft step numbers, and text links for actions. */
-.hw-page .ab-intro h1 { font-size: 26px; letter-spacing: -.03em; }
 .hw-lead { color: var(--dx-muted); font-size: 14px; line-height: 1.6; margin: 6px 0 0; max-width: 62ch; }
 .hw-tracks { margin-top: 18px; width: fit-content; }
 .hw-steps { list-style: none; margin: 20px 0 0; padding: 0; }
@@ -2533,22 +2549,12 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
   align-items: center; background: var(--dx-soft); border-radius: 999px; color: var(--dx-ink); display: inline-flex;
   font-size: 12px; font-weight: 650; height: 22px; justify-content: center; width: 22px;
 }
-/* Each step's number and link take its tone; everything else stays plain. */
-.hw-tone-account { --hw-tone: light-dark(#0969da, #4493f8); --hw-tone-soft: light-dark(#ddf4ff, #16243a); }
-.hw-tone-wa { --hw-tone: light-dark(#1a7f37, #3fb950); --hw-tone-soft: light-dark(#dafbe1, #13261a); }
-.hw-tone-pick { --hw-tone: light-dark(#92400e, #d4a34a); --hw-tone-soft: light-dark(#fef3c7, #2a2112); }
-.hw-tone-work { --hw-tone: var(--dx-ink); --hw-tone-soft: var(--dx-soft); }
-.hw-tone-done { --hw-tone: light-dark(#8250df, #b392f0); --hw-tone-soft: light-dark(#fbefff, #241a33); }
-.hw-step .hw-step-mark { background: var(--hw-tone-soft); color: var(--hw-tone); }
-.hw-step .hw-link { color: var(--hw-tone); }
+.hw-step .hw-step-mark { background: var(--tone-soft, var(--dx-soft)); color: var(--tone, var(--dx-ink)); }
+.hw-step .hw-link { color: var(--tone, var(--dx-ink)); }
 .hw-step h2 { font-size: 14.5px; font-weight: 600; margin: 2px 0 3px; }
 .hw-step p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 0; }
 .hw-link { color: var(--dx-ink); display: inline-block; font-size: 13px; font-weight: 600; margin-top: 6px; }
 .hw-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.hw-page .ab-section { margin-top: 28px; padding-top: 24px; }
-.hw-page .ab-section h2 { font-size: 16px; }
-.hw-page .ab-subhead { font-size: 14px; margin-top: 18px; }
-.hw-page .ab-lead { color: var(--dx-muted); font-size: 13.5px; }
 .hw-more { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 28px 0 0; }
 .hw-page .hw-more { gap: 8px 20px; margin-top: 24px; }
 .hw-page .hw-more .ab-more { font-size: 13px; }

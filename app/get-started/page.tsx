@@ -98,7 +98,7 @@ export default async function StartPage({
 
         {path === null ? (
           <ul className="submit-choices">
-            <li>
+            <li className="tone-account">
               <Link href={pathHref("contribute")}>
                 <span className="submit-choice-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24">
@@ -113,7 +113,7 @@ export default async function StartPage({
                 <span className="submit-choice-arrow" aria-hidden="true">→</span>
               </Link>
             </li>
-            <li>
+            <li className="tone-pick">
               <Link href={pathHref("founder")}>
                 <span className="submit-choice-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>
@@ -156,7 +156,7 @@ function PathSteps({ path, steps, locale }: { path: OnboardingPath; steps: NextS
       </ol>
       {/* The point of the contributor path; a founder's last step is their product. */}
       {path === "contribute" ? (
-        <div className="ob-next">
+        <div className="ob-next tone-done">
           <div>
             <strong>{tx(locale, "Lalu: pilih project pertamamu", "Then: pick your first project")}</strong>
             <span>{tx(locale, "Kode di GitHub atau peran lain — semuanya ada di direktori.", "Code on GitHub or another role — it is all in the directory.")}</span>
@@ -168,6 +168,16 @@ function PathSteps({ path, steps, locale }: { path: OnboardingPath; steps: NextS
   );
 }
 
+/** Each step's colour, as on /how-it-works: account blue, WA green, a product amber, its updates plain, a filled role purple. */
+const STEP_TONES: Record<NextStep["id"], string> = {
+  github: "account",
+  wa: "wa",
+  talent: "account",
+  project: "pick",
+  now: "work",
+  role: "done",
+};
+
 function StepRow({
   step,
   index,
@@ -178,7 +188,7 @@ function StepRow({
   locale: Locale;
 }) {
   return (
-    <li id={`step-${step.id}`} className={`ob-step ${step.done ? "is-done" : ""}`}>
+    <li id={`step-${step.id}`} className={`ob-step tone-${STEP_TONES[step.id]} ${step.done ? "is-done" : ""}`}>
       <span className="ob-step-mark" aria-hidden="true">{step.done ? "✓" : index ?? "·"}</span>
       <div className="ob-step-copy">
         <h3>

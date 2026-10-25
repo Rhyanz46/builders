@@ -105,6 +105,12 @@ const TOGETHER: readonly (readonly [string, string, string, string])[] = [
 /** Who the place is for. Plain on purpose: what each gets, not a pitch. */
 /** Who the place is for: the builder, then contributors — engineers first. */
 /** Who the place is for: contributors first — engineers, then every other role — and builders listing a project. */
+/** Each point's colour, in TOGETHER's order: a friend's badge, a known reviewer, the Activity feed, both sides helped. */
+const TOGETHER_TONES = ["tone-pick", "tone-account", "tone-done", "tone-wa"];
+
+/** Engineers in the code path's blue, other roles in the badges' amber, builders in a result's purple. */
+const AUDIENCE_TONES = ["tone-account", "tone-pick", "tone-done"];
+
 const AUDIENCES: readonly (readonly [string, string, string, string])[] = [
   [
     "Engineer",
@@ -274,8 +280,8 @@ export default async function AboutPage() {
             )}
           </p>
           <ul className="ab-cards ab-steps">
-            {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
+            {TOGETHER.map(([titleId, titleEn, bodyId, bodyEn], index) => (
+              <li key={titleEn} className={`ab-card ${TOGETHER_TONES[index] ?? ""}`}>
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
@@ -293,8 +299,8 @@ export default async function AboutPage() {
         <section className="ab-section" aria-labelledby="audience-title">
           <h2 id="audience-title">{tx(locale, "Buat siapa", "Who it is for")}</h2>
           <ul className="ab-cards">
-            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card">
+            {AUDIENCES.map(([titleId, titleEn, bodyId, bodyEn], index) => (
+              <li key={titleEn} className={`ab-card ${AUDIENCE_TONES[index] ?? ""}`}>
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
@@ -339,7 +345,7 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="ab-cta" aria-labelledby="about-cta-title">
+        <section className="ab-cta tone-account" aria-labelledby="about-cta-title">
           <h2 id="about-cta-title">{tx(locale, "Mulai dari satu kontribusi.", "Start with one contribution.")}</h2>
           <p>
             {tx(

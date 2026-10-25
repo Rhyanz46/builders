@@ -231,7 +231,7 @@ export async function HowItWorks({ track }: { track: Track }) {
 
         <ol className="hw-steps">
           {steps(track, locale).map((step, index) => (
-            <li key={step.title} className={`hw-step hw-tone-${step.tone}`}>
+            <li key={step.title} className={`hw-step tone-${step.tone}`}>
               <span className="hw-step-mark" aria-hidden="true">{index + 1}</span>
               <div>
                 <h2>{step.title}</h2>
