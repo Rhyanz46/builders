@@ -62,12 +62,12 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
               {locale === "id" ? (
                 <>
                   Komunitas buat yang mau aktif di open source, bareng-bareng. Temukan project yang terbuka buat kontributor, kirim
-                  kontribusimu, dan biarkan kontribusimu terlihat.
+                  kontribusimu, dan biarkan kontribusimu terlihat. Semua project-nya dikurasi dan didaftarkan oleh komunitas.
                 </>
               ) : (
                 <>
                   A community for people who want to be active in open source, together. Find a project that takes contributors, send
-                  your contribution, and let it be seen.
+                  your contribution, and let it be seen. Every project is curated and listed by the community.
                 </>
               )}
             </p>
