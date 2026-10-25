@@ -69,9 +69,6 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
               <Suspense fallback={<WaButton />}>
                 <JoinCta locale={locale} />
               </Suspense>
-              <Link className="dx-how-link" href="/how-it-works">
-                {tx(locale, "Cara kerjanya", "How it works")} <span aria-hidden="true">→</span>
-              </Link>
               <p className="dx-head-powered">
                 Powered by
                 <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">

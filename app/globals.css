@@ -1537,9 +1537,6 @@ form button[aria-busy="true"]::after,
 .dx-head-powered a { display: inline-flex; }
 .dx-head-powered img { border-radius: 5px; display: block; }
 .dx-head-stats { display: flex; flex: none; gap: 28px; margin: 0; }
-/* "How it works", beside the call to action: a way in that reads as a link, not a button. */
-.dx-how-link { color: var(--dx-ink); font-size: 13px; font-weight: 600; }
-.dx-how-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* On a wide screen the sentence gets the whole width and the numbers share
    the button's row, bottoms aligned; on a phone the numbers are hidden. */
 @media (min-width: 901px) {
