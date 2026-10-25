@@ -3,8 +3,9 @@ import test from "node:test";
 
 import { pathFor, readFilters, readPage } from "../app/lib/directory-url.ts";
 
-test("an empty address is the GitHub track with nothing applied", () => {
-  assert.deepEqual(readFilters({}), { track: "github", scope: "", open: "", pr: [], badge: "", facet: [], stage: [], sort: "", q: "" });
+// The tests run as the builders site (no NEXT_PUBLIC_SITE), whose one path is products.
+test("an empty address is the site's own path with nothing applied", () => {
+  assert.deepEqual(readFilters({}), { track: "role", scope: "", open: "", pr: [], badge: "", facet: [], stage: [], sort: "", q: "" });
   assert.equal(pathFor(readFilters({})), "/");
 });
 
@@ -17,11 +18,16 @@ test("the server's query object and the browser's URLSearchParams read the same"
 });
 
 test("a filtered address survives a round trip, and the page only rides along when asked", () => {
-  const filters = readFilters(new URLSearchParams("track=role&scope=local&facet=Design&q=kopi"));
-  assert.equal(pathFor(filters), "/?track=role&scope=local&facet=Design&q=kopi");
+  const filters = readFilters(new URLSearchParams("scope=local&facet=Design&q=kopi"));
+  assert.equal(pathFor(filters), "/?scope=local&facet=Design&q=kopi");
   assert.deepEqual(readFilters(new URL(pathFor(filters), "https://x.test").searchParams), filters);
   assert.equal(pathFor(filters, 1), pathFor(filters));
-  assert.equal(pathFor(filters, 3), "/?track=role&scope=local&facet=Design&q=kopi&page=3");
+  assert.equal(pathFor(filters, 3), "/?scope=local&facet=Design&q=kopi&page=3");
+});
+
+test("a track in the address is ignored: each site has one path", () => {
+  assert.equal(readFilters(new URLSearchParams("track=github")).track, "role");
+  assert.equal(pathFor(readFilters(new URLSearchParams("track=github&q=kopi"))), "/?q=kopi");
 });
 
 test("an old source link still lands on the matching scope", () => {

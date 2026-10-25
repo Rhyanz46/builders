@@ -463,12 +463,6 @@ a.seat-chip:hover { border-color: var(--ink); }
   gap: 6px; letter-spacing: .06em; padding: 5px 10px; text-transform: uppercase; white-space: nowrap;
 }
 .stage-badge i { background: currentColor; border-radius: 50%; height: 6px; opacity: .75; width: 6px; }
-.github-contribute-badge {
-  align-items: center; background: light-dark(#282828, #dfdfdf); border-radius: 99px; color: light-dark(#ffffff, #1f1f1f); display: inline-flex;
-  font-size: 10px; font-weight: 750; gap: 5px; letter-spacing: .025em; padding: 6px 10px; width: fit-content;
-}
-.github-contribute-badge:hover { background: #0969da; color: light-dark(#ffffff, #1f1f1f); }
-.github-contribute-badge .arrow { height: 11px; width: 11px; }
 .project-head-badges { align-items: flex-end; display: flex; flex-direction: column; gap: 6px; }
 /* Solid rather than translucent, one step deeper than the tile beside it. */
 .stage-idea { background: light-dark(#f8ddcb, #1e1e1e); color: light-dark(#a8401b, #f08c6c); }
@@ -2303,6 +2297,28 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 @media (max-width: 640px) {
   .ax-time { display: block; margin-left: 0; }
 }
+
+/* The builders site's product feed: the same timeline, a product's logo where
+   a person's face would be, and one line per thing that happened, each with
+   a small mark in its own tone so a new stage reads apart from an update. */
+.pfeed { max-width: 720px; }
+.ax-event > .pfeed-logo {
+  background: var(--paper); border-radius: 8px; box-shadow: 0 0 0 3px var(--paper); flex: none; font-size: 13px;
+  height: 32px; position: relative; width: 32px;
+}
+.ax-event > .pfeed-logo img { border-radius: 8px; height: 32px; width: 32px; }
+.ax-event > .pfeed-logo:not(:has(img)) { background: var(--dx-soft); }
+.pfeed-lines { display: grid; gap: 3px; list-style: none; margin: 4px 0 0; padding: 0; }
+.pfeed-line { color: var(--dx-text); font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; padding-left: 14px; position: relative; }
+.pfeed-line::before { background: var(--dx-faint); border-radius: 50%; content: ""; height: 6px; left: 0; position: absolute; top: .6em; width: 6px; }
+.pfeed-line a { color: var(--dx-ink); font-weight: 600; }
+.pfeed-line a:hover { text-decoration: underline; }
+.pfeed-line strong { font-weight: 600; }
+.pfeed-project_created::before { background: light-dark(#2f7d4f, #6fbf8b); }
+.pfeed-project_stage_changed::before { background: light-dark(#8250df, #b392f0); }
+.pfeed-update_posted::before { background: light-dark(#0969da, #4493f8); }
+.pfeed-seat_opened::before { background: light-dark(#c2761b, #e3a253); }
+.pfeed-seat_filled::before { background: light-dark(#bf3989, #e275ad); }
 
 /* Slack's reaction row under a pull request. */
 .reaction-bar { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

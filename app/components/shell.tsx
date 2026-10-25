@@ -21,7 +21,7 @@ import { isOss, site } from "../lib/site";
  * What "add" means on this site: listing a project on builders, suggesting an
  * open source repo on oss, which has no products to list.
  */
-const ADD_HREF = isOss ? "/recommend" : "/submit";
+const ADD_HREF = isOss ? "/recommend" : "/new";
 function addLabel(locale: Locale): string {
   return isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project");
 }
@@ -60,7 +60,10 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
  */
 const PRIMARY_LINKS: NavLink[] = [
   { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "directory" },
-  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity", icon: "pull-request" },
+  // Activity is members' pull requests, the open source site's; builders gets
+  // its own feed of products later, and lists none until then.
+  // Pull requests on the open source site, members' products on builders.
+  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity" as const, icon: isOss ? ("pull-request" as const) : ("pulse" as const) },
 ];
 
 /* The pages that answer for the site — how it works, what this is, and where to say it is broken. */
@@ -73,6 +76,7 @@ const SECONDARY_LINKS: NavLink[] = [
 type HeaderIconName =
   | "directory"
   | "pull-request"
+  | "pulse"
   | "about"
   | "feedback"
   | "profile"
@@ -88,6 +92,7 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
   const paths: Record<HeaderIconName, React.ReactNode> = {
     directory: <><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></>,
     "pull-request": <><circle cx="6" cy="6" r="2.5" /><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="18" r="2.5" /><path d="M6 8.5v7M18 15.5V10a3 3 0 0 0-3-3h-4M13 4.5 10.5 7 13 9.5" /></>,
+    pulse: <path d="M3 12h4l2.5-6 5 12 2.5-6h4" />,
     about: <><circle cx="12" cy="12" r="9" /><path d="M12 11.5v5M12 7.8h.01" /></>,
     feedback: <><path d="M4 5h16v11H10l-4 4v-4H4z" /><path d="M8 9h8M8 12.5h5" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
@@ -533,7 +538,7 @@ export async function SiteFooter() {
       <p>
         {isOss
           ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
-          : tx(locale, "Direktori project yang bisa kamu kontribusikan.", "A directory of projects you can contribute to.")}
+          : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
       </p>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>

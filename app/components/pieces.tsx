@@ -39,22 +39,6 @@ export async function TypeBadge({ type }: { type: string }) {
   );
 }
 
-/** A maintainer's explicit invitation, kept visually distinct from a stage. */
-export async function GitHubContributeBadge({ repoUrl }: { repoUrl: string }) {
-  const locale = await currentLocale();
-  return (
-    <a
-      className="github-contribute-badge"
-      href={repoUrl}
-      target="_blank"
-      rel="noreferrer"
-      title={tx(locale, "Proyek ini terbuka untuk kontribusi melalui GitHub", "This project is open to contributions through GitHub")}
-    >
-      {tx(locale, "Terbuka untuk kontribusi GitHub", "Open to GitHub contributions")} <Arrow diagonal />
-    </a>
-  );
-}
-
 /** A project's tags. Plain text: nothing on the site lists projects by tag any more. */
 export function TagRow({ tags }: { tags: string[] }) {
   if (tags.length === 0) return null;
@@ -102,7 +86,6 @@ export async function ProjectRow({ project }: { project: ProjectSummary }) {
           <div className="project-head-badges">
             <StageBadge stage={project.stage} />
             <TypeBadge type={project.projectType} />
-            {project.openForGitHubContributions ? <GitHubContributeBadge repoUrl={project.repoUrl} /> : null}
           </div>
         </div>
 

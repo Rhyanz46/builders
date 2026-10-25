@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { HowItWorks, howItWorksMetadata } from "./how-it-works";
+import { HowItWorks, SITE_TRACK, howItWorksMetadata } from "./how-it-works";
 
 export function generateMetadata(): Promise<Metadata> {
-  return howItWorksMetadata("github");
+  return howItWorksMetadata(SITE_TRACK);
 }
 
 export default function HowItWorksPage() {
-  return <HowItWorks track="github" />;
+  return <HowItWorks track={SITE_TRACK} />;
 }

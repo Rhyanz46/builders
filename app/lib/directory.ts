@@ -5,6 +5,7 @@ import { parseGitHubRepositoryUrl } from "./github";
 import { tx, type Locale } from "./locale";
 import { isHttpUrl } from "./brief";
 import { STAGES, type Stage } from "./stages";
+import { isOss } from "./site";
 import {
   reasonLabel,
   repoBadges,
@@ -287,12 +288,17 @@ export function repoEntry(
  * A product's entries: one on the GitHub path when it takes pull requests on
  * a GitHub repository, one on the role path when it names roles it needs, and
  * none when it asks for nothing.
+ *
+ * With `everyProduct`, the builders site's directory of products: the role
+ * path lists every product, asking for help or not, and the way in to one
+ * that is not is its page.
  */
 export function productEntries<P extends DirectoryProduct>(
   project: P,
   describe: (project: P) => string,
   roleName: (role: string) => string,
   locale: Locale,
+  { everyProduct = false }: { everyProduct?: boolean } = {},
 ): DirectoryEntry[] {
   // Every product with a GitHub repository is on the code path, ranked by its
   // PR tier: the ones merging outsiders first, the ones not taking PRs last —
@@ -367,6 +373,17 @@ export function productEntries<P extends DirectoryProduct>(
       labels: project.openRoles.map(roleName),
       actionHref: rolesHref,
       actionLabel: tx(locale, "Lihat peran", "See the roles"),
+      actionKind: "roles",
+      external: false,
+    });
+  } else if (everyProduct) {
+    entries.push({
+      ...base,
+      key: `product:${project.id}:role`,
+      track: "role",
+      labels: [],
+      actionHref: page,
+      actionLabel: tx(locale, "Lihat produk", "See the product"),
       actionKind: "roles",
       external: false,
     });
@@ -568,15 +585,18 @@ export function badgeCounts(entries: DirectoryEntry[], track: DirectoryTrack): {
  */
 export function openingCounts(entries: DirectoryEntry[], track: DirectoryTrack): { open: DirectoryOpening; count: number }[] {
   const onTrack = entries.filter((entry) => entry.track === track);
-  // On the code path, pull requests have their own finer filter: the tiers.
-  const openings = DIRECTORY_OPENINGS.filter((open) => !(track === "github" && open === "prs"));
+  // On the code path, pull requests have their own finer filter: the tiers;
+  // the builders site shows nothing of GitHub's, pull requests included.
+  const openings = DIRECTORY_OPENINGS.filter((open) => !(open === "prs" && (track === "github" || !isOss)));
   return openings.map((open) => ({ open, count: onTrack.filter((entry) => isOpenFor(entry, open)).length })).filter(
     ({ count }) => count > 0 && count < onTrack.length,
   );
 }
 
 export function openingLabel(open: DirectoryOpening, locale: Locale): string {
-  return open === "prs" ? tx(locale, "Menerima PR", "Accepting PRs") : tx(locale, "Juga buka peran", "Also has open roles");
+  if (open === "prs") return tx(locale, "Menerima PR", "Accepting PRs");
+  // On the builders site every product is listed, so this is the one that narrows it.
+  return isOss ? tx(locale, "Juga buka peran", "Also has open roles") : tx(locale, "Lagi cari bantuan", "Looking for help");
 }
 
 /** The chips for one path, most common first. */

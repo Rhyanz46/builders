@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { builderUrl, isOss } from "./app/lib/site";
+import { builderUrl, isOss, ossUrl } from "./app/lib/site";
 
 /**
  * Cache Components is what makes this site cheap to serve.
@@ -30,14 +30,21 @@ const nextConfig: NextConfig = {
             { source: "/new", destination: builderUrl("/new"), permanent: false },
             { source: "/projects/:path*", destination: builderUrl("/projects/:path*"), permanent: false },
             { source: "/inbox", destination: builderUrl("/inbox"), permanent: false },
-            { source: "/how-it-works/roles", destination: builderUrl("/how-it-works/roles"), permanent: false },
+            { source: "/how-it-works/roles", destination: builderUrl("/how-it-works"), permanent: false },
             { source: "/", has: [{ type: "query" as const, key: "track", value: "role" }], destination: builderUrl("/"), permanent: false },
             { source: "/explore", destination: builderUrl("/?track=role"), permanent: false },
             { source: "/kolaborasi", destination: builderUrl("/?track=role"), permanent: false },
             // Its "add a project" is suggesting a repo.
             { source: "/submit", destination: "/recommend", permanent: false },
           ]
-        : []),
+        : [
+            // And the builders site has none of GitHub's: the repo catalogue
+            // lives on the open source site. Its /activity is a product feed.
+            { source: "/recommend", destination: ossUrl("/recommend"), permanent: false },
+            // Its "add a project" is listing a product; its walk-through is the roles one.
+            { source: "/submit", destination: "/new", permanent: false },
+            { source: "/how-it-works/roles", destination: "/how-it-works", permanent: false },
+          ]),
       // The old board and the talent pool are gone; the directory covers both.
       { source: "/explore", destination: "/?track=role", permanent: true },
       { source: "/kolaborasi", destination: "/?track=role", permanent: true },

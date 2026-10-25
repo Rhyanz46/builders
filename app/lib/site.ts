@@ -60,6 +60,15 @@ export function builderUrl(path: string): string {
 }
 
 /**
+ * The open source site's address for a path, for the builders site to send
+ * GitHub matters there — a repo's card, the catalogue, somebody's PRs.
+ */
+export function ossUrl(path: string): string {
+  const base = SITE === "oss" ? site.url : DEFAULT_URLS.oss;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+/**
  * Where the auth cookies live. Both sites are subdomains of swegrowth.id, so
  * with `NEXT_PUBLIC_COOKIE_DOMAIN=.swegrowth.id` one sign-in serves both.
  * Unset (local development, a preview deploy) keeps them on the host, as
