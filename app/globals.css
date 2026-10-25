@@ -2522,19 +2522,28 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
   .ab-cta { padding: 24px 20px; }
 }
 
-/* /how-it-works: the same page frame as /about, its steps as a numbered column. */
-.hw-lead { margin-top: 14px; max-width: 62ch; }
-.hw-tracks { margin-top: 20px; width: fit-content; }
-.hw-steps { display: grid; gap: 12px; list-style: none; margin: 28px 0 0; padding: 0; }
-.hw-step { border: 1px solid var(--dx-line); border-radius: 10px; display: grid; gap: 14px; grid-template-columns: 30px minmax(0, 1fr); padding: 18px; }
+/* /how-it-works: the directory's plainness — its heading size, hairline rows
+   rather than cards, small soft step numbers, and text links for actions. */
+.hw-page .ab-intro h1 { font-size: 26px; letter-spacing: -.03em; }
+.hw-lead { color: var(--dx-muted); font-size: 14px; line-height: 1.6; margin: 6px 0 0; max-width: 62ch; }
+.hw-tracks { margin-top: 18px; width: fit-content; }
+.hw-steps { list-style: none; margin: 20px 0 0; padding: 0; }
+.hw-step { border-top: 1px solid var(--dx-line); display: grid; gap: 12px; grid-template-columns: 22px minmax(0, 1fr); padding: 14px 0; }
 .hw-step-mark {
-  align-items: center; border: 1.5px solid var(--dx-ink); border-radius: 50%; display: flex; font-size: 13px; font-weight: 700;
-  height: 30px; justify-content: center; width: 30px;
+  align-items: center; background: var(--dx-soft); border-radius: 999px; color: var(--dx-ink); display: inline-flex;
+  font-size: 12px; font-weight: 650; height: 22px; justify-content: center; width: 22px;
 }
-.hw-step h2 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; margin: 4px 0 6px; }
-.hw-step p { color: var(--dx-text); font-size: 14.5px; line-height: 1.65; margin: 0 0 12px; }
-.hw-step p:last-child { margin-bottom: 0; }
+.hw-step h2 { font-size: 14.5px; font-weight: 600; margin: 2px 0 3px; }
+.hw-step p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 0; }
+.hw-link { color: var(--dx-ink); display: inline-block; font-size: 13px; font-weight: 600; margin-top: 6px; }
+.hw-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hw-page .ab-section { margin-top: 28px; padding-top: 24px; }
+.hw-page .ab-section h2 { font-size: 16px; }
+.hw-page .ab-subhead { font-size: 14px; margin-top: 18px; }
+.hw-page .ab-lead { color: var(--dx-muted); font-size: 13.5px; }
 .hw-more { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 28px 0 0; }
+.hw-page .hw-more { gap: 8px 20px; margin-top: 24px; }
+.hw-page .hw-more .ab-more { font-size: 13px; }
 
 /* The old deep-green panels (a profile's band, a project's level card) now
    read like every other card: page colour, a hairline, the page's own theme. */

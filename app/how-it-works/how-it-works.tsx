@@ -185,10 +185,10 @@ export async function HowItWorks({ track }: { track: Track }) {
     <>
       <SiteHeader returnTo={href(track)} active="how" />
 
-      <main id="main-content" className="ab-page">
+      <main id="main-content" className="ab-page hw-page">
         <header className="ab-intro" aria-labelledby="how-title">
           <h1 id="how-title">{tx(locale, "Cara kerjanya", "How it works")}</h1>
-          <p className="ab-lead hw-lead">
+          <p className="hw-lead">
             {track === "github"
               ? tx(
                   locale,
@@ -221,11 +221,11 @@ export async function HowItWorks({ track }: { track: Track }) {
                 <p>{step.body}</p>
                 {step.action ? (
                   step.action.external ? (
-                    <a className="ab-button" href={step.action.href} target="_blank" rel="noopener noreferrer">
+                    <a className="hw-link" href={step.action.href} target="_blank" rel="noopener noreferrer">
                       {step.action.label} <span aria-hidden="true">↗</span>
                     </a>
                   ) : (
-                    <Link className="ab-button" href={step.action.href}>
+                    <Link className="hw-link" href={step.action.href}>
                       {step.action.label} <Arrow />
                     </Link>
                   )
