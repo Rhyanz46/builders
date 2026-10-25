@@ -30,6 +30,7 @@ import {
   type DirectoryEntry,
   type DirectoryFilters,
   type DirectoryTrack,
+  type SharedBy,
 } from "../lib/directory";
 import { badgeKindLabel, badgeLabel, badgePeople, type Badge, type BadgeKind } from "../lib/badges";
 import { pathFor, readFilters, readPage } from "../lib/directory-url";
@@ -665,6 +666,24 @@ function TrackIcon({ track }: { track: DirectoryTrack }) {
   );
 }
 
+/** Who put a catalogue repo forward, credited the way they stand to it. */
+function SharedByLine({ sharedBy, locale }: { sharedBy: SharedBy; locale: Locale }) {
+  const name = <Link href={`/u/${sharedBy.username}`}>{sharedBy.name || sharedBy.username}</Link>;
+  return (
+    <p className="dx-shared">
+      {sharedBy.role === "owner" ? (
+        <>{tx(locale, "Dibagikan pemiliknya, ", "Shared by its owner, ")}{name}</>
+      ) : sharedBy.role === "maintainer" ? (
+        <>{tx(locale, "Dibagikan maintainer-nya, ", "Shared by its maintainer, ")}{name}</>
+      ) : sharedBy.role === "contributor" ? (
+        <>{tx(locale, "Direkomendasikan ", "Recommended by ")}{name}{tx(locale, ", kontributornya", ", a contributor")}</>
+      ) : (
+        <>{tx(locale, "Direkomendasikan ", "Recommended by ")}{name}</>
+      )}
+    </p>
+  );
+}
+
 function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: Locale; now: number | null }) {
   const external = { target: "_blank", rel: "noopener noreferrer" };
   const owner = entry.kind === "product" ? tx(locale, `oleh ${entry.owner}`, `by ${entry.owner}`) : entry.owner;
@@ -727,6 +746,7 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
             </p>
           ) : null}
           {entry.description ? <p className="dx-desc">{entry.description}</p> : null}
+          {entry.sharedBy ? <SharedByLine sharedBy={entry.sharedBy} locale={locale} /> : null}
           {entry.badges.length > 0 ? (
             <ul className="dx-badges" aria-label={tx(locale, "Tanda", "Signals")}>
               {entry.badges.map((badge) => <BadgeChip key={badge.kind} badge={badge} locale={locale} />)}

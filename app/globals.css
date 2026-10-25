@@ -1712,6 +1712,10 @@ form button[aria-busy="true"]::after,
   color: var(--dx-text); font-size: 13px; line-height: 1.45; margin: 2px 0 0; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
+/* Who shared a catalogue repo: a quiet credit under the description. */
+.dx-shared { color: var(--dx-muted); font-size: 12px; line-height: 1.4; margin: 3px 0 0; }
+.dx-shared a { color: var(--dx-text); font-weight: 600; }
+.dx-shared a:hover { text-decoration: underline; }
 /* Badges are about people, so they speak louder than tags: filled, coloured
    by kind, with the named people's faces when there are any. */
 .dx-badges { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 7px 0 0; padding: 0; }
