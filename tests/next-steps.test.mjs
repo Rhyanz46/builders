@@ -36,7 +36,7 @@ test("a brand new account owes GitHub, its open source record, and who it is", (
 });
 
 test("GitHub counts once it reads as an account, in any of the usual spellings", () => {
-  const done = (github) => nextSteps({ person: { ...emptyPerson, github }, owned: [] }).find((step) => step.id === "github").done;
+  const done = (github) => nextSteps({ person: { ...emptyPerson, github, githubActivityShown: true }, owned: [] }).find((step) => step.id === "github").done;
   assert.equal(done("https://github.com/someone"), true);
   assert.equal(done("@someone"), true);
   assert.equal(done("https://gitlab.com/someone"), false);
@@ -62,13 +62,13 @@ test("the product steps stay hidden until there is a product to say them about",
 });
 
 test("a contributor with GitHub, a record, and a profile owes nothing", () => {
-  const steps = nextSteps({ person: { ...filledPerson, github: "https://github.com/someone" }, owned: [], ossCount: 2 });
+  const steps = nextSteps({ person: { ...filledPerson, github: "https://github.com/someone", githubActivityShown: true }, owned: [], ossCount: 2 });
   assert.deepEqual(remainingSteps(steps), []);
 });
 
 test("a founder's product steps are offered, never owed", () => {
   const steps = nextSteps({
-    person: { ...filledPerson, github: "someone" },
+    person: { ...filledPerson, github: "someone", githubActivityShown: true },
     owned: [project()],
     ossCount: 1,
   });
@@ -108,4 +108,21 @@ test("any one public link is enough to be reachable", () => {
   assert.equal(hasContact(emptyPerson), false);
   assert.equal(hasContact({ ...emptyPerson, resume: "https://contoh.id/cv.pdf" }), true);
   assert.equal(hasContact({ ...emptyPerson, github: "  " }), false);
+});
+
+test("GitHub is done once its activity is shown too, not on the username alone", () => {
+  const done = (shown) => nextSteps({ person: { ...emptyPerson, github: "someone", githubActivityShown: shown }, owned: [] }).find((step) => step.id === "github").done;
+  assert.equal(done(false), false);
+  assert.equal(done(undefined), false);
+  assert.equal(done(true), true);
+});
+
+test("the WA Community is owed, done once its button was pressed, and absent without an invite", () => {
+  const waUrl = "https://chat.whatsapp.com/abc";
+  const wa = (waJoined) => nextSteps({ person: emptyPerson, owned: [], waUrl, waJoined }).find((step) => step.id === "wa");
+  assert.deepEqual(remainingSteps(nextSteps({ person: emptyPerson, owned: [], waUrl })).map((step) => step.id), ["github", "oss", "talent", "wa"]);
+  assert.equal(wa(false).href, waUrl);
+  assert.equal(wa(false).external, true);
+  assert.equal(wa(true).done, true);
+  assert.equal(nextSteps({ person: emptyPerson, owned: [] }).some((step) => step.id === "wa"), false);
 });

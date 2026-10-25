@@ -2128,6 +2128,9 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .ob-step-copy h3 { align-items: center; display: flex; flex-wrap: wrap; font-size: 16px; font-weight: 650; gap: 8px; margin: 3px 0 4px; }
 .ob-step-state { background: light-dark(#ecfdf3, #131d17); border-radius: 99px; color: light-dark(#047857, #6dbe9d); font-size: 11px; font-weight: 650; padding: 2px 8px; }
 .ob-step-copy > p { color: var(--dx-muted); font-size: 14px; line-height: 1.55; margin: 0; }
+.ob-welcome { color: var(--dx-text); font-size: 15px; line-height: 1.6; margin: 10px 0 0; max-width: 62ch; }
+.ob-welcome a { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.ob-wa-list { color: var(--dx-text); display: grid; font-size: 13.5px; gap: 4px; line-height: 1.5; margin: 10px 0 0; padding-left: 18px; }
 .ob-step-edit { color: var(--dx-muted); font-size: 13px; font-weight: 600; padding-top: 6px; }
 .ob-step-edit:hover { color: var(--dx-ink); }
 .ob-steps-quiet .ob-step-mark { border-color: var(--dx-line); color: var(--dx-faint); }
