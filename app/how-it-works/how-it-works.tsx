@@ -57,7 +57,15 @@ const TIERS: readonly (readonly [PRTier, string, string])[] = [
   ],
 ];
 
+/**
+ * What a step is about, which picks its colour from the directory's own:
+ * blue like its links, green like the WA button, amber like its badges, and
+ * purple like a merged pull request on /activity.
+ */
+type Tone = "account" | "wa" | "pick" | "work" | "done";
+
 type Step = {
+  tone: Tone;
   title: string;
   body: string;
   action?: { href: string; label: string; external?: boolean };
@@ -79,6 +87,7 @@ function steps(track: Track, locale: Locale): Step[] {
   const wa: Step[] = waCommunityUrl
     ? [
         {
+          tone: "wa",
           title: tx(locale, "Gabung WA Community", "Join the WA Community"),
           body:
             track === "github"
@@ -100,6 +109,7 @@ function steps(track: Track, locale: Locale): Step[] {
   if (track === "role") {
     return [
       {
+        tone: "account",
         title: tx(locale, "Masuk & ceritakan siapa kamu", "Sign in and say who you are"),
         body: tx(
           locale,
@@ -110,6 +120,7 @@ function steps(track: Track, locale: Locale): Step[] {
       },
       ...wa,
       {
+        tone: "pick",
         title: tx(locale, "Pilih peran", "Pick a role"),
         body: tx(
           locale,
@@ -119,6 +130,7 @@ function steps(track: Track, locale: Locale): Step[] {
         action: { href: "/?track=role", label: tx(locale, "Buka Peran lain", "Open Other roles") },
       },
       {
+        tone: "work",
         title: tx(locale, "Ajukan diri", "Offer to help"),
         body: tx(
           locale,
@@ -127,6 +139,7 @@ function steps(track: Track, locale: Locale): Step[] {
         ),
       },
       {
+        tone: "done",
         title: tx(locale, "Kerjakan bareng pemiliknya", "Work on it with the owner"),
         body: tx(
           locale,
@@ -139,6 +152,7 @@ function steps(track: Track, locale: Locale): Step[] {
 
   return [
     {
+      tone: "account",
       title: tx(locale, "Masuk pakai GitHub", "Sign in with GitHub"),
       body: tx(
         locale,
@@ -149,6 +163,7 @@ function steps(track: Track, locale: Locale): Step[] {
     },
     ...wa,
     {
+      tone: "pick",
       title: tx(locale, "Pilih repo", "Pick a repo"),
       body: tx(
         locale,
@@ -158,6 +173,7 @@ function steps(track: Track, locale: Locale): Step[] {
       action: { href: "/", label: tx(locale, "Buka direktori", "Open the directory") },
     },
     {
+      tone: "work",
       title: tx(locale, "Kerjakan, bareng", "Work on it, together"),
       body: tx(
         locale,
@@ -166,6 +182,7 @@ function steps(track: Track, locale: Locale): Step[] {
       ),
     },
     {
+      tone: "done",
       title: tx(locale, "PR di-merge, muncul sendiri", "PR merged, shown for you"),
       body: tx(
         locale,
@@ -214,7 +231,7 @@ export async function HowItWorks({ track }: { track: Track }) {
 
         <ol className="hw-steps">
           {steps(track, locale).map((step, index) => (
-            <li key={step.title} className="hw-step">
+            <li key={step.title} className={`hw-step hw-tone-${step.tone}`}>
               <span className="hw-step-mark" aria-hidden="true">{index + 1}</span>
               <div>
                 <h2>{step.title}</h2>

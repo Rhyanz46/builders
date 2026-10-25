@@ -2533,6 +2533,14 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
   align-items: center; background: var(--dx-soft); border-radius: 999px; color: var(--dx-ink); display: inline-flex;
   font-size: 12px; font-weight: 650; height: 22px; justify-content: center; width: 22px;
 }
+/* Each step's number and link take its tone; everything else stays plain. */
+.hw-tone-account { --hw-tone: light-dark(#0969da, #4493f8); --hw-tone-soft: light-dark(#ddf4ff, #16243a); }
+.hw-tone-wa { --hw-tone: light-dark(#1a7f37, #3fb950); --hw-tone-soft: light-dark(#dafbe1, #13261a); }
+.hw-tone-pick { --hw-tone: light-dark(#92400e, #d4a34a); --hw-tone-soft: light-dark(#fef3c7, #2a2112); }
+.hw-tone-work { --hw-tone: var(--dx-ink); --hw-tone-soft: var(--dx-soft); }
+.hw-tone-done { --hw-tone: light-dark(#8250df, #b392f0); --hw-tone-soft: light-dark(#fbefff, #241a33); }
+.hw-step .hw-step-mark { background: var(--hw-tone-soft); color: var(--hw-tone); }
+.hw-step .hw-link { color: var(--hw-tone); }
 .hw-step h2 { font-size: 14.5px; font-weight: 600; margin: 2px 0 3px; }
 .hw-step p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.6; margin: 0; }
 .hw-link { color: var(--dx-ink); display: inline-block; font-size: 13px; font-weight: 600; margin-top: 6px; }
