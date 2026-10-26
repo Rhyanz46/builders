@@ -19,13 +19,13 @@
 # window before Netlify has issued a certificate for the alias.
 [[redirects]]
   from = "https://talents.builders.swegrowth.id/*"
-  to = "https://builders.swegrowth.id/people"
+  to = "https://builders.swegrowth.id/"
   status = 301
   force = true
 
 [[redirects]]
   from = "http://talents.builders.swegrowth.id/*"
-  to = "https://builders.swegrowth.id/people"
+  to = "https://builders.swegrowth.id/"
   status = 301
   force = true
 

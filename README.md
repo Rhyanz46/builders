@@ -3,28 +3,24 @@
 [![CI](https://github.com/swegrowthid/builders/actions/workflows/ci.yml/badge.svg)](https://github.com/swegrowthid/builders/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A directory of projects you can contribute to. One list, one search box, and
-a button on every row that opens where contributing starts.
+The code behind two sites of the [swegrowth](https://swegrowth.id) community,
+built from one codebase and one Supabase database:
 
-The list holds three kinds of project: open source repositories we maintain,
-open source repositories one of us recommends (each with the reason, in the
-recommender's own words, and their name), and products builders have listed
-here that are asking for help — either by taking pull requests on GitHub or by
-naming a role they need (designer, PM, researcher, writer…).
+| Site | What it is for |
+| --- | --- |
+| [builders.swegrowth.id](https://builders.swegrowth.id) | **Products** members are building. A directory of every active product, filtered to the ones looking for help (engineer, designer, PM, researcher, writer, QA…); each product's story, stage, journey and open roles; and an activity feed of what those products did, with reactions. |
+| [oss.swegrowth.id](https://oss.swegrowth.id) | **Open source.** A directory of repositories taking contributors — ones we maintain, ones a member recommends with their reason, and members' products that take pull requests — plus an activity feed of members' pull requests, straight from GitHub. |
 
-Repositories reach the directory through `/recommend`: any member puts one
-forward, and a site admin approves it on `/admin`. Products come in through
-`/new`, as before.
+Which site a deploy is comes from `NEXT_PUBLIC_SITE` at build time (`builders`
+by default, or `oss`; see `app/lib/site.ts`). Each site redirects the other's
+routes to it, and one sign-in works on both.
 
-Show what you are making — an idea, a half-built thing, or something people
-already use. Say what it is working on right now, write down its journey as it
-goes, and name the help you are looking for. Anyone else can follow along or
-join in. Each person's profile is the work with their name on it: what they are
-building, and what they helped build.
+A profile, on either site, is the work with somebody's name on it: what they
+build and help build on builders, their open source record on oss.
 
 Next.js on Netlify, with Supabase for both the database and sign-in.
 
-[Try the live site](https://builders.swegrowth.id) · [Report a bug](https://github.com/swegrowthid/builders/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/swegrowthid/builders/issues/new?template=feature_request.yml)
+[builders.swegrowth.id](https://builders.swegrowth.id) · [oss.swegrowth.id](https://oss.swegrowth.id) · [Report a bug](https://github.com/swegrowthid/builders/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/swegrowthid/builders/issues/new?template=feature_request.yml)
 
 > [!NOTE]
 > Builders is under active development. The database schema and user-facing
@@ -40,7 +36,8 @@ Next.js on Netlify, with Supabase for both the database and sign-in.
 ```bash
 npm install
 cp .env.example .env.local   # fill in your Supabase URL and anon key
-npm run dev                  # http://localhost:3000
+npm run dev                  # http://localhost:3000, the builders site
+NEXT_PUBLIC_SITE=oss npm run dev   # the open source site
 ```
 
 Without `.env.local` the site still runs: it serves the read-only seed from
@@ -50,48 +47,14 @@ and everything that writes will say so rather than failing quietly.
 ## Setting up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the files in `supabase/migrations/` **in order**, in the SQL editor. The
-   deploy tolerates running ahead of the database — a page loses the feature a
-   missing table feeds rather than falling over, and says so in the server log —
-   but nothing new works until these are applied:
-   - `0001_schema.sql` — tables, constraints, and the `project_overview` view
-   - `0002_functions.sql` — the sign-up trigger and the two seat transitions
-   - `0003_policies.sql` — row level security
-   - `0004_access_and_tasks.sql` — project access levels and the task list
-   - `0005_activity.sql` — the activity trail
-   - `0006_level_colour.sql` — drops the decorative accent colour
-   - `0007_open_roles.sql` — the roles a project is asking for, on the overview
-   - `0008_notices.sql` — telling an applicant what was decided
-   - `0009_admins_decide_again.sql` — gives admins back the seat decisions
-     0008 accidentally took from them
-   - `0010_showcase.sql` — what a project is working on now, its journey,
-     following, and four levels instead of five
-   - `0011_predefined_roles.sql` — the shared, filterable role catalogue
-   - `0012_custom_role_titles.sql` — a specific title when a needed role is not
-     in that catalogue
-   - `0013_people_directory.sql` — searchable profession, skills, experience,
-     and fields for the people directory
-  - `0014_profile_links.sql` — optional public email, LinkedIn, X, and résumé
-    links on portfolio profiles
-  - `0015_project_logo_url.sql` — an optional project-owned logo URL
-  - `0016_task_role_proposals.sql` — optional task/role links and multi-person
-    proposals gated by the talent-pool profile
-  - `0017_github_open_contributions.sql` — the explicit GitHub contribution
-    badge and its repository safeguard
-  - the timestamped files after those, in filename order — Explore's search
-    indexes, the brief-length alignment,
-    `20260829120000_project_types.sql`, which records what kind of project it
-    is (pet project, community, product, commercial) so people browsing can
-    pick the kind of collaboration they are looking for, and
-    `20260829130000_link_first_projects.sql`, which drops the brief's length
-    floors and adds `highlight`, so a project can arrive as a link and be
-    written up afterwards, `20261020000000_oss_contributions.sql`, the
-    open source repos each member lists on their profile — the source of the
-    directory's "a friend has contributed" and "maintainer in our group"
-    badges — and `20261021000000_oss_catalogue.sql`, the open source
-    catalogue (`oss_repos`) and the site admins who approve it
-    (`site_admins`). Make yourself an admin afterwards, in the SQL editor:
-    `insert into public.site_admins (user_id) select id from public.profiles where username = '<you>';`
+2. Apply the files in `supabase/migrations/` **in filename order** — with
+   `supabase link` then `supabase db push`, or one by one in the SQL editor.
+   Each file opens with a comment saying what it adds and why. The deploy
+   tolerates running ahead of the database — a page loses the feature a
+   missing table feeds rather than falling over, and says so in the server log
+   — but nothing new works until they are applied. Make yourself a site admin
+   afterwards, in the SQL editor:
+   `insert into public.site_admins (user_id) select id from public.profiles where username = '<you>';`
 3. Copy the project URL and the **anon** key from Project Settings → API into
    `.env.local`. Never put the `service_role` key in this app; it bypasses every
    policy.
@@ -165,20 +128,24 @@ match it.
 
 ## How the site is put together
 
+Both sites share the pages below unless the table says otherwise; a route one
+site does not have redirects to the other (`next.config.ts`).
+
 | Route | What it is |
 | --- | --- |
-| `/recommend` | Suggest an open source repo — yours or one you vouch for — with your reason. Waits for an admin; your own suggestions and their status are listed below the form |
-| `/admin` | Site admins only (404 for anyone else): approve or reject suggestions, edit or remove listed repos, add one directly |
-| `/` | The directory: facets on the left — how to contribute (`?track=role`; code on GitHub by default), signals (`?badge=friend-contributed\|in-our-group\|indonesian`), source (`?source=internal\|recommended\|product`), language or role (`?facet=`) — and a table of projects on the right, with search (`?q=`) |
-| `/explore` | The older project board, narrowed by level, kind, topic, role, search. No longer in the menu |
-| `/projects/<slug>` | One project: the story, what it is doing now, the help it wants, its journey |
-| `/u/<username>` | One person: who they are, their open source record with a link to the PRs behind each claim, the products they build or help, their trail |
-| `/new` | Add a project. One field: the link. Its page supplies the name, description and icon; the brief and everything else is optional and can be added later |
-| `/get-started` | Where a completed sign-in lands — not a callback, never on the redirect allow list. Three steps — link GitHub, list the repos you have contributed to (the form is inline), say who you are — then founder steps, offered not owed; forwards to the directory once nothing is owed |
-| `/account/profile` | The profile editor — who you are, what puts you in the talent pool, how to reach you |
-| `/signin`, `/signup` | Google OAuth or email and password, through Supabase Auth |
-| `/about`, `/en/about` | The story behind the name, in Indonesian and English |
-| `/feedback` | The feedback box — what is broken, what is confusing, what is missing. Open to guests, and read by the maintainers alone |
+| `/` | The directory. **builders:** every active product, with "looking for help" as a filter. **oss:** repositories taking contributors, with signals (`?badge=`), source (`?scope=`), language (`?facet=`) and pull request activity (`?pr=`). Search with `?q=` on both |
+| `/activity` | **builders:** what members' products did — listed, a new stage, an update, a role opened or filled — one card per product per day, with reactions. **oss:** members' pull requests and work on their own repositories, from GitHub, with reactions |
+| `/projects/<slug>` | builders: one product — the story, what it is doing now, the help it wants, its journey. A GitHub repository links to the oss site |
+| `/new` | builders: list a product. One field: the link. Its page supplies the name, description and icon; everything else can be added later |
+| `/inbox` | builders: applications, proposals, and notices such as a reaction |
+| `/recommend` | oss: suggest an open source repository, with your reason. Waits for an admin |
+| `/u/<username>` | One person. builders: products built and helped, and their trail. oss: their open source record, each claim beside a link to the PRs behind it |
+| `/get-started` | Where a completed sign-in lands — not a callback, never on the redirect allow list. Picks a path (help a product / build one on builders; contribute on oss) and lists the steps still owed |
+| `/how-it-works` | The walk-through for the site's own path: roles on builders, code on GitHub on oss |
+| `/admin` | Site admins only (404 for anyone else). builders: members' products. oss: the repository catalogue and its suggestions |
+| `/account/profile` | The profile editor — who you are, how to reach you, and on oss whether your GitHub activity is shown |
+| `/signin`, `/signup` | GitHub or Google OAuth, or email and password, through Supabase Auth |
+| `/about`, `/privacy`, `/feedback` | The story, the privacy notice, and the feedback box (open to guests, read by the maintainers alone) |
 
 ### Where the rules live
 
@@ -212,10 +179,13 @@ match it.
   with the member-derived ones: for what no member can say for themselves
   ("maintainers are Indonesian", ticked on the suggestion form). A product's
   go in `PRODUCT_BADGES`, by slug.
-- `app/lib/directory.ts` — splits the directory by how you contribute: code
-  through a pull request on GitHub (our repos, recommended repos, products
-  open to PRs), or another role on a builders' product. A product doing both
-  is listed once on each path; one asking for nothing is left out.
+- `app/lib/site.ts` — which site this build is, its name and address, and
+  the links that cross to the other one (`builderUrl`, `ossUrl`).
+- `app/lib/directory.ts` — the directory's entries. On oss, code through a pull
+  request on GitHub (our repos, recommended repos, products open to PRs); on
+  builders, every active product, with the roles it is asking for.
+- `app/lib/product-feed.ts` — the builders feed: which trail kinds it shows
+  and how they group into one card per product per day.
 - `app/lib/stages.ts` — the levels (`idea → building → live`, plus `resting`)
   and what each one requires. No level asks for a team: working alone is not a
   lesser project. What they ask for is evidence the work has moved — a link, or
@@ -289,15 +259,16 @@ npm test        # builds, then runs everything under tests/
 npm run test:unit   # just the pure logic, no build
 ```
 
-`tests/rendered-html.test.mjs` runs the built site with no Supabase credentials,
-so it covers every page as a guest. `tests/supabase.test.mjs` is a read-only
-smoke test that skips unless credentials are present — it is safe to point at
-production.
+`npm test` builds the builders site, then runs the unit tests in `tests/`:
+pure logic such as the directory's entries and URLs, the onboarding steps, the
+feeds, link metadata and the site switch. CI also builds the oss site
+(`NEXT_PUBLIC_SITE=oss npx next build`), so a change that breaks only one of
+the two is caught.
 
 The policies have their own suite, which needs a scratch PostgreSQL 16:
 
 ```bash
-createdb ahsan_test
+createdb builders_test
 psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f supabase/local/auth-shim.sql
 for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f "$f"; done
 psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f supabase/tests/policies.sql
@@ -309,17 +280,26 @@ only — never run it against a hosted project.
 
 ## Deployment
 
-Netlify, using `@netlify/plugin-nextjs` (declared in `netlify.toml`). Set these
-in Site settings → Environment variables:
+Netlify, using `@netlify/plugin-nextjs` (declared in `netlify.toml`): **two
+Netlify sites from the same repository and branch**, one per site. Set these
+in each one's Site settings → Environment variables:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the same
+  project on both sites
+- `NEXT_PUBLIC_SITE` — `oss` on the open source site; leave unset (or
+  `builders`) on builders
+- `NEXT_PUBLIC_COOKIE_DOMAIN=.swegrowth.id` on both, so the auth cookies sit on
+  the parent domain and one sign-in works on both sites
+- `GITHUB_TOKEN` — optional, any read-only token, for GitHub's rate limit
 - `NEXT_PUBLIC_SITE_URL` — the site's primary address. Sign-in starts here, and
   it is the fallback origin for links that leave the app and come back when
   there is no request to read the origin from. On Netlify it may be left unset:
   the primary address in Netlify's own `URL` is used for production deploys.
   If you do set it, set it **per context** — a value shared with deploy previews
   sends a reviewer to sign in on the live site
+
+Register both origins with Supabase (Authentication → URL Configuration) and
+with the GitHub App's callback URLs.
 
 `siteOrigin()` in `app/lib/origin.ts` prefers the origin the *browser* asked
 for — `x-forwarded-host`, not `request.url`, which is the address the function
@@ -337,31 +317,28 @@ under Authentication → URL Configuration, each with `/auth/callback` and
 That the forwarded host comes from outside is not a hole: Supabase refuses a
 `redirect_to` that is not on the allow list, so the list is the guard.
 
-Update `siteUrl` in `app/content.ts` when the site moves to its own domain — it
-is the base for canonical and Open Graph URLs.
+Canonical and Open Graph URLs come from `site.url` in `app/lib/site.ts`.
 
 ### Subdomain shortcuts
 
-`talents.builders.swegrowth.id` is a short address for the people directory. The
-redirect itself lives in `netlify.toml`, but it only fires once the name reaches
-this site, which takes two steps outside the repository:
+`talents.builders.swegrowth.id` is a short address that lands on the builders
+directory. The redirect itself lives in `netlify.toml`, but it only fires once
+the name reaches this site, which takes two steps outside the repository:
 
-1. Point the DNS record at Netlify: `talents` is a `CNAME` to
-   `ahsanproject-id.netlify.app` — the same target as `www`. A `CNAME` holding a
-   URL rather than a hostname is not a redirect; nothing serves it.
+1. Point the DNS record at Netlify: `talents` is a `CNAME` to the builders
+   site's `<site>.netlify.app` name. A `CNAME` holding a URL rather than a
+   hostname is not a redirect; nothing serves it.
 2. Add `talents.builders.swegrowth.id` as a domain alias under Site settings → Domain
    management, so Netlify answers for the name and issues a certificate for it.
 
-Then deploy, and the rule sends every path under the subdomain to
-`https://builders.swegrowth.id/people`. Because it is a forced redirect the app never
-renders there, so the subdomain is not a second origin for sign-in and needs no
-entry in Supabase's URL configuration. Another shortcut is the same three
-steps with its own pair of rules.
+Because it is a forced redirect the app never renders there, so the subdomain
+is not a second origin for sign-in and needs no entry in Supabase's URL
+configuration.
 
 ## Useful commands
 
 - `npm run dev` — local development
-- `npm run build` — production build
+- `npm run build` — production build (builders; prefix `NEXT_PUBLIC_SITE=oss` for oss)
 - `npm run lint` — ESLint
 - `npm run db:seed` — regenerate `supabase/seed.sql` from `app/lib/seed.ts`
 

@@ -1,7 +1,7 @@
 {
-  "name": "ahsan-project",
+  "name": "swegrowth-builders",
   "version": "0.1.0",
-  "description": "Where a project meets the people who want to help build it.",
+  "description": "builders.swegrowth.id and oss.swegrowth.id: members' products and open source, from one codebase.",
   "private": true,
   "license": "MIT",
   "homepage": "https://builders.swegrowth.id",
