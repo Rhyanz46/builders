@@ -272,7 +272,7 @@ nav form { display: flex; margin: 0; }
 }
 .mobile-nav .mobile-project-action:hover { background: light-dark(#4d4d4d, #c2c2c2); }
 /* The phone's menu, kept to one screen: who you are and your own pages, the
-   one action, the site's pages as a row of tiles, then preferences. */
+   one action, the site's pages as a grid of tiles, then preferences. */
 .mobile-account-section {
   border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; padding: 6px;
 }
@@ -283,7 +283,7 @@ nav form { display: flex; margin: 0; }
 .mobile-account-identity:hover .account-identity { background: light-dark(#efefef, #1c1c1c); }
 .mobile-account-links { padding-top: 4px; }
 .mobile-nav .mobile-account-links a { min-height: 40px; padding: 8px 10px; }
-.mobile-nav-pages { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-nav-pages { display: grid; gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .mobile-nav .mobile-nav-pages a {
   align-items: center; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--ink-soft); display: flex;
   flex-direction: column; font-size: 12px; font-weight: 620; gap: 5px; justify-content: center; line-height: 1.2;
