@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { defaultShareImage, siteUrl } from "./content";
-import { site } from "./lib/site";
+import { isOss, site } from "./lib/site";
+
+/** The icon files in public/ for this build: `oss-favicon.svg` and so on for the open source site. */
+const iconPrefix = isOss ? "oss-" : "";
 import { LanguageProvider } from "./components/language-provider";
 import { currentLocale } from "./lib/locale-server";
 import { cookies } from "next/headers";
@@ -44,13 +47,14 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [defaultShareImage],
     },
     twitter: { card: "summary_large_image", images: [defaultShareImage.url] },
+    // The open source site's mark is a pull request; builders keeps its peak.
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
-        { url: "/favicon.svg", type: "image/svg+xml" },
+        { url: `/${iconPrefix}favicon.ico`, sizes: "32x32", type: "image/x-icon" },
+        { url: `/${iconPrefix}favicon.svg`, type: "image/svg+xml" },
       ],
-      shortcut: "/favicon.ico",
-      apple: "/apple-touch-icon.png",
+      shortcut: `/${iconPrefix}favicon.ico`,
+      apple: `/${iconPrefix}apple-touch-icon.png`,
     },
   };
 }
