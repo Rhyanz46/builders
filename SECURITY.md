@@ -2,8 +2,8 @@
 
 ## Supported versions
 
-Builders is currently developed from `main` and has not started a stable
-release series. Security fixes are made on `main`; older commits and deployments
+builders.swegrowth.id and oss.swegrowth.id are both deployed from `main`, which
+has not started a stable release series. Security fixes are made on `main`; older commits and deployments
 are not supported.
 
 ## Reporting a vulnerability
