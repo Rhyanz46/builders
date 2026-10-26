@@ -1582,7 +1582,9 @@ form button[aria-busy="true"]::after,
 .ax-layout { grid-template-columns: 280px minmax(0, 1fr); }
 /* The filters above both columns, then the feed's own heading and search. */
 .ax-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; padding-top: 24px; }
-.ax-filters .ax-kind { margin-left: auto; }
+/* One group: the kind select dressed like the toggles beside it. */
+.ax-filters .ax-kind select { background-color: var(--dx-soft); border-color: transparent; border-radius: 9px; color: var(--dx-text); font-weight: 550; }
+.ax-filters .ax-kind select:hover, .ax-filters .ax-kind select:focus-visible { border-color: var(--dx-line); }
 .ax-filters + .ax-layout { padding-top: 18px; }
 .ax-feed-head { align-items: baseline; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
 .ax-feed-head h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; letter-spacing: -.01em; margin: 0; }

@@ -159,8 +159,8 @@ export function ActivityView({
 
   const scopeLabels: Record<ActivityScope, string> = {
     all: tx(locale, "Semua", "All"),
-    external: tx(locale, "Ke luar", "Contributions"),
-    own: tx(locale, "Sendiri", "Own"),
+    external: tx(locale, "Kontribusi", "Contributions"),
+    own: tx(locale, "Repo sendiri", "Own repos"),
   };
   const placeLabels: Record<ActivityPlace, string> = {
     all: tx(locale, "Semua repo", "All repos"),
