@@ -17,7 +17,7 @@ import { listPeople, listProjects } from "./lib/data";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: "daily", priority: 1 },
-    { url: `${siteUrl}/activity`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${siteUrl}/directory`, changeFrequency: "daily", priority: 0.8 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/community`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/how-it-works`, changeFrequency: "monthly", priority: 0.6 },

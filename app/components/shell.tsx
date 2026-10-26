@@ -27,7 +27,7 @@ function addLabel(locale: Locale): string {
 }
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "recommend" | "admin" | "activity" | "how" | "about" | "community" | "feedback" | "";
+export type Section = "directory" | "recommend" | "admin" | "activity" | "how" | "about" | "community" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -52,18 +52,15 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
 /*
  * The main menu.
  *
- * The directory is the site, so the menu is short: the directory itself and
- * what members are doing in open source, first in the menu on a laptop and
- * given the bottom bar on a phone. Adding to the directory is the
- * header's one button, "Add a project", which asks whether it is a repo
- * or a product.
+ * The people come first: what members are doing — pull requests on the open
+ * source site, products on builders — is the home page and the first place
+ * in the menu, and on a phone the bottom bar. The directory comes second, as
+ * what it is: on the open source site, repos we think are good places to
+ * start, not a complete catalogue. Adding to it is the header's one button.
  */
 const PRIMARY_LINKS: NavLink[] = [
-  { href: "/", label: "Directory", labelId: "Direktori", key: "home", icon: "directory" },
-  // Activity is members' pull requests, the open source site's; builders gets
-  // its own feed of products later, and lists none until then.
-  // Pull requests on the open source site, members' products on builders.
-  { href: "/activity", label: "Activity", labelId: "Aktivitas", key: "activity" as const, icon: isOss ? ("pull-request" as const) : ("pulse" as const) },
+  { href: "/", label: "Activity", labelId: "Aktivitas", key: "activity", icon: isOss ? "pull-request" : "pulse" },
+  { href: "/directory", label: isOss ? "Picked repos" : "Directory", labelId: isOss ? "Repo pilihan" : "Direktori", key: "directory", icon: "directory" },
 ];
 
 /* The pages that answer for the site — how it works, what this is, and where to say it is broken. */

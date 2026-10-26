@@ -1,7 +1,7 @@
 import { isActivityScope, isGitHubActivityFilter, type ActivityQuery, type ActivityScope } from "./github-activity";
 
 /**
- * /activity's address, both ways: what a URL asks for, and the URL for a
+ * The activity page's address — the home page, `/` — both ways: what a URL asks for, and the URL for a
  * set of filters. Shared by the page on the server (the header's return
  * address) and the feed in the browser, which filters without a round trip —
  * the same arrangement as directory-url.ts.
@@ -50,5 +50,5 @@ export function activityPath(filters: Partial<ActivityFilters>, page = 1): strin
   if (filters.q?.trim()) params.set("q", filters.q.trim());
   if (page > 1) params.set("page", String(page));
   const search = params.toString();
-  return `/activity${search ? `?${search}` : ""}`;
+  return `/${search ? `?${search}` : ""}`;
 }

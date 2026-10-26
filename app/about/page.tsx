@@ -366,7 +366,7 @@ export default async function AboutPage() {
             </Link>
             {/* Members' pull requests are the open source site's feed. */}
             {isOss ? (
-              <Link className="ab-more" href="/activity">
+              <Link className="ab-more" href="/">
                 {tx(locale, "Lihat kontribusi member", "See members' contributions")} <Arrow />
               </Link>
             ) : null}
@@ -444,7 +444,7 @@ export default async function AboutPage() {
               ))}
             </ul>
 
-            <Link className="ab-more" href="/?open=roles">
+            <Link className="ab-more" href="/directory?open=roles">
               {tx(locale, "Lihat produk yang lagi cari bantuan", "See products looking for help")} <Arrow />
             </Link>
           </section>
@@ -473,7 +473,7 @@ export default async function AboutPage() {
             )}
           </p>
           <div className="ab-cta-actions">
-            <Link className="ab-button ab-button-primary" href="/">
+            <Link className="ab-button ab-button-primary" href="/directory">
               {tx(locale, "Lihat direktori", "Browse the directory")}
             </Link>
             <Link className="ab-button" href={isOss ? "/recommend" : "/new"}>

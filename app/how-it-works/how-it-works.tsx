@@ -131,7 +131,7 @@ function steps(track: Track, locale: Locale): Step[] {
           "Di direktori, pilih \"Lagi cari bantuan\" untuk produk member yang lagi cari desainer, product, riset, konten, marketing, atau QA. Tiap kartu nunjukin peran yang dibuka dan perkiraan waktunya.",
           "In the directory, pick \"Looking for help\" for members' products that need design, product, research, content, marketing or QA help. Each card shows the roles open and roughly how much time they take.",
         ),
-        action: { href: "/?open=roles", label: tx(locale, "Buka direktori", "Open the directory") },
+        action: { href: "/directory?open=roles", label: tx(locale, "Buka direktori", "Open the directory") },
       },
       {
         tone: "work",
@@ -197,7 +197,7 @@ function steps(track: Track, locale: Locale): Step[] {
         "Begitu PR-mu di-merge, PR itu muncul di halaman Aktivitas dan di profilmu. Member lain bisa kasih reaksi, dan teman yang lihat jadi ikut berani mulai.",
         "Once your PR is merged, it shows on the Activity page and on your profile. Other members can react, and friends who see it find the nerve to start too.",
       ),
-      action: { href: "/activity", label: tx(locale, "Lihat Aktivitas", "See the Activity") },
+      action: { href: "/", label: tx(locale, "Lihat Aktivitas", "See the Activity") },
     },
   ];
 }
