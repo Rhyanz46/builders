@@ -1589,14 +1589,19 @@ form button[aria-busy="true"]::after,
 .ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
 /* A plain card like the rest of the page; purple is only an accent — the
    choices that are not the default, the row being looked at, the links. */
-.ax-board { border: 1px solid var(--dx-line); border-radius: 12px; padding: 14px 12px 12px; }
-.ax-board-head { display: grid; gap: 8px; margin-bottom: 10px; padding: 0 4px; }
+.ax-board { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding: 0 0 12px; }
+.ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
+/* The head carries the colour: a soft purple band over a plain list. */
+.ax-board-head {
+  background: var(--tone-soft); border-bottom: 1px solid color-mix(in srgb, var(--tone) 18%, transparent); display: grid; gap: 8px;
+  margin-bottom: 8px; padding: 14px 16px 12px;
+}
 .ax-board h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
 /* "this month · all repos": the board's choices as one line of pills. */
 .ax-board-pills { align-items: center; color: var(--dx-faint); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 6px; margin: 0; }
 .ax-board-pills label { display: block; margin: 0; }
 .ax-board .ax-pill {
-  align-items: center; background-color: var(--dx-soft); border: 1px solid transparent; border-radius: 99px; color: var(--dx-text);
+  align-items: center; background-color: light-dark(#ffffff, rgba(255, 255, 255, .08)); border: 1px solid transparent; border-radius: 99px; color: var(--dx-text);
   display: inline-flex; font: inherit; font-size: 12.5px; font-weight: 600; height: 28px; line-height: normal; margin: 0; padding: 0 10px; width: auto;
 }
 .ax-board select.ax-pill {
@@ -1606,7 +1611,7 @@ form button[aria-busy="true"]::after,
   background-position: right 9px center; background-repeat: no-repeat; background-size: 12px 12px;
 }
 .ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { border-color: var(--dx-line); color: var(--dx-ink); outline: none; }
-.ax-board .ax-pill.is-set { background-color: var(--tone-soft); color: var(--tone); }
+.ax-board .ax-pill.is-set, .ax-board select.ax-pill.is-set:hover { border-color: var(--tone); color: var(--tone); }
 .ax-board-pills noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12px; height: 28px; padding: 0 10px; }
 .ax-board-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .ax-board-list:not(.is-expanded) > li:nth-child(n + 11) { display: none; }
@@ -1622,7 +1627,7 @@ form button[aria-busy="true"]::after,
 .ax-board-list img { border-radius: 50%; height: 24px; width: 24px; }
 .ax-board-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ax-board-score { color: var(--dx-muted); display: grid; font-size: 12px; justify-items: end; line-height: 1.2; }
-.ax-board-score strong { color: var(--dx-ink); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.ax-board-score strong { color: var(--tone); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .ax-board-score small { font-size: 11px; }
 .ax-board-empty { color: var(--dx-muted); font-size: 13px; line-height: 1.55; margin: 4px 4px 8px; }
 .ax-board-you { border-top: 1px dashed var(--dx-line); color: var(--dx-text); font-size: 12.5px; margin: 8px 4px 0; padding-top: 8px; }
