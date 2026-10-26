@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Past that, the exchange genuinely failed. Say what Supabase said — the
     // message is the only way to tell these apart from the outside, and
     // guessing from the shape of it is how the wrong sentence gets shown.
-    console.error(`[ahsan] OAuth code exchange failed: ${error.message}`, {
+    console.error(`[builders] OAuth code exchange failed: ${error.message}`, {
       code: error.code,
       status: error.status,
       origin: await siteOrigin(),
@@ -88,5 +88,5 @@ async function keepGitHub(supabase: Supabase, session: Session | null): Promise<
     .update({ github: `https://github.com/${handle}` })
     .eq("id", session.user.id)
     .eq("github", "");
-  if (error) console.warn(`[ahsan] Could not record the GitHub handle: ${error.message}`);
+  if (error) console.warn(`[builders] Could not record the GitHub handle: ${error.message}`);
 }

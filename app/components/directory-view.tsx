@@ -35,6 +35,7 @@ import { badgeKindLabel, badgeLabel, badgePeople, type Badge, type BadgeKind } f
 import { pathFor, readFilters, readPage } from "../lib/directory-url";
 import { tx, type Locale } from "../lib/locale";
 import { isOss } from "../lib/site";
+import { contribReadyUrl } from "../content";
 import { stageLabel, stageMeta } from "../lib/stages";
 
 /** The one path each site lists: code on the open source site, products on builders. */
@@ -378,6 +379,12 @@ export function DirectoryView({
               <p role="cell">
                 {tx(locale, "Tidak ada project yang cocok.", "No project matches.")}{" "}
                 <InstantLink href={reset}>{tx(locale, "Reset filter", "Reset filters")}</InstantLink>
+                {code ? (
+                  <>
+                    {tx(locale, ", atau cari repo global di ", ", or look for global repos on ")}
+                    <ContribReadyLink />.
+                  </>
+                ) : null}
               </p>
             </div>
           )}
@@ -415,6 +422,14 @@ export function DirectoryView({
             <Link href="/new">{tx(locale, "Daftarkan produk dan buka peran", "List it and open a role")}</Link>
           )}
         </p>
+        {/* More global repos than this list holds: ContribReady ranks them by
+            how welcoming they are, refreshed daily. */}
+        {code ? (
+          <p className="dx-suggest dx-suggest-more">
+            {tx(locale, "Cari lebih banyak repo global yang ramah kontributor? ", "Looking for more global repos that welcome contributors? ")}
+            <ContribReadyLink />
+          </p>
+        ) : null}
       </section>
     </div>
     </InstantNav>
@@ -861,5 +876,14 @@ function DirectoryRow({ entry, locale, now }: { entry: DirectoryEntry; locale: L
         )}
       </div>
     </div>
+  );
+}
+
+/** ContribReady, opened beside the directory rather than in its place. */
+function ContribReadyLink() {
+  return (
+    <a href={contribReadyUrl} target="_blank" rel="noopener noreferrer">
+      ContribReady <span aria-hidden="true">↗</span>
+    </a>
   );
 }

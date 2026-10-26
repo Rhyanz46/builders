@@ -5,7 +5,7 @@ import { useLanguage } from "./language-provider";
 import { THEME_COOKIE, type Theme } from "../lib/theme";
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
-const CHANGE_EVENT = "ahsanproject:theme-change";
+const CHANGE_EVENT = "swegrowth:theme-change";
 
 /** What the page is showing now: the visitor's choice, or else the device's. */
 function shownTheme(): Theme {

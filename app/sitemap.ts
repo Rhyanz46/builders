@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/`, changeFrequency: "daily", priority: 1 },
     { url: `${siteUrl}/activity`, changeFrequency: "daily", priority: 0.6 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${siteUrl}/community`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/how-it-works`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/feedback`, changeFrequency: "monthly", priority: 0.4 },
   ];
@@ -41,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch (error) {
-    console.warn("[ahsan] Sitemap was published without project and people listings:", error);
+    console.warn("[builders] Sitemap was published without project and people listings:", error);
     return base;
   }
 }

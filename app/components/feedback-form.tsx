@@ -1,31 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { sendFeedback, type FeedbackState } from "../actions";
+import { useState } from "react";
+import { sourceRepo } from "../content";
 import {
   EMPTY_FEEDBACK,
   FEEDBACK_KINDS,
   FEEDBACK_LIMITS,
+  feedbackIssueUrl,
   feedbackKindBlurb,
   feedbackKindLabel,
+  validateFeedback,
+  type FeedbackErrors,
+  type FeedbackInput,
 } from "../lib/feedback";
 import { Field } from "./field";
 import { useLanguage } from "./language-provider";
-
-const EMPTY: FeedbackState = { errors: {}, values: EMPTY_FEEDBACK };
-
-/**
- * One masukan, sent and then done with.
- *
- * `useActionState` has no reset, and a form that keeps the sent message in its
- * boxes reads as a send that did not happen — so a finished round is thrown
- * away by remounting rather than cleared field by field. Each round gets its
- * own action state, and "kirim lagi" starts an empty one.
- */
-export function FeedbackForm() {
-  const [round, setRound] = useState(0);
-  return <FeedbackRound key={round} onAgain={() => setRound((n) => n + 1)} />;
-}
 
 /** Each kind's colour, from the site's tones: a bug warm, an idea purple, a muddle amber, praise green. */
 const KIND_TONES: Record<(typeof FEEDBACK_KINDS)[number], string> = {
@@ -36,36 +25,65 @@ const KIND_TONES: Record<(typeof FEEDBACK_KINDS)[number], string> = {
   other: "tone-work",
 };
 
-function FeedbackRound({ onAgain }: { onAgain: () => void }) {
-  const [state, formAction, pending] = useActionState(sendFeedback, EMPTY);
+/**
+ * One masukan, turned into a GitHub issue.
+ *
+ * Nothing is sent from here. Submitting opens GitHub's new-issue page in a new
+ * tab with the template filled in from the form, and the person sends it from
+ * their own account — see `feedbackIssueUrl`. The link stays on the page too,
+ * in case the browser blocked the new tab.
+ */
+export function FeedbackForm() {
   const { locale, tx } = useLanguage();
-  const { errors, values } = state;
+  const [values, setValues] = useState<FeedbackInput>(EMPTY_FEEDBACK);
+  const [errors, setErrors] = useState<FeedbackErrors>({});
+  const [issueUrl, setIssueUrl] = useState<string | null>(null);
 
-  if (state.sent) {
+  function open(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const input: FeedbackInput = { kind: String(form.get("kind") ?? ""), message: String(form.get("message") ?? "") };
+    const found = validateFeedback(input, locale);
+    setValues(input);
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
+
+    const url = feedbackIssueUrl(input, { repo: sourceRepo, site: window.location.host, userAgent: navigator.userAgent });
+    setIssueUrl(url);
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  if (issueUrl) {
     return (
       <div className="feedback-sent tone-wa" role="status">
-        <h2>{tx("Makasih, masukanmu sudah masuk.", "Thank you — your feedback is in.")}</h2>
+        <h2>{tx("Tinggal satu langkah lagi di GitHub.", "One more step, on GitHub.")}</h2>
         <p>
           {tx(
-            "Dibaca satu per satu. Kalau kamu meninggalkan email, balasannya ke sana; kalau tidak, masukanmu tetap terhitung.",
-            "Every one of these is read. If you left an email, the reply goes there; if you did not, it still counts.",
+            "Issue-nya sudah terisi di tab baru. Cek sekali lagi, lalu tekan Submit di sana. Balasan dan progresnya bisa kamu pantau di issue itu.",
+            "The issue is filled in, in a new tab. Look it over, then press Submit there. Replies and progress show up on that issue.",
           )}
         </p>
-        <button type="button" onClick={onAgain}>
-          {tx("Kirim masukan lagi", "Send another")}
+        <p>
+          <a href={issueUrl} target="_blank" rel="noopener noreferrer">
+            {tx("Tab-nya tidak terbuka? Buka issue di GitHub", "No new tab? Open the issue on GitHub")}{" "}
+            <span aria-hidden="true">↗</span>
+          </a>
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setIssueUrl(null);
+            setValues(EMPTY_FEEDBACK);
+          }}
+        >
+          {tx("Tulis masukan lain", "Write another")}
         </button>
       </div>
     );
   }
 
   return (
-    <form className="feedback-form" action={formAction}>
-      {errors.form ? (
-        <p className="form-error" role="alert">
-          {errors.form}
-        </p>
-      ) : null}
-
+    <form className="feedback-form" onSubmit={open} noValidate>
       {/* The shared radio-card shape, the same one the project kind uses: what
           separates these five is the sentence under each, and a dropdown hides
           exactly that. */}
@@ -78,13 +96,7 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
           {FEEDBACK_KINDS.map((kind) => (
             <li key={kind} className={KIND_TONES[kind]}>
               <label htmlFor={`kind-${kind}`}>
-                <input
-                  id={`kind-${kind}`}
-                  type="radio"
-                  name="kind"
-                  value={kind}
-                  defaultChecked={values.kind === kind}
-                />
+                <input id={`kind-${kind}`} type="radio" name="kind" value={kind} defaultChecked={values.kind === kind} />
                 <span>
                   <strong>{feedbackKindLabel(kind, locale)}</strong>
                   <small>{feedbackKindBlurb(kind, locale)}</small>
@@ -105,8 +117,8 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
         label={tx("Masukanmu", "Your feedback")}
         name="message"
         hint={tx(
-          "Sebutkan halaman mana dan apa yang kamu lakukan sebelum itu—dari situ paling cepat ditelusuri.",
-          "Say which page, and what you were doing just before. That is the fastest thing to trace from.",
+          "Sebutkan halaman mana dan apa yang kamu lakukan sebelum itu—dari situ paling cepat ditelusuri. Baris pertama jadi judul issue.",
+          "Say which page, and what you were doing just before. That is the fastest thing to trace from. The first line becomes the issue's title.",
         )}
         error={errors.message}
         defaultValue={values.message}
@@ -120,22 +132,15 @@ function FeedbackRound({ onAgain }: { onAgain: () => void }) {
         )}
       />
 
-      <Field
-        label={tx("Email buat dibalas", "An email to reply to")}
-        name="contact"
-        hint={tx(
-          "Opsional. Kosongkan kalau kamu tidak butuh balasan—masukannya tetap dibaca.",
-          "Optional. Leave it blank if you do not need a reply — it is read either way.",
+      <p className="hint">
+        {tx(
+          "Issue di GitHub bersifat publik dan butuh akun GitHub. Jangan tulis data pribadi atau celah keamanan di sini.",
+          "GitHub issues are public and need a GitHub account. Do not include private data or security holes here.",
         )}
-        error={errors.contact}
-        defaultValue={values.contact}
-        type="email"
-        maxLength={FEEDBACK_LIMITS.contact.max}
-        placeholder="nama@email.com"
-      />
+      </p>
 
-      <button className="primary-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
-        {pending ? tx("Mengirim…", "Sending…") : tx("Kirim masukan", "Send feedback")}
+      <button className="primary-button" type="submit">
+        {tx("Lanjut ke GitHub", "Continue on GitHub")} <span aria-hidden="true">↗</span>
       </button>
     </form>
   );

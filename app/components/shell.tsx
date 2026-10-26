@@ -27,7 +27,7 @@ function addLabel(locale: Locale): string {
 }
 
 /** Which top-level section the current page belongs to. */
-export type Section = "home" | "recommend" | "admin" | "activity" | "how" | "about" | "feedback" | "";
+export type Section = "home" | "recommend" | "admin" | "activity" | "how" | "about" | "community" | "feedback" | "";
 
 export function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return (
@@ -73,12 +73,19 @@ const SECONDARY_LINKS: NavLink[] = [
   { href: "/feedback", label: "Feedback", labelId: "Masukan", key: "feedback", icon: "feedback" },
 ];
 
+/*
+ * The WhatsApp group and its rules. Not in the laptop's header, which is full;
+ * the phone's menu, the footer and /about lead to it.
+ */
+const COMMUNITY_LINK: NavLink = { href: "/community", label: "Community", labelId: "Komunitas", key: "community", icon: "community" };
+
 type HeaderIconName =
   | "directory"
   | "pull-request"
   | "pulse"
   | "about"
   | "feedback"
+  | "community"
   | "profile"
   | "edit"
   | "steps"
@@ -95,6 +102,7 @@ function HeaderIcon({ name }: { name: HeaderIconName }) {
     pulse: <path d="M3 12h4l2.5-6 5 12 2.5-6h4" />,
     about: <><circle cx="12" cy="12" r="9" /><path d="M12 11.5v5M12 7.8h.01" /></>,
     feedback: <><path d="M4 5h16v11H10l-4 4v-4H4z" /><path d="M8 9h8M8 12.5h5" /></>,
+    community: <><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><circle cx="17" cy="9.5" r="2.4" /><path d="M16.5 14.6A4.5 4.5 0 0 1 21 19" /></>,
     profile: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
     inbox: <><path d="M4 5h16v13H4z" /><path d="M4 14h4l1.5 2h5l1.5-2h4" /></>,
     edit: <><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m14 6 4 4" /></>,
@@ -484,7 +492,7 @@ function MobileHeaderMenu({
         )}
 
         <nav className="mobile-nav-pages" aria-label={tx(locale, "Menu seluler", "Mobile menu")}>
-          {SECONDARY_LINKS.map((link) => (
+          {[COMMUNITY_LINK, ...SECONDARY_LINKS].map((link) => (
             <Link
               key={link.href}
               aria-current={active === link.key ? "page" : undefined}
@@ -544,17 +552,20 @@ export async function SiteFooter() {
   const locale = await currentLocale();
   return (
     <footer>
-      <Brand footer locale={locale} />
-      <p>
-        {isOss
-          ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
-          : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
-      </p>
+      <div className="footer-brand-group">
+        <Brand footer locale={locale} />
+        <p>
+          {isOss
+            ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
+            : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
+        </p>
+      </div>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
         <Link href={ADD_HREF}>{addLabel(locale)}</Link>
         <Link href="/how-it-works">{tx(locale, "Cara kerjanya", "How it works")}</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
+        <Link href="/community">{tx(locale, "Komunitas", "Community")}</Link>
         <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
         {/* The only reach a signed-out visitor has left to change language,

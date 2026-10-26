@@ -272,7 +272,7 @@ nav form { display: flex; margin: 0; }
 }
 .mobile-nav .mobile-project-action:hover { background: light-dark(#4d4d4d, #c2c2c2); }
 /* The phone's menu, kept to one screen: who you are and your own pages, the
-   one action, the site's pages as a row of tiles, then preferences. */
+   one action, the site's pages as a grid of tiles, then preferences. */
 .mobile-account-section {
   border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; padding: 6px;
 }
@@ -283,7 +283,7 @@ nav form { display: flex; margin: 0; }
 .mobile-account-identity:hover .account-identity { background: light-dark(#efefef, #1c1c1c); }
 .mobile-account-links { padding-top: 4px; }
 .mobile-nav .mobile-account-links a { min-height: 40px; padding: 8px 10px; }
-.mobile-nav-pages { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-nav-pages { display: grid; gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .mobile-nav .mobile-nav-pages a {
   align-items: center; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--ink-soft); display: flex;
   flex-direction: column; font-size: 12px; font-weight: 620; gap: 5px; justify-content: center; line-height: 1.2;
@@ -992,10 +992,11 @@ form button.danger:hover { background: #96320f; }
 
 footer {
   background: var(--paper); border-top: 1px solid var(--line); color: light-dark(#828282, #8a8a8a); display: grid;
-  gap: 24px; grid-template-columns: auto 1fr auto auto; align-items: center; font-size: 12px;
+  gap: 24px; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; font-size: 12px;
   padding: 34px var(--gutter);
 }
 footer p { margin: 0; }
+.footer-brand-group { display: grid; gap: 6px; }
 footer nav { display: flex; flex-wrap: wrap; font-size: 12px; font-weight: 650; gap: 20px; }
 footer nav a:hover { color: var(--ink); }
 .footer-brand { color: var(--ink); }
@@ -1171,8 +1172,7 @@ form label.help-toggle.is-on { background: light-dark(#ffffff, #1f1f1f); border-
 
 @media (max-width: 1024px) {
   .sidebar { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
-  footer { grid-template-columns: auto 1fr auto; }
-  footer > p { display: none; }
+  footer { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 820px) {
@@ -2401,6 +2401,7 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 /* ------------------------------------------------- catalogue: suggest line */
 .dx-suggest { color: var(--dx-muted); font-size: 13px; margin: 18px 0 0; text-align: center; }
 .dx-suggest a { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.dx-suggest-more { margin-top: 6px; }
 
 /* ----------------------------------------------------- repo form & admin
    /recommend and /admin: the catalogue's way in, and its queue. */

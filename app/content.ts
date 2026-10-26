@@ -16,16 +16,27 @@ export const waCommunityUrl = isOss
   : "https://chat.whatsapp.com/KPJDVO9A6RBLNa6HG2dQlF";
 
 /**
+ * ContribReady: global open source repos that welcome outside PRs, refreshed
+ * daily. Where the open source directory sends somebody who wants more global
+ * repos than it lists.
+ */
+export const contribReadyUrl = "https://contrib.idnremote.com";
+
+/**
  * The SWE Growth admin's WhatsApp (0823-3858-8078), in international form.
  * For now an offer to help on a product's role goes here rather than through
  * proposals on the site.
  */
 const WA_ADMIN = "6282338588078";
 
+/** A chat with the admin, for whoever wants to ask before joining the community. */
+export function waAdminUrl(text: string): string {
+  return `https://wa.me/${WA_ADMIN}?text=${encodeURIComponent(text)}`;
+}
+
 /** A chat with the admin, the message already written: the project and the role. */
 export function waOfferHelpUrl(project: string, role: string): string {
-  const text = `Halo Admin SWE Growth, saya tertarik untuk kontribusi pada ${project} sebagai ${role}.`;
-  return `https://wa.me/${WA_ADMIN}?text=${encodeURIComponent(text)}`;
+  return waAdminUrl(`Halo Admin SWE Growth, saya tertarik untuk kontribusi pada ${project} sebagai ${role}.`);
 }
 
 /** The shared picture, for pages that do not draw a card of their own. */
