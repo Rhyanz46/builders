@@ -9,7 +9,7 @@ import { InstantLink, InstantNav } from "./instant-link";
 import { RelativeTime } from "./relative-time";
 import { ReactionBar } from "./reaction-bar";
 import { activityPath, readActivityFilters, readActivityPage } from "../lib/activity-url";
-import { leaderboardIssueUrl } from "../content";
+import { LEADERBOARD_NOTE_COOKIE, leaderboardIssueUrl } from "../content";
 import {
   activityPeople,
   activityRepos,
@@ -52,6 +52,40 @@ const SEARCH_SETTLE_MS = 300;
  * can still be shared, reloaded, and gone back from. The directory works
  * the same way; see DirectoryView.
  */
+/**
+ * /activity is on its way to becoming a leaderboard (#186). Until it is, the
+ * page says so and asks for ideas on the issue: in the sidebar on a laptop,
+ * and under the heading on a phone, where it can be closed.
+ */
+function LeaderboardNote({ locale, className, onClose }: { locale: Locale; className: string; onClose?: () => void }) {
+  return (
+    <div className={`ax-roadmap tone-done ${className}`}>
+      <p className="ax-roadmap-eyebrow">
+        <span aria-hidden="true">🏆</span>
+        {tx(locale, "Segera", "Coming soon")}
+      </p>
+      {onClose ? (
+        <button type="button" className="ax-roadmap-close" aria-label={tx(locale, "Tutup info leaderboard", "Close the leaderboard note")} onClick={onClose}>
+          <span aria-hidden="true">×</span>
+        </button>
+      ) : null}
+      <p className="ax-roadmap-title">
+        <strong>{tx(locale, "Halaman ini bakal jadi leaderboard", "This page is becoming a leaderboard")}</strong>
+      </p>
+      <p>
+        {tx(
+          locale,
+          "Lengkap dengan gamifikasi—masih dikerjakan. Punya ide? Langsung komen di issue-nya.",
+          "With gamification—still in progress. Have an idea? Just comment on the issue.",
+        )}
+      </p>
+      <a href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
+        {tx(locale, "Buka issue", "Open the issue")} <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  );
+}
+
 export function ActivityView({
   entries,
   reactions,
@@ -59,6 +93,7 @@ export function ActivityView({
   today,
   locale,
   unavailable,
+  leaderboardNoteClosed = false,
 }: {
   entries: GitHubActivityEntry[];
   /** Per pull request URL, or per summary key. */
@@ -68,8 +103,11 @@ export function ActivityView({
   today: string;
   locale: Locale;
   unavailable: boolean;
+  /** The phone's copy of the leaderboard note was closed (its cookie, read on the server). */
+  leaderboardNoteClosed?: boolean;
 }) {
   const searchParams = useSearchParams();
+  const [noteOpen, setNoteOpen] = useState(!leaderboardNoteClosed);
   const fromUrl = readActivityFilters(searchParams);
   // What is typed is held here and written to the address once typing rests:
   // the list follows every key, the history does not.
@@ -147,28 +185,22 @@ export function ActivityView({
 
   return (
     <InstantNav navigate={navigate}>
+      {noteOpen ? (
+        <LeaderboardNote
+          locale={locale}
+          className="ax-roadmap-phone"
+          onClose={() => {
+            document.cookie = `${LEADERBOARD_NOTE_COOKIE}=1; path=/; max-age=${30 * 86400}; samesite=lax`;
+            setNoteOpen(false);
+          }}
+        />
+      ) : null}
       <div className="dx-layout">
         <FilterPanel active={active}>
-          {/* Where this page is headed, above the filters it will outgrow. */}
-          <div className="ax-roadmap tone-done">
-            <p className="ax-roadmap-eyebrow">
-              <span aria-hidden="true">🏆</span>
-              {tx(locale, "Segera", "Coming soon")}
-            </p>
-            <p className="ax-roadmap-title">
-              <strong>{tx(locale, "Halaman ini bakal jadi leaderboard", "This page is becoming a leaderboard")}</strong>
-            </p>
-            <p>
-              {tx(
-                locale,
-                "Lengkap dengan gamifikasi—masih dikerjakan. Punya ide? Langsung komen di issue-nya.",
-                "With gamification—still in progress. Have an idea? Just comment on the issue.",
-              )}
-            </p>
-            <a href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
-              {tx(locale, "Buka issue", "Open the issue")} <span aria-hidden="true">↗</span>
-            </a>
-          </div>
+          {/* Where this page is headed, above the filters it will outgrow. On a
+              phone the filters fold into a sheet, so the note sits under the
+              heading instead (below). */}
+          <LeaderboardNote locale={locale} className="ax-roadmap-side" />
           <FacetGroup title={tx(locale, "Jenis", "Kind")}>
             {(["all", "merged", "open", "commits"] as const)
               .filter((kind) => kind === "all" || kinds[kind] > 0 || current.kind === kind)

@@ -1590,6 +1590,18 @@ form button[aria-busy="true"]::after,
 .ax-roadmap .ax-roadmap-title { margin-bottom: 3px; }
 .ax-roadmap strong { color: var(--dx-ink); font-size: 13.5px; font-weight: 650; line-height: 1.35; }
 .ax-roadmap a { color: var(--tone); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+/* One note, two places: the sidebar on a laptop, under the heading on a phone,
+   where the sidebar is a sheet. Only the phone's can be closed. */
+.ax-roadmap-phone { display: none; position: relative; }
+.ax-roadmap-close {
+  align-items: center; background: none; border: 0; border-radius: 6px; color: var(--dx-muted); cursor: pointer; display: inline-flex;
+  font-size: 18px; height: 28px; justify-content: center; line-height: 1; padding: 0; position: absolute; right: 6px; top: 6px; width: 28px;
+}
+.ax-roadmap-close:hover { background: light-dark(rgba(0, 0, 0, .06), rgba(255, 255, 255, .08)); color: var(--dx-ink); }
+@media (max-width: 900px) {
+  .ax-roadmap-phone { display: block; }
+  .ax-roadmap-side { display: none; }
+}
 .dx-facet-title { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 6px; padding: 0 10px; }
 .dx-facet-more details > ul { display: grid; gap: 1px; list-style: none; margin: 0; padding: 0; }
 .dx-facet-more summary {
