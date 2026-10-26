@@ -165,7 +165,7 @@ export default async function InboxPage() {
           {mine.length === 0 ? (
             <p className="muted">
               {tx(locale, "Kamu belum bergabung ke proyek apa pun.", "You have not joined anything yet.")} {" "}
-              <Link href="/?track=role">{tx(locale, "Lihat proyek yang membutuhkan bantuan", "See projects that need a hand")}</Link>.
+              <Link href="/directory?track=role">{tx(locale, "Lihat proyek yang membutuhkan bantuan", "See projects that need a hand")}</Link>.
             </p>
           ) : (
             <ul className="application-list">
@@ -246,7 +246,7 @@ function ReactionNotice({ notice, locale }: { notice: NoticeView; locale: Locale
     return (
       <p>
         {who} {tx(locale, "memberi", "reacted")} {reactionEmoji(emoji ?? "")} {tx(locale, "untuk kabar", "to the news from")} {product}.{" "}
-        <Link href="/activity">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
+        <Link href="/">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
       </p>
     );
   }
@@ -254,7 +254,7 @@ function ReactionNotice({ notice, locale }: { notice: NoticeView; locale: Locale
     return (
       <p>
         {who} {tx(locale, "memberi", "reacted")} {reactionEmoji(emoji ?? "")} {tx(locale, "untuk kesibukanmu di repo sendiri.", "to the work on your own repositories.")}{" "}
-        <Link href="/activity">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
+        <Link href="/">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
       </p>
     );
   }
@@ -269,7 +269,7 @@ function ReactionNotice({ notice, locale }: { notice: NoticeView; locale: Locale
     <p>
       {who} {tx(locale, "memberi", "reacted")} {reactionEmoji(emoji ?? "")} {tx(locale, "untuk PR-mu", "to your pull request")} {pr}
       {repo ? <> {tx(locale, "di", "on")} <strong>{repo}</strong></> : null}.{" "}
-      <Link href="/activity">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
+      <Link href="/">{tx(locale, "Lihat di Aktivitas", "See it on Activity")}</Link>
     </p>
   );
 }

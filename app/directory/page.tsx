@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
-import { shareCard, waCommunityUrl } from "../content";
+import { contribReadyUrl, shareCard, waCommunityUrl } from "../content";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
@@ -23,20 +23,20 @@ import { isOss, site } from "../lib/site";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   const title = isOss
-    ? tx(locale, `${site.name} — Direktori Kontribusi Open Source`, `${site.name} — An Open Source Contribution Directory`)
-    : tx(locale, "Builders — Direktori Produk Komunitas swegrowth", "Builders — The swegrowth Community's Product Directory");
+    ? tx(locale, `Repo pilihan — ${site.name}`, `Picked repos — ${site.name}`)
+    : tx(locale, "Direktori produk — Builders", "Product directory — Builders");
   const description = isOss
     ? tx(
         locale,
-        "Repo open source yang lagi nerima kontributor, dikurasi bareng komunitas swegrowth. Pilih repo-nya, kirim PR, biar kelihatan.",
-        "Open source repos taking contributors right now, curated together by the swegrowth community. Pick one, send a PR, let it be seen.",
+        "Repo open source yang menurut komunitas swegrowth bagus buat mulai kontribusi—bukan daftar lengkap. Pilih satu, kirim PR, biar kelihatan.",
+        "Open source repos the swegrowth community thinks are good places to start contributing—not a complete list. Pick one, send a PR, let it be seen.",
       )
     : tx(
         locale,
         "Produk buatan member komunitas swegrowth, dari ide sampai rilis. Ikuti progresnya, bantu lewat peranmu, atau daftarkan produkmu.",
         "Products built by swegrowth community members, from idea to launch. Follow their progress, help in your role, or list your own.",
       );
-  return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
+  return { title, description, alternates: { canonical: "/directory" }, openGraph: shareCard({ title, description, url: "/directory" }) };
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -55,7 +55,7 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
 
   return (
     <>
-      <SiteHeader returnTo={query.then((value) => pathFor(readFilters(value)))} active="home" />
+      <SiteHeader returnTo={query.then((value) => pathFor(readFilters(value)))} active="directory" />
 
       <main id="main-content" className="dx-page">
         <Suspense fallback={null}>
@@ -64,20 +64,27 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
 
         <header className="dx-head">
           <div>
-            <h1>{isOss ? tx(locale, "Direktori kontribusi", "Contribution directory") : tx(locale, "Direktori produk", "Product directory")}</h1>
+            <h1>{isOss ? tx(locale, "Repo pilihan", "Picked repos") : tx(locale, "Direktori produk", "Product directory")}</h1>
             <p className="dx-head-community">
               {/* What the place is for, in one line, for somebody who has just landed. */}
               {isOss
                 ? tx(
                     locale,
-                    "Daftar repo open source yang lagi nerima kontributor, dikurasi bareng oleh komunitas yang mau aktif di open source. Gabung buat ikut kontribusi dan nambahin repo.",
-                    "Open source repos taking contributors right now, curated together by a community that wants to be active in open source. Join to contribute and add repos of your own.",
+                    "Repo yang menurut kami bagus buat mulai kontribusi—bukan daftar lengkap. Butuh lebih banyak pilihan? ",
+                    "Repos we think are good places to start contributing—not a complete list. Want more to choose from? ",
                   )
-                : tx(
+                : null}
+              {isOss ? (
+                <a href={contribReadyUrl} target="_blank" rel="noopener noreferrer">
+                  ContribReady <span aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                tx(
                     locale,
                     "Produk buatan member komunitas swegrowth, dari ide sampai rilis. Ikuti progresnya, bantu lewat peranmu, atau daftarkan produkmu.",
                     "Products built by swegrowth community members, from idea to launch. Follow their progress, help in your role, or list your own.",
-                  )}
+                  )
+              )}
             </p>
             <div className="dx-head-actions">
               <Suspense fallback={<WaButton />}>

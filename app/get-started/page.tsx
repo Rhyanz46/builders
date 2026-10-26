@@ -145,7 +145,7 @@ export default async function StartPage({
               {" · "}
             </>
           ) : null}
-          <Link href="/">{tx(locale, "Lewati dulu, langsung ke direktori", "Skip for now and go to the directory")}</Link>
+          <Link href="/directory">{tx(locale, "Lewati dulu, langsung ke direktori", "Skip for now and go to the directory")}</Link>
         </p>
       </main>
 
@@ -173,7 +173,7 @@ function PathSteps({ path, steps, locale }: { path: OnboardingPath; steps: NextS
                 : tx(locale, "Produk yang lagi cari bantuan, semuanya ada di direktori.", "Products looking for help, all in the directory.")}
             </span>
           </div>
-          <Link className="dx-action" href={isOss ? "/" : "/?open=roles"}>{tx(locale, "Buka direktori", "Open the directory")} <span aria-hidden="true">→</span></Link>
+          <Link className="dx-action" href={isOss ? "/directory" : "/directory?open=roles"}>{tx(locale, "Buka direktori", "Open the directory")} <span aria-hidden="true">→</span></Link>
         </div>
       ) : null}
     </>

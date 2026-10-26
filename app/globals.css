@@ -998,7 +998,9 @@ footer {
 footer p { margin: 0; }
 .footer-brand-group { display: grid; gap: 6px; }
 footer nav { display: flex; flex-wrap: wrap; font-size: 12px; font-weight: 650; gap: 20px; }
-footer nav a:hover { color: var(--ink); }
+footer nav a:hover, .footer-prefs a:hover { color: var(--ink); }
+.footer-end { display: grid; gap: 10px; justify-items: end; }
+.footer-prefs { align-items: center; display: flex; font-weight: 650; gap: 16px; }
 .footer-brand { color: var(--ink); }
 .footer-brand .brand-mark { background: transparent; color: var(--ink); padding: 0; }
 .footer-brand .brand-alt { color: light-dark(#8a8a8a, #7e7e7e); }
@@ -1173,6 +1175,7 @@ form label.help-toggle.is-on { background: light-dark(#ffffff, #1f1f1f); border-
 @media (max-width: 1024px) {
   .sidebar { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
   footer { grid-template-columns: 1fr; }
+  .footer-end { justify-items: start; }
 }
 
 @media (max-width: 820px) {

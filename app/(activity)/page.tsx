@@ -20,7 +20,10 @@ import { isOss, site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, `Aktivitas — ${site.name}`, `Activity — ${site.name}`);
+  // The home page: the people, before the directory.
+  const title = isOss
+    ? tx(locale, `${site.name} — Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Contributions`)
+    : tx(locale, "Builders — Yang Lagi Dibangun Komunitas swegrowth", "Builders — What the swegrowth Community Is Building");
   const description = isOss
     ? tx(
         locale,
@@ -32,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
         "Kabar dari produk member komunitas swegrowth: produk baru, pindah tahap, kabar terbaru, peran dibuka dan terisi.",
         "News from swegrowth community members' products: new products, new stages, updates, roles opened and filled.",
       );
-  return { title, description, alternates: { canonical: "/activity" }, openGraph: shareCard({ title, description, url: "/activity" }) };
+  return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

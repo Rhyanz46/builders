@@ -232,7 +232,7 @@ export function ActivityView({
           <div className="dx-toolbar">
             <form
               className="dx-search"
-              action="/activity"
+              action="/"
               role="search"
               onSubmit={(event) => {
                 event.preventDefault();
