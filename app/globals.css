@@ -1580,19 +1580,12 @@ form button[aria-busy="true"]::after,
    activity-view.tsx). Wider than the directory's filters, for names and
    scores side by side; sticky on a laptop, above the feed on a phone. */
 .ax-layout { grid-template-columns: 280px minmax(0, 1fr); }
-/* The filters above both columns, then the feed's own heading and search. */
-.ax-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; padding-top: 24px; }
-/* One group: the kind select dressed like the toggles beside it. */
-.ax-filters .ax-kind select { background-color: var(--dx-soft); border-color: transparent; border-radius: 9px; color: var(--dx-text); font-weight: 550; }
-.ax-filters .ax-kind select:hover, .ax-filters .ax-kind select:focus-visible { border-color: var(--dx-line); }
-.ax-filters + .ax-layout { padding-top: 18px; }
+/* The feed's heading, then what to show beside the search. */
 .ax-feed-head { align-items: baseline; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
 .ax-feed-head h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
-.ax-layout .dx-toolbar .dx-search { flex: 1; max-width: none; }
-/* The filter sheet is the phone's; a laptop has the toolbar. */
-@media (min-width: 901px) {
-  .ax-layout > .dx-side { display: none; }
-}
+.ax-toolbar { flex-wrap: wrap; gap: 8px; }
+.ax-toolbar .dx-search { flex: 1 1 240px; max-width: none; }
+.ax-toolbar .ax-show select { font-weight: 550; }
 .ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
 .ax-board { background: var(--tone-soft); border-radius: 10px; padding: 14px 12px 12px; }
 .ax-board-head { display: grid; gap: 10px; margin-bottom: 10px; }
@@ -1604,6 +1597,8 @@ form button[aria-busy="true"]::after,
 .ax-board-periods a:hover { color: var(--dx-ink); }
 .ax-board-periods a.is-active { background: light-dark(#ffffff, #3a3a3e); box-shadow: 0 1px 2px light-dark(rgba(9, 9, 11, .08), rgba(0, 0, 0, .3)); color: var(--dx-ink); }
 .ax-board-window { color: var(--dx-muted); font-size: 12.5px; font-weight: 600; margin: 0; padding: 0 4px; }
+.ax-board-places a span { color: var(--dx-faint); font-family: var(--font-geist-mono), monospace; font-size: 11px; margin-left: 4px; }
+.ax-board-places a.is-active span { color: var(--dx-muted); }
 .ax-board-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .ax-board-list:not(.is-expanded) > li:nth-child(n + 11) { display: none; }
 .ax-board-list a {
@@ -1639,12 +1634,11 @@ form button[aria-busy="true"]::after,
 .ax-chips a span { color: var(--dx-muted); font-size: 15px; }
 @media (max-width: 900px) {
   .ax-layout { grid-template-columns: minmax(0, 1fr); }
-  /* The column comes apart: the filter bar, the board, the feed, then the
-     repos. The toolbar's toggles move into the filter sheet. */
-  .ax-layout > .dx-filterbar { order: -1; }
-  .ax-filters, .ax-layout .ax-chips { display: none; }
-  .ax-filters + .ax-layout { padding-top: 16px; }
+  /* The column comes apart: the board, the feed, then the repos. */
   .ax-side { display: contents; }
+  .ax-toolbar .ax-show, .ax-toolbar .ax-show label, .ax-toolbar .ax-show select { width: 100%; }
+  /* The toolbar stacks here, so a flex basis would be a height. */
+  .ax-toolbar .dx-search { flex: none; }
   .ax-board { order: 0; }
   .ax-layout > .dx-results { order: 1; }
   .ax-side-repos { border-top: 1px solid var(--dx-line); order: 2; padding-top: 16px; }

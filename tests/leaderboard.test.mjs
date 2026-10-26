@@ -90,3 +90,20 @@ test("local and global split pull requests by the directory's local repos", asyn
   assert.equal(activityPath({ place: "local" }), "/?place=local");
   assert.equal(readActivityFilters(new URLSearchParams("place=moon")).place, "all");
 });
+
+test("one show choice stands for scope and kind, and old links land on the nearest", async () => {
+  const { showOf, showFilters } = await import("../app/lib/activity-url.ts");
+  const read = (search) => {
+    const filters = readActivityFilters(new URLSearchParams(search));
+    return [filters.scope, filters.kind, showOf(filters)];
+  };
+  assert.deepEqual(read(""), ["external", "all", "contributions"]);
+  assert.deepEqual(read("show=merged"), ["external", "merged", "merged"]);
+  assert.deepEqual(read("scope=own"), ["own", "all", "own"]);
+  assert.deepEqual(read("show=commits"), ["own", "all", "own"], "summaries are members' own work");
+  assert.deepEqual(read("scope=all&show=open"), ["external", "open", "open"], "both scopes at once is no longer offered");
+  assert.deepEqual(read("scope=own&show=merged"), ["own", "all", "own"]);
+  for (const show of ["contributions", "merged", "open", "own"]) assert.equal(showOf(showFilters(show)), show);
+  assert.equal(activityPath({ ...showFilters("own") }), "/?scope=own");
+  assert.equal(activityPath({ ...showFilters("open") }), "/?show=open");
+});
