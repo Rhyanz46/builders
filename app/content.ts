@@ -1,4 +1,4 @@
-import { site } from "./lib/site";
+import { isOss, site } from "./lib/site";
 
 /** Canonical origin for metadata, share cards, and the sitemap — this build's site (see lib/site.ts). */
 export const siteUrl = site.url;
@@ -7,10 +7,13 @@ export const siteUrl = site.url;
 export const sourceRepo = "swegrowthid/builders";
 
 /**
- * The WhatsApp community where contributors share what they are working on.
+ * The WhatsApp community where members share what they are working on: one
+ * group per site, open source contributors on oss and builders on builders.
  * Empty hides the link everywhere it appears.
  */
-export const waCommunityUrl = "https://chat.whatsapp.com/KPJDVO9A6RBLNa6HG2dQlF";
+export const waCommunityUrl = isOss
+  ? "https://chat.whatsapp.com/IEMvtgU6mNZAZ6oBd5lJb6"
+  : "https://chat.whatsapp.com/KPJDVO9A6RBLNa6HG2dQlF";
 
 /**
  * The SWE Growth admin's WhatsApp (0823-3858-8078), in international form.
