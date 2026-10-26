@@ -70,17 +70,29 @@ export default async function OpenGraphImage() {
               width: 62,
             }}
           >
-            <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
-              <g transform="translate(20 20.6) scale(.74) translate(-20 -20)">
-                <path
-                  d="M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32"
-                  stroke="#f3f0e8"
-                  strokeWidth="3.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </g>
-            </svg>
+            {/* The same mark as the favicon: a pull request on the open source site. */}
+            {isOss ? (
+              <svg width="44" height="44" viewBox="-1 -1 26 26" fill="none">
+                <g stroke="#f3f0e8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="6" cy="6" r="2.5" />
+                  <circle cx="6" cy="18" r="2.5" />
+                  <circle cx="18" cy="18" r="2.5" />
+                  <path d="M6 8.5v7M18 15.5V10a3 3 0 0 0-3-3h-4M13 4.5 10.5 7 13 9.5" />
+                </g>
+              </svg>
+            ) : (
+              <svg width="44" height="44" viewBox="0 0 40 40" fill="none">
+                <g transform="translate(20 20.6) scale(.74) translate(-20 -20)">
+                  <path
+                    d="M6.8 32C7.6 28 8 24.6 9.4 21.2 11 17 17.2 14.6 20 7.6 22.8 14.6 29 17 30.6 21.2 32 24.6 32.4 28 33.2 32"
+                    stroke="#f3f0e8"
+                    strokeWidth="3.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </g>
+              </svg>
+            )}
           </div>
           <div style={{ display: "flex", fontSize: 32, fontWeight: 800, letterSpacing: "-1.5px" }}>
             {site.id}<span style={{ color: "#315f51", display: "flex", fontWeight: 650 }}>.swegrowth</span>
