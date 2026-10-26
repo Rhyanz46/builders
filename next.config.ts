@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
             { source: "/kolaborasi", destination: builderUrl("/?track=role"), permanent: false },
             // Its "add a project" is suggesting a repo.
             { source: "/submit", destination: "/recommend", permanent: false },
+            // Browsers ask for these by name, whatever the page links; the
+            // open source site's are the pull request mark (app/layout.tsx).
+            { source: "/favicon.ico", destination: "/oss-favicon.ico", permanent: false },
+            { source: "/apple-touch-icon.png", destination: "/oss-apple-touch-icon.png", permanent: false },
           ]
         : [
             // And the builders site has none of GitHub's: the repo catalogue
