@@ -992,10 +992,11 @@ form button.danger:hover { background: #96320f; }
 
 footer {
   background: var(--paper); border-top: 1px solid var(--line); color: light-dark(#828282, #8a8a8a); display: grid;
-  gap: 24px; grid-template-columns: auto 1fr auto auto; align-items: center; font-size: 12px;
+  gap: 24px; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; font-size: 12px;
   padding: 34px var(--gutter);
 }
 footer p { margin: 0; }
+.footer-brand-group { display: grid; gap: 6px; }
 footer nav { display: flex; flex-wrap: wrap; font-size: 12px; font-weight: 650; gap: 20px; }
 footer nav a:hover { color: var(--ink); }
 .footer-brand { color: var(--ink); }
@@ -1171,8 +1172,7 @@ form label.help-toggle.is-on { background: light-dark(#ffffff, #1f1f1f); border-
 
 @media (max-width: 1024px) {
   .sidebar { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
-  footer { grid-template-columns: auto 1fr auto; }
-  footer > p { display: none; }
+  footer { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 820px) {

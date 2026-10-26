@@ -544,12 +544,14 @@ export async function SiteFooter() {
   const locale = await currentLocale();
   return (
     <footer>
-      <Brand footer locale={locale} />
-      <p>
-        {isOss
-          ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
-          : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
-      </p>
+      <div className="footer-brand-group">
+        <Brand footer locale={locale} />
+        <p>
+          {isOss
+            ? tx(locale, "Direktori repo open source yang bisa kamu kontribusikan.", "A directory of open source repos you can contribute to.")
+            : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
+        </p>
+      </div>
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
         <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
         <Link href={ADD_HREF}>{addLabel(locale)}</Link>
