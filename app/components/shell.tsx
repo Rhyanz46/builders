@@ -161,7 +161,11 @@ function BottomNav({
           <Skeleton height={10} width={36} />
         </span>
       ) : viewer ? (
-        <Link href={`/u/${viewer.username}`}>
+        <Link
+          href={`/u/${viewer.username}`}
+          aria-current={onOwnProfile(viewer, returnTo) ? "page" : undefined}
+          className={onOwnProfile(viewer, returnTo) ? "is-active" : ""}
+        >
           <HeaderIcon name="profile" />
           <span>{tx(locale, "Profil", "Profile")}</span>
         </Link>
@@ -173,6 +177,12 @@ function BottomNav({
       )}
     </nav>
   );
+}
+
+/** The viewer's own profile, or the page that edits it. */
+function onOwnProfile(viewer: Viewer, path: string): boolean {
+  const pathname = path.split(/[?#]/)[0];
+  return pathname === `/u/${viewer.username}` || pathname.startsWith("/account/profile");
 }
 
 /**
@@ -428,23 +438,38 @@ function MobileHeaderMenu({
       }
     >
       <div className="mobile-nav">
-        {/* Every page, the two places included: the bottom bar is a shortcut, not the only way there. */}
-        <nav className="mobile-nav-primary" aria-label={tx(locale, "Menu seluler", "Mobile menu")}>
-          <p className="mobile-menu-label">{tx(locale, "Menu", "Menu")}</p>
-          {[...PRIMARY_LINKS, ...SECONDARY_LINKS].map((link) => (
-            <Link
-              key={link.href}
-              aria-current={active === link.key ? "page" : undefined}
-              className={active === link.key ? "is-active" : ""}
-              href={link.href}
-            >
-              <HeaderIcon name={link.icon} />
-              <span>{tx(locale, link.labelId, link.label)}</span>
-              {active === link.key ? <span className="mobile-active-dot" aria-hidden="true" /> : null}
+        {/* Directory, activity and the profile are on the bottom bar; the menu
+            keeps only what is not, so it stays short enough for one screen. */}
+        {viewer ? (
+          <section className="mobile-account-section" aria-label={tx(locale, "Akun", "Account")}>
+            <Link className="mobile-account-identity" href={`/u/${viewer.username}`}>
+              <AccountIdentity viewer={viewer} />
             </Link>
-          ))}
-          <ThemeToggle row />
-        </nav>
+            <nav className="mobile-account-links" aria-label={tx(locale, "Menu akun seluler", "Mobile account menu")}>
+              <Link href="/account/profile">
+                <HeaderIcon name="edit" />
+                <span>{tx(locale, "Edit profil", "Edit profile")}</span>
+              </Link>
+              {isOss ? null : (
+                <Link href="/inbox">
+                  <HeaderIcon name="inbox" />
+                  <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
+                  {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
+                </Link>
+              )}
+              <Link href="/get-started?all=1">
+                <HeaderIcon name="steps" />
+                <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
+              </Link>
+              {admin ? (
+                <Link href="/admin">
+                  <HeaderIcon name="steps" />
+                  <span>Admin</span>
+                </Link>
+              ) : null}
+            </nav>
+          </section>
+        ) : null}
 
         {viewer ? (
           <Link className="mobile-project-action" href={ADD_HREF}>
@@ -458,52 +483,37 @@ function MobileHeaderMenu({
           </Link>
         )}
 
-        {viewer ? (
-          <section className="mobile-account-section" aria-label={tx(locale, "Akun", "Account")}>
-            <AccountIdentity viewer={viewer} />
-            <nav className="mobile-account-links" aria-label={tx(locale, "Menu akun seluler", "Mobile account menu")}>
-              <Link href={`/u/${viewer.username}`}>
-                <HeaderIcon name="profile" />
-                <span>{tx(locale, "Profil publik", "Public profile")}</span>
-              </Link>
-              <Link href="/account/profile">
-                <HeaderIcon name="edit" />
-                <span>{tx(locale, "Edit profil", "Edit profile")}</span>
-              </Link>
-              <Link href="/get-started?all=1">
-                <HeaderIcon name="steps" />
-                <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
-              </Link>
-              {isOss ? null : (
-                <Link href="/inbox">
-                  <HeaderIcon name="inbox" />
-                  <span>{tx(locale, "Kotak masuk", "Inbox")}</span>
-                  {waiting > 0 ? <span className="menu-count">{waiting}</span> : null}
-                </Link>
-              )}
-              <Link href="/account/language">
-                <HeaderIcon name="language" />
-                <span>{tx(locale, "Bahasa", "Language")}</span>
-              </Link>
-              {admin ? (
-                <Link href="/admin">
-                  <HeaderIcon name="steps" />
-                  <span>Admin</span>
-                </Link>
-              ) : null}
-            </nav>
+        <nav className="mobile-nav-pages" aria-label={tx(locale, "Menu seluler", "Mobile menu")}>
+          {SECONDARY_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              aria-current={active === link.key ? "page" : undefined}
+              className={active === link.key ? "is-active" : ""}
+              href={link.href}
+            >
+              <HeaderIcon name={link.icon} />
+              <span>{tx(locale, link.labelId, link.label)}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mobile-nav-settings">
+          <Link href="/account/language">
+            <HeaderIcon name="language" />
+            <span>{tx(locale, "Bahasa", "Language")}</span>
+          </Link>
+          <ThemeToggle row />
+          {viewer ? (
             <form className="account-signout" action={signOut}>
               <SignOutButton />
             </form>
-          </section>
-        ) : (
-          <div className="mobile-guest-actions">
+          ) : (
             <Link href={signInPath(returnTo)}>
               <HeaderIcon name="signin" />
               <span>{tx(locale, "Masuk", "Sign in")}</span>
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </HeaderMenu>
   );

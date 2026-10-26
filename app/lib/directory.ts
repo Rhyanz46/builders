@@ -411,10 +411,11 @@ function isOpenFor(entry: DirectoryEntry, opening: DirectoryOpening): boolean {
 }
 
 /**
- * The orders a visitor can ask for. Empty is the path's own: PR tier on the
- * code path, last activity on the role path (the order the page builds it in).
+ * The orders a visitor can ask for. Empty is the default on both paths: the
+ * newest listed first. `ready` is the code path's PR tier order, `active` the
+ * role path's last activity.
  */
-export const DIRECTORY_SORTS = ["updated", "stars", "newest"] as const;
+export const DIRECTORY_SORTS = ["ready", "active", "updated", "stars"] as const;
 export type DirectorySort = (typeof DIRECTORY_SORTS)[number];
 
 export function isDirectorySort(value: string): value is DirectorySort {
@@ -423,17 +424,18 @@ export function isDirectorySort(value: string): value is DirectorySort {
 
 /**
  * The orders that mean something on a path. A role card has no push and no
- * stars, and its own order is already the most recently active first.
+ * stars, nor a PR tier.
  */
 export function sortsFor(track: DirectoryTrack): DirectorySort[] {
-  return track === "github" ? ["updated", "stars", "newest"] : ["newest"];
+  return track === "github" ? ["ready", "updated", "stars"] : ["active"];
 }
 
 export function sortLabel(sort: DirectorySort | "", track: DirectoryTrack, locale: Locale): string {
+  if (sort === "ready") return tx(locale, "Paling siap menerima PR", "Most ready for PRs");
+  if (sort === "active") return tx(locale, "Aktivitas terbaru", "Recently active");
   if (sort === "updated") return tx(locale, "Push terbaru", "Recently pushed");
   if (sort === "stars") return tx(locale, "Bintang terbanyak", "Most stars");
-  if (sort === "newest") return tx(locale, "Baru masuk direktori", "Newest listed");
-  return track === "github" ? tx(locale, "Paling siap menerima PR", "Most ready for PRs") : tx(locale, "Aktivitas terbaru", "Recently active");
+  return tx(locale, "Baru masuk direktori", "Newest listed");
 }
 
 export type DirectoryFilters = {
@@ -450,7 +452,7 @@ export type DirectoryFilters = {
   facet: string[];
   /** Only products at one of these stages. Empty for any. */
   stage?: Stage[];
-  /** Empty for the path's own order. */
+  /** Empty for the default: the newest listed first. */
   sort?: DirectorySort | "";
   q: string;
 };
@@ -463,10 +465,8 @@ function facetsOf(entry: DirectoryEntry): string[] {
 /**
  * One path, narrowed by its chips and the search box. Within a group the
  * chips widen (TypeScript or Go); across groups they narrow. Unless another
- * order is asked for, an admin's picks come first; then entries on the code
- * path are ranked by PR tier — merging outsiders first, not taking PRs last —
- * and within a tier, and on the role path, the order is kept as the caller
- * built it.
+ * order is asked for, an admin's picks come first and the rest are the newest
+ * listed first, on both paths.
  */
 /** How many cards one page of the directory shows. */
 export const PAGE_SIZE = 20;
@@ -507,13 +507,14 @@ export function filterDirectory(entries: DirectoryEntry[], filters: DirectoryFil
   const sort = filters.sort && sortsFor(filters.track).includes(filters.sort) ? filters.sort : "";
   // Whatever is unknown — no push seen, no stars counted — goes last, not first.
   if (sort === "updated") return matched.toSorted((a, b) => latestFirst(a.updatedAt, b.updatedAt));
-  if (sort === "newest") return matched.toSorted((a, b) => latestFirst(a.listedAt, b.listedAt));
   if (sort === "stars") return matched.toSorted((a, b) => (b.stars ?? -1) - (a.stars ?? -1));
-  // The path's own order puts an admin's picks first — on the code path only
-  // those still taking PRs, then by tier; a pick nobody can send a PR to
-  // stays where its tier puts it.
-  if (filters.track === "github") return matched.toSorted((a, b) => pickRank(a) - pickRank(b) || tierRank(a) - tierRank(b));
-  return matched.toSorted((a, b) => Number(b.adminPick) - Number(a.adminPick));
+  if (sort === "active") return matched.toSorted((a, b) => latestFirst(a.activeAt, b.activeAt));
+  // Ready for PRs puts an admin's picks first — only those still taking PRs,
+  // then by tier; a pick nobody can send a PR to stays where its tier puts it.
+  if (sort === "ready") return matched.toSorted((a, b) => pickRank(a) - pickRank(b) || tierRank(a) - tierRank(b));
+  // By default an admin's picks stay on top, and everything else is the
+  // newest listed first.
+  return matched.toSorted((a, b) => Number(b.adminPick) - Number(a.adminPick) || latestFirst(a.listedAt, b.listedAt));
 }
 
 function pickRank(entry: DirectoryEntry): number {
@@ -526,8 +527,8 @@ function latestFirst(a: string | null, b: string | null): number {
   return (Number.isFinite(right) ? right : -Infinity) - (Number.isFinite(left) ? left : -Infinity) || 0;
 }
 
-/** How long an entry counts as new to the directory. */
-export const NEW_DAYS = 14;
+/** How long an entry counts as new to the directory: a week, no more. */
+export const NEW_DAYS = 7;
 
 /** Listed in the last `NEW_DAYS` days. */
 export function isNew(entry: DirectoryEntry, now = Date.now()): boolean {

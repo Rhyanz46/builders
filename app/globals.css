@@ -228,17 +228,16 @@ nav form { display: flex; margin: 0; }
   color: var(--ink-soft); font-size: 11px; margin-top: 7px; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap;
 }
-.account-menu-links, .mobile-nav-primary, .mobile-account-links { display: flex; flex-direction: column; }
+.account-menu-links, .mobile-account-links { display: flex; flex-direction: column; }
 .account-menu-links { padding: 8px 0 2px; }
-.account-menu-links a, .account-signout button, .mobile-account-links a, .mobile-guest-actions a {
+.account-menu-links a, .account-signout button, .mobile-account-links a {
   align-items: center; border: 0; border-radius: 8px; display: flex; gap: 11px; min-height: 44px;
   padding: 10px 11px; text-align: left; width: 100%;
 }
-.account-menu-links a, .mobile-account-links a, .mobile-guest-actions a {
+.account-menu-links a, .mobile-account-links a {
   color: var(--ink-soft); font-size: 13px; font-weight: 620;
 }
-.account-menu-links a:hover, .account-signout button:hover, .mobile-account-links a:hover,
-.mobile-guest-actions a:hover { background: light-dark(#f2f2f2, #171717); color: var(--ink); }
+.account-menu-links a:hover, .account-signout button:hover, .mobile-account-links a:hover { background: light-dark(#f2f2f2, #171717); color: var(--ink); }
 .menu-count {
   align-items: center; background: var(--coral); border-radius: 99px; color: light-dark(#ffffff, #1f1f1f); display: inline-flex;
   font-size: 9px; font-weight: 800; justify-content: center; margin-left: auto; min-width: 20px;
@@ -267,32 +266,36 @@ nav form { display: flex; margin: 0; }
   gap: 10px; max-height: calc(100dvh - var(--header-h) - 18px); overflow-y: auto; padding: 12px;
   position: absolute; right: 0; top: 58px; width: min(340px, calc(100vw - 48px)); z-index: 70;
 }
-.mobile-menu-label {
-  color: light-dark(#858585, #858585); font-size: 10px; font-weight: 750; letter-spacing: .11em; margin: 2px 10px 5px;
-  text-transform: uppercase;
-}
-.mobile-nav-primary { background: light-dark(#f8f8f8, #191919); border: 1px solid var(--line-soft); border-radius: 12px; padding: 8px; }
-.mobile-nav .mobile-nav-primary a {
-  align-items: center; border-radius: 9px; color: light-dark(#616161, #b1b1b1); display: flex; font-size: 14px; font-weight: 650;
-  gap: 12px; min-height: 46px; padding: 10px 11px;
-}
-.mobile-nav .mobile-nav-primary a:hover { background: light-dark(#ffffff, #1f1f1f); color: var(--ink); }
-.mobile-nav .mobile-nav-primary a.is-active {
-  background: light-dark(#ffffff, #1f1f1f); box-shadow: 0 2px 9px light-dark(rgba(41, 41, 41, .07), rgba(0, 0, 0, .14)); color: var(--ink);
-}
-.mobile-active-dot { background: var(--coral); border-radius: 50%; height: 7px; margin-left: auto; width: 7px; }
 .mobile-nav .mobile-project-action {
-  align-items: center; background: var(--ink); border-radius: 6px; color: light-dark(#ffffff, #1f1f1f); display: flex;
-  font-size: 14px; font-weight: 720; gap: 11px; justify-content: center; min-height: 48px; padding: 12px 15px;
+  align-items: center; background: var(--ink); border-radius: 8px; color: light-dark(#ffffff, #1f1f1f); display: flex;
+  font-size: 14px; font-weight: 720; gap: 10px; justify-content: center; min-height: 44px; padding: 10px 14px;
 }
 .mobile-nav .mobile-project-action:hover { background: light-dark(#4d4d4d, #c2c2c2); }
+/* The phone's menu, kept to one screen: who you are and your own pages, the
+   one action, the site's pages as a row of tiles, then preferences. */
 .mobile-account-section {
-  border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; padding: 8px;
+  border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; padding: 6px;
 }
-.mobile-account-section .account-identity { border: 0; }
-.mobile-account-links { padding-top: 6px; }
-.mobile-guest-actions { border-top: 1px solid var(--line-soft); padding-top: 8px; }
-.mobile-guest-actions a { min-height: 46px; }
+.mobile-nav .mobile-account-identity { border-radius: 9px; display: block; padding: 0; }
+.mobile-account-identity .account-identity { align-items: center; border: 0; gap: 10px; padding: 9px 10px; }
+.mobile-account-identity .account-avatar { height: 34px; width: 34px; }
+.mobile-account-identity .account-identity-copy small { margin-top: 4px; }
+.mobile-account-identity:hover .account-identity { background: light-dark(#efefef, #1c1c1c); }
+.mobile-account-links { padding-top: 4px; }
+.mobile-nav .mobile-account-links a { min-height: 40px; padding: 8px 10px; }
+.mobile-nav-pages { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-nav .mobile-nav-pages a {
+  align-items: center; border: 1px solid var(--line-soft); border-radius: 10px; color: var(--ink-soft); display: flex;
+  flex-direction: column; font-size: 12px; font-weight: 620; gap: 5px; justify-content: center; line-height: 1.2;
+  min-height: 58px; padding: 8px 4px; text-align: center;
+}
+.mobile-nav .mobile-nav-pages a.is-active { background: light-dark(#f4f4f5, #29292c); border-color: var(--line); color: var(--ink); }
+.mobile-nav-settings { border-top: 1px solid var(--line-soft); display: flex; flex-direction: column; padding-top: 4px; }
+.mobile-nav .mobile-nav-settings a, .mobile-nav .mobile-nav-settings .theme-row, .mobile-nav .mobile-nav-settings .account-signout button {
+  align-items: center; display: flex; font-size: 13px; font-weight: 620; gap: 11px; min-height: 40px; padding: 8px 10px;
+}
+.mobile-nav .mobile-nav-settings a, .mobile-nav .mobile-nav-settings .theme-row { color: var(--ink-soft); }
+.mobile-nav .mobile-nav-settings .account-signout { border-top: 0; margin: 0; padding: 0; }
 
 .arrow { display: inline-block; font-family: Arial, sans-serif; transition: transform .25s ease; }
 .arrow-diagonal { transform: rotate(-45deg); }
@@ -2011,11 +2014,10 @@ form button[aria-busy="true"]::after,
 .theme-row[aria-checked="true"] .theme-switch { background: light-dark(#09090b, #eaeaed); }
 .theme-row[aria-checked="true"] .theme-switch::after { background: light-dark(#fff, #18181b); transform: translateX(12px); }
 .menu-theme-row { border-top: 1px solid var(--line-soft); margin-top: 4px; padding-top: 4px; }
-.menu-theme-row .theme-row, .mobile-nav .mobile-nav-primary .theme-row {
+.menu-theme-row .theme-row {
   color: var(--ink-soft); font-size: 13px; font-weight: 620; min-height: 44px; padding: 10px 11px;
 }
-.mobile-nav .mobile-nav-primary .theme-row { color: light-dark(#616161, #b1b1b1); font-size: 14px; font-weight: 650; gap: 12px; min-height: 46px; }
-.menu-theme-row .theme-row:hover, .mobile-nav .mobile-nav-primary .theme-row:hover { background: light-dark(#f3f3f3, #171717); }
+.menu-theme-row .theme-row:hover { background: light-dark(#f3f3f3, #171717); }
 footer .theme-row { color: inherit; font-size: inherit; gap: 8px; padding: 0; width: auto; }
 footer .theme-row .menu-icon { display: none; }
 footer .theme-row .theme-switch { height: 16px; width: 27px; }
@@ -2034,11 +2036,6 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
   display: inline-flex; font-size: 13px; font-weight: 600; height: 32px; padding: 0 12px;
 }
 .nav-login:hover { background: light-dark(#f4f4f5, #29292c); border-color: light-dark(#d4d4d8, #52525b); }
-.mobile-guest-actions { border-top: 0; padding-top: 0; }
-.mobile-nav .mobile-guest-actions a {
-  border: 1px solid light-dark(#e4e4e7, #383839); border-radius: 6px; color: light-dark(#09090b, #eaeaed);
-  font-size: 14px; font-weight: 650; justify-content: center; min-height: 48px;
-}
 .icon-button, .avatar-button { border-color: light-dark(#e4e4e7, #383839); }
 .avatar-button { background: light-dark(#f4f4f5, #171717); }
 
