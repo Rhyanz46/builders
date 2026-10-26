@@ -9,6 +9,7 @@ import { InstantLink, InstantNav } from "./instant-link";
 import { RelativeTime } from "./relative-time";
 import { ReactionBar } from "./reaction-bar";
 import { activityPath, readActivityFilters, readActivityPage } from "../lib/activity-url";
+import { leaderboardIssueUrl } from "../content";
 import {
   activityPeople,
   activityRepos,
@@ -148,6 +149,20 @@ export function ActivityView({
     <InstantNav navigate={navigate}>
       <div className="dx-layout">
         <FilterPanel active={active}>
+          {/* Where this page is headed, above the filters it will outgrow. */}
+          <div className="ax-roadmap">
+            <p>
+              <strong>{tx(locale, "Halaman ini bakal jadi leaderboard.", "This page is becoming a leaderboard.")}</strong>{" "}
+              {tx(
+                locale,
+                "Lengkap dengan gamifikasi—masih dikerjakan. Punya ide? Langsung komen di issue-nya.",
+                "With gamification—still in progress. Have an idea? Just comment on the issue.",
+              )}
+            </p>
+            <a href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
+              {tx(locale, "Buka issue", "Open the issue")} <span aria-hidden="true">↗</span>
+            </a>
+          </div>
           <FacetGroup title={tx(locale, "Jenis", "Kind")}>
             {(["all", "merged", "open", "commits"] as const)
               .filter((kind) => kind === "all" || kinds[kind] > 0 || current.kind === kind)

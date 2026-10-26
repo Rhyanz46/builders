@@ -1573,6 +1573,14 @@ form button[aria-busy="true"]::after,
 .dx-sheet-head, .dx-filterbar { display: none; }
 .dx-sheet-body { display: grid; gap: 14px; }
 .dx-facet + .dx-facet { border-top: 1px solid var(--dx-line); padding-top: 14px; }
+/* /activity's note on where it is headed, at the top of its filters. */
+.ax-roadmap {
+  background: var(--dx-soft); border-radius: 8px; color: var(--dx-muted); font-size: 12.5px; line-height: 1.55;
+  margin: 0 0 14px; padding: 10px 12px;
+}
+.ax-roadmap p { margin: 0 0 6px; }
+.ax-roadmap strong { color: var(--dx-ink); font-weight: 650; }
+.ax-roadmap a { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .dx-facet-title { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 6px; padding: 0 10px; }
 .dx-facet-more details > ul { display: grid; gap: 1px; list-style: none; margin: 0; padding: 0; }
 .dx-facet-more summary {
