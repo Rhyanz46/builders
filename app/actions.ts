@@ -2,7 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { getSupabase, requireSupabase, type Supabase } from "./lib/supabase";
+import { requireSupabase, type Supabase } from "./lib/supabase";
 import {
   MAXIMUM,
   domainOf,
@@ -33,13 +33,6 @@ import {
   type ProfileFieldErrors,
   type ProfileInput,
 } from "./lib/profile";
-import {
-  EMPTY_FEEDBACK,
-  FEEDBACK_LIMITS,
-  validateFeedback,
-  type FeedbackErrors,
-  type FeedbackInput,
-} from "./lib/feedback";
 import { tags } from "./lib/cache-tags";
 import { currentLocale } from "./lib/locale-server";
 import { tx, type Locale } from "./lib/locale";
@@ -94,13 +87,6 @@ export type RepoFormState = {
 export type ProfileState = {
   errors: ProfileFieldErrors & { form?: string };
   values: ProfileInput;
-};
-
-export type FeedbackState = {
-  errors: FeedbackErrors & { form?: string };
-  values: FeedbackInput;
-  /** True once the box has it, so the form can say thank you where it stood. */
-  sent?: boolean;
 };
 
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
@@ -881,61 +867,6 @@ export async function setReaction(url: string, emoji: string, on: boolean): Prom
 
   updateTag(tags.reactions);
   return { ok: true };
-}
-
-/* ------------------------------------------------------------------ *
- * Feedback
- * ------------------------------------------------------------------ */
-
-/**
- * Sends one masukan to whoever maintains the site.
- *
- * The only write here that does not invalidate anything: nothing on this site
- * reads the `feedback` table, by design — see the migration. That also makes it
- * the only write with no `redirect` at the end. Everywhere else the proof that
- * a save worked is the page it lands on; a masukan has no such page, so the
- * form is told to say so itself, and a bounce to the board would read as the
- * message having been thrown away.
- *
- * A guest may send one. `submit_feedback` decides that, not this function —
- * these checks exist to turn a refusal into a sentence, as everywhere else.
- */
-export async function sendFeedback(_state: FeedbackState, formData: FormData): Promise<FeedbackState> {
-  const values: FeedbackInput = {
-    kind: text(formData, "kind"),
-    message: text(formData, "message"),
-    contact: text(formData, "contact"),
-  };
-
-  const locale = await currentLocale();
-  const errors = validateFeedback(values, locale);
-  if (Object.keys(errors).length > 0) return { errors, values };
-
-  // Not `requireSupabase`: a checkout with no credentials still renders this
-  // page, and the person typing into it deserves a sentence rather than the
-  // error boundary swallowing what they wrote.
-  const supabase = await getSupabase();
-  if (!supabase) {
-    return {
-      errors: {
-        form: tx(
-          locale,
-          "Situs ini belum terhubung ke Supabase, jadi masukanmu belum bisa dikirim.",
-          "This site is not connected to Supabase yet, so your feedback cannot be sent.",
-        ),
-      },
-      values,
-    };
-  }
-
-  const { error } = await supabase.rpc("submit_feedback", {
-    feedback_kind: values.kind,
-    message: values.message.slice(0, FEEDBACK_LIMITS.message.max),
-    contact: values.contact.slice(0, FEEDBACK_LIMITS.contact.max),
-  });
-  if (error) return { errors: { form: error.message }, values };
-
-  return { errors: {}, values: EMPTY_FEEDBACK, sent: true };
 }
 
 /* ------------------------------------------------------------------ *

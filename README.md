@@ -145,7 +145,7 @@ site does not have redirects to the other (`next.config.ts`).
 | `/admin` | Site admins only (404 for anyone else). builders: members' products. oss: the repository catalogue and its suggestions |
 | `/account/profile` | The profile editor — who you are, how to reach you, and on oss whether your GitHub activity is shown |
 | `/signin`, `/signup` | GitHub or Google OAuth, or email and password, through Supabase Auth |
-| `/about`, `/privacy`, `/feedback` | The story, the privacy notice, and the feedback box (open to guests, read by the maintainers alone) |
+| `/about`, `/privacy`, `/feedback` | The story, the privacy notice, and the feedback form (drafts a prefilled GitHub issue; the site stores nothing) |
 
 ### Where the rules live
 
@@ -199,11 +199,11 @@ site does not have redirects to the other (`next.config.ts`).
 - `app/lib/feed.ts` — the board's lanes, and how the "untuk kamu" lane is
   arranged. Pure, so the unit tests read it directly.
 - `app/lib/updates.ts` — the journey a project writes for itself.
-- `app/lib/feedback.ts` — the five kinds a masukan can be, and what one has
-  to carry to be worth answering. The `feedback` table it validates for is the
-  only one on the site nothing reads back: it is written through
-  `submit_feedback()` and read in the Supabase dashboard — see
-  `20260901000000_feedback.sql`.
+- `app/lib/feedback.ts` — the five kinds a masukan can be, what one has to
+  carry to be worth answering, and the GitHub issue it becomes: each kind opens
+  a template in `.github/ISSUE_TEMPLATE/` with the message filled in. The old
+  `feedback` table is read-only — see
+  `20261101000100_feedback_via_github_issues.sql`.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
 - `app/lib/tasks.ts` — the three task statuses and what a task must carry.
 - `app/lib/activity.ts` — the eleven kinds of trail entry and how each one reads
