@@ -1586,7 +1586,7 @@ form button[aria-busy="true"]::after,
   align-items: center; color: var(--tone); display: flex; font-size: 10.5px; font-weight: 700; gap: 5px;
   letter-spacing: .06em; margin-bottom: 5px; text-transform: uppercase;
 }
-.ax-roadmap-eyebrow svg { fill: none; flex: none; height: 14px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; width: 14px; }
+.ax-roadmap-eyebrow span { font-size: 13px; letter-spacing: 0; line-height: 1; }
 .ax-roadmap .ax-roadmap-title { margin-bottom: 3px; }
 .ax-roadmap strong { color: var(--dx-ink); font-size: 13.5px; font-weight: 650; line-height: 1.35; }
 .ax-roadmap a { color: var(--tone); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }

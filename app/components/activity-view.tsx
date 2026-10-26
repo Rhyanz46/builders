@@ -152,9 +152,7 @@ export function ActivityView({
           {/* Where this page is headed, above the filters it will outgrow. */}
           <div className="ax-roadmap tone-done">
             <p className="ax-roadmap-eyebrow">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8 4h8v5a4 4 0 0 1-8 0V4ZM8 6H5v1.5A3.5 3.5 0 0 0 8.5 11M16 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 13v4M8.5 20h7M10 17h4" />
-              </svg>
+              <span aria-hidden="true">🏆</span>
               {tx(locale, "Segera", "Coming soon")}
             </p>
             <p className="ax-roadmap-title">
