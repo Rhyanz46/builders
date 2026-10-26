@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "./responsive-link";
 import { FacetGroup, FacetLink } from "./directory-view";
+import { FilterPanel, type ActiveFilter } from "./filter-panel";
 import { InstantLink, InstantNav } from "./instant-link";
 import { RelativeTime } from "./relative-time";
 import { ReactionBar } from "./reaction-bar";
@@ -14,17 +15,22 @@ import {
   activityRepos,
   dayKey,
   groupByDay,
+  inPlace,
   inScope,
   isGitHubActivityFilter,
   kindCounts,
   leaderboard,
+  ownLeaderboard,
+  placeCounts,
   ownerAvatar,
   queryActivity,
   repoName,
   scopeCounts,
+  ACTIVITY_PLACES,
   ACTIVITY_SCOPES,
   LEADERBOARD_PERIODS,
   SUMMARY_DAYS,
+  type ActivityPlace,
   type ActivityScope,
   type CommitSummaryEntry,
   type GitHubActivityEntry,
@@ -64,6 +70,7 @@ export function ActivityView({
   locale,
   unavailable,
   viewerHandle = null,
+  localRepos = [],
 }: {
   entries: GitHubActivityEntry[];
   /** Per pull request URL, or per summary key. */
@@ -75,6 +82,8 @@ export function ActivityView({
   unavailable: boolean;
   /** The signed-in member's GitHub handle, when they are shown here: their own row on the board. */
   viewerHandle?: string | null;
+  /** Repositories the directory counts as local (`owner/name`, lower case): the local and global toggle. */
+  localRepos?: string[];
 }) {
   const searchParams = useSearchParams();
   const fromUrl = readActivityFilters(searchParams);
@@ -117,11 +126,24 @@ export function ActivityView({
 
   const current = { ...fromUrl, q: q.slice(0, 100) };
   const scopes = useMemo(() => scopeCounts(entries), [entries]);
-  // The sidebar narrows within the scope showing, as the directory's does within local or global.
-  const scoped = useMemo(() => inScope(entries, current.scope), [entries, current.scope]);
+  const local = useMemo(() => new Set(localRepos), [localRepos]);
+  // Local or global only means something for pull requests to other people's repos.
+  const place = current.scope === "own" ? "all" : current.place;
+  const inThisScope = useMemo(() => inScope(entries, current.scope), [entries, current.scope]);
+  const places = useMemo(() => placeCounts(inThisScope, local), [inThisScope, local]);
+  // Everything else narrows within the scope and place showing.
+  const scoped = useMemo(() => inPlace(inThisScope, place, local), [inThisScope, place, local]);
   const kinds = kindCounts(scoped);
   const people = useMemo(() => activityPeople(entries), [entries]);
-  const board = useMemo(() => leaderboard(entries, current.board, today), [entries, current.board, today]);
+  // The board follows the feed's filters. Members' own work — the Own scope,
+  // or summaries — has its own board; otherwise it ranks PRs to other people's
+  // repos in the place showing, of the kind showing: merged, in review, or both.
+  const ownBoard = current.scope === "own" || current.kind === "commits";
+  const states = current.kind === "merged" ? (["merged"] as const) : current.kind === "open" ? (["open"] as const) : (["merged", "open"] as const);
+  const board = useMemo(
+    () => (ownBoard ? ownLeaderboard(entries) : leaderboard(inPlace(entries, place, local), current.board, today, states)),
+    [entries, ownBoard, current.board, place, local, today, current.kind], // eslint-disable-line react-hooks/exhaustive-deps
+  );
   const repos = useMemo(() => activityRepos(scoped), [scoped]);
   const matched = useMemo(
     () => queryActivity(scoped, current),
@@ -140,6 +162,11 @@ export function ActivityView({
     external: tx(locale, "Ke luar", "Contributions"),
     own: tx(locale, "Sendiri", "Own"),
   };
+  const placeLabels: Record<ActivityPlace, string> = {
+    all: tx(locale, "Semua repo", "All repos"),
+    local: tx(locale, "Lokal", "Local"),
+    global: tx(locale, "Global", "Global"),
+  };
   const kindLabels: Record<GitHubActivityFilter, string> = {
     all: tx(locale, "Semua", "All"),
     merged: tx(locale, "PR merged", "Merged PRs"),
@@ -147,6 +174,15 @@ export function ActivityView({
     commits: tx(locale, "Ringkasan", "Summaries"),
   };
   const memberName = people.find(({ person }) => person.handle.toLowerCase() === current.member.toLowerCase())?.person.name;
+  // On a phone every filter lives in one sheet above the board, since they
+  // steer the board as well as the feed; this is what its bar lists.
+  const sheetActive: ActiveFilter[] = [
+    ...(current.scope !== "external" ? [{ label: scopeLabels[current.scope], href: activityPath({ ...current, scope: "external" }) }] : []),
+    ...(place !== "all" ? [{ label: placeLabels[place], href: activityPath({ ...current, place: "all" }) }] : []),
+    ...(current.kind !== "all" ? [{ label: kindLabels[current.kind], href: activityPath({ ...current, kind: "all" }) }] : []),
+    ...(current.member ? [{ label: memberName || `@${current.member}`, href: activityPath({ ...current, member: "" }) }] : []),
+    ...(current.repo ? [{ label: current.repo, href: activityPath({ ...current, repo: "" }) }] : []),
+  ];
   // Who or where the feed is narrowed to, each with a way back.
   const chips = [
     ...(current.member ? [{ label: memberName || `@${current.member}`, href: activityPath({ ...current, member: "" }) }] : []),
@@ -156,11 +192,46 @@ export function ActivityView({
   return (
     <InstantNav navigate={navigate}>
       <div className="dx-layout ax-layout">
+        {/* A phone's filters: a bar above the board, opening a sheet. On a
+            laptop the same filters sit in the feed's toolbar instead. */}
+        <FilterPanel active={sheetActive}>
+          <FacetGroup title={tx(locale, "Repo siapa", "Whose repos")}>
+            {ACTIVITY_SCOPES.map((scope) => (
+              <FacetLink
+                key={scope}
+                active={current.scope === scope}
+                href={activityPath({ scope, q: current.q, place: current.place, board: current.board })}
+                count={scopes[scope]}
+              >
+                {scopeLabels[scope]}
+              </FacetLink>
+            ))}
+          </FacetGroup>
+          {current.scope !== "own" && local.size > 0 ? (
+            <FacetGroup title={tx(locale, "Lokal atau global", "Local or global")}>
+              {ACTIVITY_PLACES.map((each) => (
+                <FacetLink key={each} active={place === each} href={activityPath({ ...current, place: each })} count={places[each]}>
+                  {placeLabels[each]}
+                </FacetLink>
+              ))}
+            </FacetGroup>
+          ) : null}
+          <FacetGroup title={tx(locale, "Jenis", "Kind")}>
+            {(["all", "merged", "open", "commits"] as const)
+              .filter((kind) => kind === "all" || kinds[kind] > 0 || current.kind === kind)
+              .map((kind) => (
+                <FacetLink key={kind} active={current.kind === kind} href={activityPath({ ...current, kind })} count={kinds[kind]}>
+                  {kind === "all" ? tx(locale, "Semua jenis", "All kinds") : kindLabels[kind]}
+                </FacetLink>
+              ))}
+          </FacetGroup>
+        </FilterPanel>
+
         {/* The left column: the leaderboard, and under it where the PRs went.
             On a phone the column comes apart: the board above the feed, the
             repos after it. */}
         <div className="ax-side">
-          <Leaderboard rows={board} current={current} viewerHandle={viewerHandle} locale={locale} />
+          <Leaderboard rows={board} current={current} own={ownBoard} viewerHandle={viewerHandle} locale={locale} />
 
           {repos.length > 0 ? (
             <div className="ax-side-repos">
@@ -218,13 +289,30 @@ export function ActivityView({
                   className={current.scope === scope ? "is-active" : ""}
                   aria-current={current.scope === scope ? "true" : undefined}
                   // A new scope starts its sidebar afresh: a member or repo picked in one may not be in the other.
-                  href={activityPath({ scope, q: current.q })}
+                  href={activityPath({ scope, q: current.q, place: current.place, board: current.board })}
                 >
                   {scopeLabels[scope]}
                   {scope !== "all" ? <span>{scopes[scope]}</span> : null}
                 </InstantLink>
               ))}
             </nav>
+            {/* Local or global repositories, as the directory splits them. Not
+                for members' own work, and not offered when nothing is local. */}
+            {current.scope !== "own" && local.size > 0 ? (
+              <nav className="dx-scope" aria-label={tx(locale, "Repo lokal atau global", "Local or global repos")}>
+                {ACTIVITY_PLACES.map((each) => (
+                  <InstantLink
+                    key={each}
+                    className={place === each ? "is-active" : ""}
+                    aria-current={place === each ? "true" : undefined}
+                    href={activityPath({ ...current, place: each })}
+                  >
+                    {placeLabels[each]}
+                    {each !== "all" ? <span>{places[each]}</span> : null}
+                  </InstantLink>
+                ))}
+              </nav>
+            ) : null}
             {/* What kind of entry: a select rather than a list, now that the
                 left column is the leaderboard. A real GET form, like the
                 directory's sort, so it works before the script does. */}
@@ -234,6 +322,7 @@ export function ActivityView({
               {current.repo ? <input type="hidden" name="repo" value={current.repo} /> : null}
               {current.q ? <input type="hidden" name="q" value={current.q} /> : null}
               {current.board !== "month" ? <input type="hidden" name="board" value={current.board} /> : null}
+              {current.place !== "all" ? <input type="hidden" name="place" value={current.place} /> : null}
               <label>
                 <span className="sr-only">{tx(locale, "Jenis aktivitas", "Kind of activity")}</span>
                 <select
@@ -346,6 +435,23 @@ export function ActivityView({
   );
 }
 
+/** What the board is counting, in a sentence: the kind and the place the feed is filtered to. */
+function countedLabel(current: ActivityFilters, locale: Locale): string {
+  const what =
+    current.kind === "merged"
+      ? tx(locale, "PR merged", "merged PRs")
+      : current.kind === "open"
+        ? tx(locale, "PR yang sedang direview", "PRs in review")
+        : tx(locale, "PR merged dan yang sedang direview", "merged PRs and PRs in review");
+  const where =
+    current.place === "local"
+      ? tx(locale, "repo lokal", "local repos")
+      : current.place === "global"
+        ? tx(locale, "repo global", "global repos")
+        : tx(locale, "repo orang lain", "other people's repos");
+  return tx(locale, `Dihitung dari ${what} ke ${where}. `, `Counts ${what} to ${where}. `);
+}
+
 /** How many rows the board shows before "See all": fewer on a phone, where it sits above the feed. */
 const BOARD_SHOWN = 10;
 const BOARD_SHOWN_PHONE = 5;
@@ -360,11 +466,14 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 function Leaderboard({
   rows,
   current,
+  own,
   viewerHandle,
   locale,
 }: {
   rows: LeaderboardRow[];
   current: ActivityFilters;
+  /** Members' own work: PRs merged into their own repos over SUMMARY_DAYS, with no week or month. */
+  own: boolean;
   viewerHandle: string | null;
   locale: Locale;
 }) {
@@ -382,29 +491,37 @@ function Leaderboard({
         <h2 id="board-title">
           <span aria-hidden="true">🏆</span> Leaderboard
         </h2>
-        <nav className="ax-board-periods" aria-label={tx(locale, "Periode", "Period")}>
-          {LEADERBOARD_PERIODS.map((period) => (
-            <InstantLink
-              key={period}
-              className={current.board === period ? "is-active" : ""}
-              aria-current={current.board === period ? "true" : undefined}
-              href={activityPath({ ...current, board: period })}
-            >
-              {periodLabels[period]}
-            </InstantLink>
-          ))}
-        </nav>
+        {own ? (
+          <p className="ax-board-window">
+            {tx(locale, `Repo sendiri · ${SUMMARY_DAYS} hari terakhir`, `Own repos · last ${SUMMARY_DAYS} days`)}
+          </p>
+        ) : (
+          <nav className="ax-board-periods" aria-label={tx(locale, "Periode", "Period")}>
+            {LEADERBOARD_PERIODS.map((period) => (
+              <InstantLink
+                key={period}
+                className={current.board === period ? "is-active" : ""}
+                aria-current={current.board === period ? "true" : undefined}
+                href={activityPath({ ...current, board: period })}
+              >
+                {periodLabels[period]}
+              </InstantLink>
+            ))}
+          </nav>
+        )}
       </div>
 
       {rows.length === 0 ? (
         <p className="ax-board-empty">
-          {current.board === "week"
-            ? tx(locale, "Belum ada PR merged minggu ini. Jadilah yang pertama!", "No merged PRs this week yet. Be the first!")
-            : tx(locale, "Belum ada PR merged bulan ini. Jadilah yang pertama!", "No merged PRs this month yet. Be the first!")}
+          {own
+            ? tx(locale, `Belum ada PR merged ke repo sendiri dalam ${SUMMARY_DAYS} hari terakhir.`, `No PRs merged into members' own repos in the last ${SUMMARY_DAYS} days.`)
+            : current.board === "week"
+            ? tx(locale, "Belum ada PR minggu ini. Jadilah yang pertama!", "No PRs this week yet. Be the first!")
+            : tx(locale, "Belum ada PR bulan ini. Jadilah yang pertama!", "No PRs this month yet. Be the first!")}
         </p>
       ) : (
         <ol className={`ax-board-list ${expanded ? "is-expanded" : ""}`}>
-          {rows.map(({ person, merged, repos }, index) => {
+          {rows.map(({ person, prs, repos }, index) => {
             const on = person.handle.toLowerCase() === current.member.toLowerCase();
             const mine = person.handle.toLowerCase() === viewerKey;
             return (
@@ -421,7 +538,7 @@ function Leaderboard({
                   <span className="ax-board-name">{person.name || `@${person.handle}`}</span>
                   <span className="ax-board-score">
                     <span>
-                      <strong>{merged}</strong> PR
+                      <strong>{prs}</strong> PR
                     </span>
                     <small>{tx(locale, `${repos} repo`, `${repos} ${repos === 1 ? "repo" : "repos"}`)}</small>
                   </span>
@@ -434,7 +551,7 @@ function Leaderboard({
 
       {viewerRank >= BOARD_SHOWN_PHONE && !expanded ? (
         <p className={`ax-board-you ${viewerRank < BOARD_SHOWN ? "is-phone-only" : ""}`}>
-          {tx(locale, "Kamu", "You")}: <strong>#{viewerRank + 1}</strong> · {rows[viewerRank].merged} PR
+          {tx(locale, "Kamu", "You")}: <strong>#{viewerRank + 1}</strong> · {rows[viewerRank].prs} PR
         </p>
       ) : null}
 
@@ -450,7 +567,9 @@ function Leaderboard({
       ) : null}
 
       <p className="ax-board-foot">
-        {tx(locale, "Dihitung dari PR merged ke repo orang lain. ", "Counts PRs merged into other people's repos. ")}
+        {own
+          ? tx(locale, "Dihitung dari PR merged ke repo sendiri; seri dipecah jumlah commit. ", "Counts PRs merged into their own repos; commits break ties. ")
+          : countedLabel(current, locale)}
         <a href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
           {tx(locale, "Ide poin & gamifikasi", "Ideas for points & badges")} <span aria-hidden="true">↗</span>
         </a>

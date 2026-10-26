@@ -7,14 +7,8 @@ import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { DirectoryView } from "../components/directory-view";
 import { ActivityBanner } from "../components/activity-banner";
-import { listAdminPicks, listOssMembers, listProjects, listRepoSignals } from "../lib/data";
-import { readPublicly } from "../lib/public-read";
-import { projectBlurb } from "../lib/brief";
-import { productEntries, repoEntry, type DirectoryEntry } from "../lib/directory";
 import { pathFor, readFilters } from "../lib/directory-url";
-import { listOpenSourceRepos, signalsFor } from "../lib/open-source-live";
-import { parseGitHubRepositoryUrl } from "../lib/github";
-import { roleLabel } from "../lib/roles";
+import { readDirectory } from "../lib/directory-read";
 import { currentLocale } from "../lib/locale-server";
 import { currentViewer } from "../lib/session";
 import { tx, type Locale } from "../lib/locale";
@@ -111,59 +105,6 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
       <SiteFooter />
     </>
   );
-}
-
-/**
- * Everything listed, both tracks. Every read underneath is cached, so the
- * heading's numbers and the list share one trip to the database.
- */
-async function readDirectory(locale: Locale) {
-  // GitHub's facts come from the database, read once and shared by catalogue
-  // repos and products; nothing on this page calls GitHub.
-  // Only the catalogue waits for the signals; the products and the members'
-  // records start at the same time, rather than queueing behind them.
-  const signalsRead = readPublicly("repository signals in the directory", () => listRepoSignals(), {});
-  const [reposResult, projectsResult, membersResult, signalsResult, picksResult] = await Promise.all([
-    signalsRead.then(({ value }) =>
-      readPublicly("open source repos in the directory", () => listOpenSourceRepos(value), []),
-    ),
-    readPublicly("products in the directory", () => listProjects({ lane: "active" }), []),
-    readPublicly("members' open source records in the directory", () => listOssMembers(), []),
-    signalsRead,
-    readPublicly("admin picks in the directory", () => listAdminPicks(), { repoIds: [], projectIds: [] }),
-  ]);
-  const pickedRepos = new Set(picksResult.value.repoIds);
-  const pickedProjects = new Set(picksResult.value.projectIds);
-  const signals = signalsResult.value;
-
-  const repos = reposResult.value.map((repo) => ({ ...repo, adminPick: pickedRepos.has(repo.id) }));
-  const members = membersResult.value;
-  const products = projectsResult.value.map((project) => {
-    const repository = parseGitHubRepositoryUrl(project.repoUrl);
-    const found = repository ? signalsFor(signals, repository.owner, repository.repo) : null;
-    return {
-      ...project,
-      repoStats: found?.stats ?? null,
-      repoActivity: found?.activity ?? null,
-      adminPick: pickedProjects.has(project.id),
-    };
-  });
-  const roleName = (role: string) => roleLabel(role, "", locale);
-  const entries: DirectoryEntry[] = isOss
-    ? [
-        ...repos.filter((repo) => repo.list === "internal").map((repo) => repoEntry(repo, locale, members)),
-        ...repos.filter((repo) => repo.list === "recommended").map((repo) => repoEntry(repo, locale, members)),
-        // The open source site keeps members' products that take PRs — their
-        // card is the repository — and leaves the role path to the builders site.
-        ...products.flatMap((project) => productEntries(project, projectBlurb, roleName, locale)),
-      ].filter((entry) => entry.track === "github")
-    : // The builders site is a directory of products, every active one, with
-      // nothing of GitHub's: no repos, and no repository link on a card.
-      products
-        .flatMap((project) => productEntries(project, projectBlurb, roleName, locale, { everyProduct: true }))
-        .filter((entry) => entry.track === "role")
-        .map((entry) => ({ ...entry, links: entry.links.filter((link) => link.kind !== "github") }));
-  return { entries, members, unavailable: reposResult.unavailable || projectsResult.unavailable };
 }
 
 /**

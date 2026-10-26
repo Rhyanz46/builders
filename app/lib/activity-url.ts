@@ -1,7 +1,9 @@
 import {
+  isActivityPlace,
   isActivityScope,
   isGitHubActivityFilter,
   isLeaderboardPeriod,
+  type ActivityPlace,
   type ActivityQuery,
   type ActivityScope,
   type LeaderboardPeriod,
@@ -14,7 +16,7 @@ import {
  * the same arrangement as directory-url.ts.
  */
 
-export type ActivityFilters = ActivityQuery & { scope: ActivityScope; board: LeaderboardPeriod };
+export type ActivityFilters = ActivityQuery & { scope: ActivityScope; place: ActivityPlace; board: LeaderboardPeriod };
 
 type Query = Record<string, string | string[] | undefined> | URLSearchParams;
 
@@ -32,9 +34,12 @@ export function readActivityFilters(query: Query): ActivityFilters {
   const member = read(query, "member").trim();
   const repo = read(query, "repo").trim().toLowerCase();
   const board = read(query, "board");
+  const place = read(query, "place");
   return {
     // Contributions unless asked otherwise: what the page is for.
     scope: isActivityScope(scope) ? scope : "external",
+    // Local or global repositories; both unless asked.
+    place: isActivityPlace(place) ? place : "all",
     kind: isGitHubActivityFilter(kind) ? kind : "all",
     member: HANDLE.test(member) ? member : "",
     repo: REPO_KEY.test(repo) ? repo : "",
@@ -54,6 +59,7 @@ export function readActivityPage(query: Query): number {
 export function activityPath(filters: Partial<ActivityFilters>, page = 1): string {
   const params = new URLSearchParams();
   if (filters.scope && filters.scope !== "external") params.set("scope", filters.scope);
+  if (filters.place && filters.place !== "all") params.set("place", filters.place);
   if (filters.kind && filters.kind !== "all") params.set("show", filters.kind);
   if (filters.member) params.set("member", filters.member);
   if (filters.repo) params.set("repo", filters.repo);

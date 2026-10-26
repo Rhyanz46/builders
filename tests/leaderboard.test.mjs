@@ -36,16 +36,20 @@ test("the board counts merged PRs to other people's repos this period, most firs
   ];
 
   const month = leaderboard(entries, "month", "2026-10-27");
-  assert.deepEqual(month.map(({ person: who, merged, repos }) => [who.handle, merged, repos]), [["ana", 3, 2], ["budi", 2, 1]]);
+  assert.deepEqual(month.map(({ person: who, prs, repos }) => [who.handle, prs, repos]), [["ana", 3, 2], ["budi", 2, 1]]);
+
+  // PRs in review count when asked for, on the day they were opened; both kinds together too.
+  assert.deepEqual(leaderboard(entries, "month", "2026-10-27", ["open"]).map(({ person: who, prs }) => [who.handle, prs]), [["budi", 1]]);
+  assert.deepEqual(leaderboard(entries, "month", "2026-10-27", ["merged", "open"]).map(({ person: who, prs }) => [who.handle, prs]), [["ana", 3], ["budi", 3]]);
 
   const week = leaderboard(entries, "week", "2026-10-27");
-  assert.deepEqual(week.map(({ person: who, merged }) => [who.handle, merged]), [["budi", 2], ["ana", 1]]);
+  assert.deepEqual(week.map(({ person: who, prs }) => [who.handle, prs]), [["budi", 2], ["ana", 1]]);
 });
 
 test("a merge late in the evening counts on that day in WIB", () => {
   const ana = person("ana");
   // 30 Sep 18:00 UTC is 1 Oct 01:00 in Jakarta.
-  assert.equal(leaderboard([pr(ana, "acme/one", "merged", "2026-09-30T18:00:00Z")], "month", "2026-10-27")[0].merged, 1);
+  assert.equal(leaderboard([pr(ana, "acme/one", "merged", "2026-09-30T18:00:00Z")], "month", "2026-10-27")[0].prs, 1);
 });
 
 test("ties go to whoever reached more repos", () => {
@@ -61,4 +65,28 @@ test("the week is in the address only when asked for", () => {
   assert.equal(readActivityFilters(new URLSearchParams("board=year")).board, "month");
   assert.equal(activityPath({ board: "week" }), "/?board=week");
   assert.equal(activityPath({ board: "month" }), "/");
+});
+
+test("the own-work board counts PRs merged into their own repos, commits only breaking ties", async () => {
+  const { ownLeaderboard } = await import("../app/lib/github-activity.ts");
+  const summary = (who, merged, commits) => ({ kind: "commit_summary", key: `${who.handle}:own`, person: who, commits, merged, repos: [{ repo: `${who.handle}/x`, commits }], since: "2026-09-27", at: "2026-10-27T03:00:00Z" });
+  const rows = ownLeaderboard([summary(person("ana"), 2, 5), summary(person("budi"), 2, 40), summary(person("cici"), 0, 90), summary(person("dodi"), 4, 1)]);
+  assert.deepEqual(rows.map(({ person: who, prs }) => [who.handle, prs]), [["dodi", 4], ["budi", 2], ["ana", 2]], "no merged PR, no row");
+});
+
+test("local and global split pull requests by the directory's local repos", async () => {
+  const { inPlace, placeCounts, leaderboard: board } = await import("../app/lib/github-activity.ts");
+  const ana = person("ana");
+  const local = new Set(["kawan/krs"]);
+  const entries = [
+    pr(ana, "kawan/krs", "merged", "2026-10-27T03:00:00Z"),
+    pr(ana, "odoo/odoo", "merged", "2026-10-27T03:00:00Z", "2026-10-26T03:00:00Z"),
+    { kind: "commit_summary", key: "ana:own", person: ana, commits: 3, merged: 1, repos: [], since: "2026-09-27", at: "2026-10-27T03:00:00Z" },
+  ];
+  assert.deepEqual(placeCounts(entries, local), { all: 2, local: 1, global: 1 });
+  assert.equal(inPlace(entries, "all", local).length, 3);
+  assert.deepEqual(inPlace(entries, "local", local).map((entry) => entry.repo), ["kawan/krs"]);
+  assert.equal(board(inPlace(entries, "global", local), "month", "2026-10-27")[0].prs, 2);
+  assert.equal(activityPath({ place: "local" }), "/?place=local");
+  assert.equal(readActivityFilters(new URLSearchParams("place=moon")).place, "all");
 });
