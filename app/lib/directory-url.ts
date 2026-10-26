@@ -84,5 +84,5 @@ export function pathFor(filters: DirectoryFilters, page = 1): string {
   if (filters.sort) params.set("sort", filters.sort);
   if (page > 1) params.set("page", String(page));
   const search = params.toString();
-  return `/${search ? `?${search}` : ""}`;
+  return `/directory${search ? `?${search}` : ""}`;
 }

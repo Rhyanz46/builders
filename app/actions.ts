@@ -494,7 +494,7 @@ export async function updateProject(_state: EditState, formData: FormData): Prom
 
   projectChanged(slug);
   revalidatePath(`/projects/${slug}`);
-  revalidatePath("/");
+  revalidatePath("/directory");
   redirect(`/projects/${slug}`);
 }
 
@@ -517,7 +517,7 @@ export async function deleteProject(formData: FormData): Promise<void> {
   if (error) throw new Error(error.message);
 
   seatsChanged(slug);
-  revalidatePath("/");
+  revalidatePath("/directory");
   redirect(`/u/${viewer.username}`);
 }
 
@@ -554,7 +554,7 @@ export async function setStage(formData: FormData): Promise<void> {
   projectChanged(slug);
   trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
-  revalidatePath("/");
+  revalidatePath("/directory");
 }
 
 /* ------------------------------------------------------------------ *
@@ -615,7 +615,7 @@ export async function closeSeat(formData: FormData): Promise<void> {
 
   seatsChanged(slug);
   revalidatePath(`/projects/${slug}`);
-  revalidatePath("/");
+  revalidatePath("/directory");
 }
 
 export async function decideProposal(formData: FormData): Promise<void> {
@@ -634,7 +634,7 @@ export async function decideProposal(formData: FormData): Promise<void> {
   seatsChanged(slug);
   updateTag(tags.projectTrail(slug));
   revalidatePath(`/projects/${slug}`);
-  revalidatePath("/");
+  revalidatePath("/directory");
 }
 
 /* ------------------------------------------------------------------ *
@@ -674,7 +674,7 @@ export async function setNow(formData: FormData): Promise<void> {
   projectChanged(slug);
   trailChanged(await viewerId(), slug);
   revalidatePath(`/projects/${slug}`);
-  revalidatePath("/");
+  revalidatePath("/directory");
   // The same line is editable from the owner's next-steps page.
   revalidatePath("/get-started");
 }
@@ -1009,7 +1009,7 @@ export async function removeOssContribution(formData: FormData): Promise<void> {
 
 function ossChanged(username: string): void {
   updateTag(tags.oss);
-  revalidatePath("/");
+  revalidatePath("/directory");
   revalidatePath(`/u/${username}`);
   revalidatePath("/get-started");
 }
@@ -1182,7 +1182,7 @@ export async function deleteRepo(formData: FormData): Promise<void> {
 
 function catalogueChanged(): void {
   updateTag(tags.catalogue);
-  revalidatePath("/");
+  revalidatePath("/directory");
   revalidatePath("/recommend");
   revalidatePath("/admin");
 }
