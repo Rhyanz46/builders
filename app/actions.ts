@@ -3,10 +3,8 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createHmac } from "node:crypto";
-import { isIP } from "node:net";
 import { requireSupabase, type Supabase } from "./lib/supabase";
-import { getFeedbackAdminSupabase } from "./lib/feedback-admin";
+import { getFeedbackAdminSupabase, guestFingerprint } from "./lib/feedback-admin";
 import {
   MAXIMUM,
   domainOf,
@@ -22,7 +20,7 @@ import { hiddenFrom } from "./lib/activity";
 import { isReactionKey, isReactionTarget } from "./lib/reactions";
 import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
 import { fetchLinkMetadata, normaliseLink, titleFromLink } from "./lib/link-metadata";
-import { currentViewer, viewerId } from "./lib/session";
+import { currentViewer, sessionViewerId, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import { isOssRelation, parseRepoRef } from "./lib/oss";
 import { validateRepoSubmission, type RepoSubmissionInput } from "./lib/open-source";
@@ -902,8 +900,10 @@ export async function setReaction(url: string, emoji: string, on: boolean): Prom
  * form is told to say so itself, and a bounce to the board would read as the
  * message having been thrown away.
  *
- * A guest may send one. `submit_feedback` decides that, not this function —
- * these checks exist to turn a refusal into a sentence, as everywhere else.
+ * A guest may send one. The RPC runs with the server's private key, so it
+ * cannot read `auth.uid()`: this function tells it who is sending — the
+ * account the session proves, or a fingerprint of a guest's connection — and
+ * `submit_feedback` holds the hourly cap on either.
  */
 export async function sendFeedback(_state: FeedbackState, formData: FormData): Promise<FeedbackState> {
   const values: FeedbackInput = {
@@ -918,53 +918,40 @@ export async function sendFeedback(_state: FeedbackState, formData: FormData): P
 
   // Feedback writes use a server-only client: the public anon key must not be
   // able to call the RPC directly and skip the app's guest rate limit.
+  const unavailable = {
+    errors: {
+      form: tx(
+        locale,
+        "Masukan belum dapat dikirim saat ini. Coba lagi nanti.",
+        "Feedback can't be sent right now. Please try again later.",
+      ),
+    },
+    values,
+  };
   const supabase = getFeedbackAdminSupabase();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabase || !serviceRoleKey) {
-    return {
-      errors: {
-        form: tx(
-          locale,
-          "Masukan belum dapat dikirim saat ini. Coba lagi nanti.",
-          "Feedback can't be sent right now. Please try again later.",
-        ),
-      },
-      values,
-    };
-  }
+  if (!supabase) return unavailable;
 
-  const submitterId = await viewerId();
-  let guestFingerprint: string | null = null;
-  if (!submitterId) {
-    const requestHeaders = await headers();
-    let clientIp = requestHeaders.get("x-nf-client-connection-ip")?.trim() ?? "";
-    if (!clientIp && process.env.NODE_ENV !== "production") clientIp = "127.0.0.1";
-    if (!clientIp || isIP(clientIp) === 0) {
-      return {
-        errors: {
-          form: tx(
-            locale,
-            "Koneksi tidak dapat diverifikasi, jadi masukan belum dikirim. Coba lagi nanti.",
-            "We couldn't verify your connection, so your feedback wasn't sent. Please try again.",
-          ),
-        },
-        values,
-      };
-    }
-    guestFingerprint = createHmac("sha256", serviceRoleKey).update(clientIp).digest("hex");
-  }
+  // The account the session cookie proves, never a DEV_VIEW_AS preview: this
+  // client bypasses every policy, so a preview would write as somebody else.
+  const submitterId = await sessionViewerId();
+  const fingerprint = submitterId ? null : guestFingerprint((await headers()).get("x-nf-client-connection-ip"));
 
   const { error } = await supabase.rpc("submit_feedback", {
     feedback_kind: values.kind,
     message: values.message.slice(0, FEEDBACK_LIMITS.message.max),
     contact: values.contact.slice(0, FEEDBACK_LIMITS.contact.max),
     submitter_id: submitterId,
-    guest_fingerprint_arg: guestFingerprint,
+    guest_fingerprint_arg: fingerprint,
   });
   if (error?.code === "53400") {
     return { errors: { form: feedbackRateLimitMessage(locale) }, values };
   }
-  if (error) return { errors: { form: error.message }, values };
+  // The form already checked what a person can fix; anything else is ours,
+  // and its text is the database's, in one language, not theirs.
+  if (error) {
+    console.error("[builders] Feedback could not be saved.", error);
+    return unavailable;
+  }
 
   return { errors: {}, values: EMPTY_FEEDBACK, sent: true };
 }

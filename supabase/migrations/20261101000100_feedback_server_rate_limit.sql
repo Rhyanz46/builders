@@ -1,6 +1,15 @@
 -- All feedback writes now go through the server action. The anon key is public,
 -- so leaving the old RPC executable would let callers bypass the server-verified
 -- rate limit and the action's friendly form response.
+--
+-- This supersedes 20260901000000_feedback.sql where they differ: guests no
+-- longer call submit_feedback() themselves, and it no longer reads auth.uid();
+-- the server action passes the sender in.
+--
+-- Deploy order: set SUPABASE_SERVICE_ROLE_KEY on both sites first, then apply
+-- this migration and deploy the app together. The old app calls the old
+-- signature, which this drops; until the new app is live, feedback is refused
+-- (with a generic sentence, not the database's text).
 
 alter table public.feedback
   add column guest_fingerprint text check (guest_fingerprint ~ '^[0-9a-f]{64}$');
@@ -51,8 +60,8 @@ begin
       raise exception 'Guest feedback identity is invalid.' using errcode = '22023';
     end if;
 
-    -- The fingerprint is an HMAC of Netlify's client IP, created only by the
-    -- server action. The raw address is never stored.
+    -- The fingerprint is an HMAC of Netlify's client IP (its /64 on IPv6),
+    -- created only by the server action. The raw address is never stored.
     perform pg_advisory_xact_lock(hashtextextended('feedback:guest:' || guest_fingerprint_arg, 0));
 
     select count(*) into recent
@@ -79,4 +88,15 @@ revoke all on function public.submit_feedback(text, text, text, uuid, text) from
 grant execute on function public.submit_feedback(text, text, text, uuid, text) to service_role;
 
 comment on column public.feedback.guest_fingerprint is
-  'HMAC of the guest IP for rate limiting; retained with the feedback row. The raw IP is not stored.';
+  'HMAC of the guest''s connection (IPv4 address or IPv6 /64) for the hourly rate limit. Cleared once it no longer counts; the raw IP is never stored.';
+
+-- A fingerprint only matters while it still counts toward the hour. Past that
+-- it is nothing but a way back to an address — an IPv4 HMAC can be reversed by
+-- whoever holds the key, by trying them all — so it is not kept.
+create extension if not exists pg_cron;
+select cron.schedule(
+  'forget-feedback-guest-fingerprints',
+  '*/15 * * * *',
+  $$ update public.feedback set guest_fingerprint = null
+     where guest_fingerprint is not null and created_at < now() - interval '1 hour' $$
+);

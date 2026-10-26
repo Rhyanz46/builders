@@ -4,7 +4,7 @@ import { SiteFooter, SiteHeader } from "../components/shell";
 import { FeedbackForm } from "../components/feedback-form";
 import { GitHubMark } from "../components/github-mark";
 import { shareCard, sourceRepo } from "../content";
-import { supabaseConfigured } from "../lib/supabase";
+import { feedbackConfigured } from "../lib/feedback-admin";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
 import { site } from "../lib/site";
@@ -29,11 +29,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * Where a masukan is written.
  *
  * Open to guests, and it never reads who is looking. Whether somebody is
- * signed in changes nothing this page renders: the database attaches
- * `auth.uid()` when there is one, and the reply address is optional either
- * way. So the page never waits on the auth round trip the way `/new` does —
- * the header streams the visitor in behind its own boundary, and the form
- * ships with the rest of the page.
+ * signed in changes nothing this page renders: `sendFeedback` attaches the
+ * account when there is one, and the reply address is optional either way.
+ * So the page never waits on the auth round trip the way `/new` does — the
+ * header streams the visitor in behind its own boundary, and the form ships
+ * with the rest of the page.
  *
  * That is also the kinder answer. A form that asks somebody to sign in before
  * reporting that signing in is broken is a form that hears from nobody.
@@ -64,14 +64,14 @@ export default async function FeedbackPage() {
           {tx(locale, "—progresnya bisa kamu pantau di sana.", "—you can follow its progress there.")}
         </p>
 
-        {supabaseConfigured() ? (
+        {feedbackConfigured() ? (
           <FeedbackForm />
         ) : (
           <p className="form-error">
             {tx(
               locale,
-              "Situs ini belum terhubung ke Supabase sehingga masukan belum dapat dikirim.",
-              "This site is not connected to Supabase yet, so feedback cannot be sent.",
+              "Situs ini belum disiapkan untuk menerima masukan, jadi masukan belum dapat dikirim.",
+              "This site is not set up to take feedback yet, so feedback cannot be sent.",
             )}
           </p>
         )}

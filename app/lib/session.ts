@@ -31,20 +31,7 @@ const authUser = cache(async (): Promise<AuthIdentity | null> => {
     const supabase = await getSupabase();
     if (!supabase) return null;
 
-    const preview = await devPreviewIdentity(supabase);
-    if (preview) return preview;
-
-    const { data, error } = await supabase.auth.getClaims();
-    if (error) throw error;
-
-    const claims = data?.claims;
-    if (!claims?.sub) return null;
-
-    return {
-      id: claims.sub,
-      email: typeof claims.email === "string" ? claims.email : "",
-      userMetadata: isRecord(claims.user_metadata) ? claims.user_metadata : {},
-    };
+    return (await devPreviewIdentity(supabase)) ?? (await sessionIdentity(supabase));
   } catch (error) {
     unstable_rethrow(error);
     if (isAbortError(error)) return null;
@@ -67,6 +54,25 @@ const authUser = cache(async (): Promise<AuthIdentity | null> => {
 export async function viewerId(): Promise<string | null> {
   return (await authUser())?.id ?? null;
 }
+
+/**
+ * The account the session cookie proves, ignoring a `DEV_VIEW_AS` preview.
+ *
+ * For a write made with the server's private key, where the database cannot
+ * read `auth.uid()` and trusts the id it is handed: a preview must stay the
+ * guest the database sees everywhere else. A session that cannot be read is a
+ * guest too.
+ */
+export const sessionViewerId = cache(async (): Promise<string | null> => {
+  try {
+    const supabase = await getSupabase();
+    return supabase ? ((await sessionIdentity(supabase))?.id ?? null) : null;
+  } catch (error) {
+    unstable_rethrow(error);
+    if (!isAbortError(error)) console.error("[builders] Visitor session could not be read; continuing as a guest.", error);
+    return null;
+  }
+});
 
 /**
  * The signed-in visitor with their public profile, or `null` for a guest.
@@ -127,6 +133,21 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
  * write is refused by its policies, and anything only an owner may read stays
  * hidden. Never on in a production build or on Vercel.
  */
+/** Who the session cookie's verified claims say this is. */
+async function sessionIdentity(supabase: NonNullable<Awaited<ReturnType<typeof getSupabase>>>): Promise<AuthIdentity | null> {
+  const { data, error } = await supabase.auth.getClaims();
+  if (error) throw error;
+
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+
+  return {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : "",
+    userMetadata: isRecord(claims.user_metadata) ? claims.user_metadata : {},
+  };
+}
+
 async function devPreviewIdentity(supabase: NonNullable<Awaited<ReturnType<typeof getSupabase>>>): Promise<AuthIdentity | null> {
   const username = process.env.DEV_VIEW_AS?.trim();
   if (!username || process.env.NODE_ENV !== "development" || process.env.VERCEL) return null;

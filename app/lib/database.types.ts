@@ -185,7 +185,7 @@ export type FeedbackRow = {
   message: string;
   contact: string;
   handled: boolean;
-  /** HMAC of a guest IP used for rate limiting; retained with the feedback row. */
+  /** HMAC of a guest's connection for the hourly limit; cleared after about an hour. */
   guest_fingerprint: string | null;
   created_at: string;
 };
