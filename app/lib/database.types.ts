@@ -185,8 +185,6 @@ export type FeedbackRow = {
   message: string;
   contact: string;
   handled: boolean;
-  /** HMAC of a guest's connection for the hourly limit; cleared after about an hour. */
-  guest_fingerprint: string | null;
   created_at: string;
 };
 
@@ -365,9 +363,9 @@ export type Database = {
       };
       feedback: {
         Row: FeedbackRow;
-        // Written only by submit_feedback() in 20260901000000_feedback.sql, and
-        // read in the Supabase dashboard rather than by any page here — the
-        // table grants neither role anything. Same reasoning as `notices`.
+        // Nothing writes it any more: feedback became GitHub issues
+        // (20261101000100_feedback_via_github_issues.sql). What was sent before
+        // is read in the Supabase dashboard; the table grants neither role anything.
         Insert: never;
         Update: never;
       };
@@ -439,16 +437,6 @@ export type Database = {
       };
       decide_proposal: { Args: { proposal_id: number; accept: boolean }; Returns: undefined };
       set_now: { Args: { project: number; line: string }; Returns: undefined };
-      submit_feedback: {
-        Args: {
-          feedback_kind: string;
-          message: string;
-          contact: string;
-          submitter_id: string | null;
-          guest_fingerprint_arg: string | null;
-        };
-        Returns: undefined;
-      };
     };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;

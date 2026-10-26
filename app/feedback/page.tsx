@@ -4,7 +4,6 @@ import { SiteFooter, SiteHeader } from "../components/shell";
 import { FeedbackForm } from "../components/feedback-form";
 import { GitHubMark } from "../components/github-mark";
 import { shareCard, sourceRepo } from "../content";
-import { feedbackConfigured } from "../lib/feedback-admin";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
 import { site } from "../lib/site";
@@ -14,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = tx(locale, `Masukan — ${site.name}`, `Feedback — ${site.name}`);
   const description = tx(
     locale,
-    `Ceritakan apa yang error, bikin bingung, atau kamu harap ada di ${site.name}. Tidak perlu punya akun.`,
-    `Tell us what is broken, what is confusing, or what you wish existed on ${site.name}. No account needed.`,
+    `Ceritakan apa yang error, bikin bingung, atau kamu harap ada di ${site.name}. Masukanmu jadi issue di GitHub.`,
+    `Tell us what is broken, what is confusing, or what you wish existed on ${site.name}. Your feedback becomes a GitHub issue.`,
   );
   return {
     title,
@@ -26,17 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Where a masukan is written.
+ * Where a masukan is written — and then sent from GitHub.
  *
- * Open to guests, and it never reads who is looking. Whether somebody is
- * signed in changes nothing this page renders: `sendFeedback` attaches the
- * account when there is one, and the reply address is optional either way.
- * So the page never waits on the auth round trip the way `/new` does — the
- * header streams the visitor in behind its own boundary, and the form ships
- * with the rest of the page.
- *
- * That is also the kinder answer. A form that asks somebody to sign in before
- * reporting that signing in is broken is a form that hears from nobody.
+ * The site keeps none of it. The form asks what kind of feedback it is and
+ * what happened, then opens a GitHub issue with the matching template filled
+ * in; see `app/lib/feedback.ts`. The page never reads who is looking, so it
+ * never waits on the auth round trip: the header streams the visitor in
+ * behind its own boundary, and the form ships with the rest of the page.
  */
 export default async function FeedbackPage() {
   const locale = await currentLocale();
@@ -50,31 +45,20 @@ export default async function FeedbackPage() {
         <p className="lede">
           {tx(
             locale,
-            "Situs ini juga sebuah project yang lagi dibangun, dan masukanmu adalah kontribusi—sama seperti kontribusi lain di sini. Nggak perlu akun, dan nggak perlu rapi.",
-            "This site is a project being built too, and your feedback is a contribution—the same as any other one here. No account needed, and no need to be polished.",
+            "Situs ini juga sebuah project yang lagi dibangun, dan masukanmu adalah kontribusi—sama seperti kontribusi lain di sini. Nggak perlu rapi—form ini membantu menyusunnya jadi issue di GitHub.",
+            "This site is a project being built too, and your feedback is a contribution—the same as any other one here. No need to be polished: this form helps shape it into a GitHub issue.",
           )}
         </p>
-        {/* Two ways in, side by side: the form for anyone, an issue for whoever lives on GitHub. */}
+        {/* The form is a guide; whoever already knows GitHub's templates can skip it. */}
         <p className="feedback-github">
-          {tx(locale, "Lebih suka lewat GitHub?", "Prefer GitHub?")}{" "}
-          <a href={`https://github.com/${sourceRepo}/issues/new`} rel="noreferrer noopener" target="_blank">
+          {tx(locale, "Sudah biasa pakai GitHub?", "At home on GitHub?")}{" "}
+          <a href={`https://github.com/${sourceRepo}/issues/new/choose`} rel="noreferrer noopener" target="_blank">
             <GitHubMark />
-            {tx(locale, "Buka issue", "Open an issue")} <span aria-hidden="true">↗</span>
+            {tx(locale, "Pilih template issue langsung", "Pick an issue template directly")} <span aria-hidden="true">↗</span>
           </a>
-          {tx(locale, "—progresnya bisa kamu pantau di sana.", "—you can follow its progress there.")}
         </p>
 
-        {feedbackConfigured() ? (
-          <FeedbackForm />
-        ) : (
-          <p className="form-error">
-            {tx(
-              locale,
-              "Situs ini belum disiapkan untuk menerima masukan, jadi masukan belum dapat dikirim.",
-              "This site is not set up to take feedback yet, so feedback cannot be sent.",
-            )}
-          </p>
-        )}
+        <FeedbackForm />
 
         <aside className="feedback-elsewhere">
           <p>
@@ -95,8 +79,8 @@ export default async function FeedbackPage() {
           <p>
             {tx(
               locale,
-              "Yang kamu tulis di sini hanya dibaca pengelola, tidak tampil di mana pun. Selengkapnya di",
-              "What you write here is read by the maintainers only; it appears nowhere on the site. More in the",
+              "Situs ini tidak menyimpan masukanmu; yang tersimpan hanya issue yang kamu kirim di GitHub, dan itu publik. Selengkapnya di",
+              "This site stores none of your feedback; only the issue you submit on GitHub is kept, and it is public. More in the",
             )}{" "}
             <Link href="/privacy">{tx(locale, "Kebijakan Privasi", "Privacy Policy")}</Link>.
           </p>

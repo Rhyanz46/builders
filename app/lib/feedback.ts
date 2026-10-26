@@ -1,20 +1,18 @@
 /**
- * What a masukan may carry, and what to say when it does not.
+ * What a masukan may carry, what to say when it does not, and the GitHub issue
+ * it becomes.
  *
- * The ceilings here are the ones the `feedback` table checks in
- * `20260901000000_feedback.sql`, repeated for the same reason `profile.ts`
- * repeats its own: a value the column would refuse should come back as a
- * sentence somebody can act on, not as a Postgres constraint error.
- *
- * Store the key, never the label — the same rule as `roles.ts` and
- * `project-types.ts`. The copy below can be rewritten without touching a row.
+ * The site stores no feedback. The form on /feedback is a guide to a good
+ * issue: it asks the two things a report needs, then opens GitHub's new-issue
+ * page with the right template already filled in, and the person sends it
+ * from their own account. GitHub keeps the spam out and the thread public, and
+ * the maintainers answer where they already work.
  *
  * No Next.js or Supabase imports, so `tests/feedback.test.mjs` can call these
  * directly.
  */
 
 import { tx, type Locale } from "./locale";
-import { isEmail } from "./profile";
 
 /**
  * The five things a masukan turns out to be.
@@ -29,19 +27,9 @@ export const FEEDBACK_KINDS = ["bug", "idea", "confusing", "praise", "other"] as
 export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
 
 export const FEEDBACK_LIMITS = {
+  /** The ceiling keeps the issue link well under the length GitHub accepts. */
   message: { min: 10, max: 2000 },
-  /** The longest address the `contact` column stores. */
-  contact: { max: 254 },
 } as const;
-
-/** Copy shown when the shared per-account or per-IP hourly quota is full. */
-export function feedbackRateLimitMessage(locale: Locale = "en"): string {
-  return tx(
-    locale,
-    "Kamu sudah mencapai batas 5 masukan dalam sejam terakhir. Coba lagi nanti.",
-    "You've reached the limit of 5 feedback submissions per hour. Please try again later.",
-  );
-}
 
 const FEEDBACK_META: Record<FeedbackKind, { label: string; blurb: string }> = {
   bug: {
@@ -101,20 +89,18 @@ export function feedbackKindBlurb(value: string, locale: Locale = "en"): string 
   return isFeedbackKind(value) ? tx(locale, FEEDBACK_META[value].blurb, FEEDBACK_EN[value].blurb) : "";
 }
 
-export type FeedbackInput = { kind: string; message: string; contact: string };
+export type FeedbackInput = { kind: string; message: string };
 export type FeedbackErrors = Partial<Record<keyof FeedbackInput, string>>;
 
-export const EMPTY_FEEDBACK: FeedbackInput = { kind: "", message: "", contact: "" };
+export const EMPTY_FEEDBACK: FeedbackInput = { kind: "", message: "" };
 
 /**
  * Everything wrong with a masukan, by field.
  *
  * Only the kind and the message are asked for. The floor on the message is the
  * one judgement call here: "error" on its own is not a report anybody can act
- * on, and a person who sent it would never learn why nothing happened. The
- * address is optional because a masukan that wants no reply is still worth
- * having — but if one is given it has to be an address, or the reply goes
- * nowhere and only the sender is surprised.
+ * on. There is no reply address: the issue is the conversation, and GitHub
+ * tells whoever opened it when somebody answers.
  */
 export function validateFeedback(input: FeedbackInput, locale: Locale = "en"): FeedbackErrors {
   const errors: FeedbackErrors = {};
@@ -140,20 +126,54 @@ export function validateFeedback(input: FeedbackInput, locale: Locale = "en"): F
     );
   }
 
-  const contact = input.contact.trim();
-  if (contact && !isEmail(contact)) {
-    errors.contact = tx(
-      locale,
-      "Masukkan alamat email yang valid, atau kosongkan saja.",
-      "Enter a valid email address, or leave this blank.",
-    );
-  } else if (contact.length > FEEDBACK_LIMITS.contact.max) {
-    errors.contact = tx(
-      locale,
-      `Alamat emailnya terlalu panjang—maksimal ${FEEDBACK_LIMITS.contact.max} karakter.`,
-      `That email address is too long—at most ${FEEDBACK_LIMITS.contact.max} characters.`,
-    );
-  }
-
   return errors;
+}
+
+/** Where the issue is opened from, filled into it so nobody has to type it. */
+export type FeedbackOrigin = {
+  /** `owner/name` of the repository the issues go to. */
+  repo: string;
+  /** The site's host, e.g. `builders.swegrowth.id`. */
+  site: string;
+  /** The browser's user agent, for a bug's environment. Empty if unknown. */
+  userAgent?: string;
+};
+
+/**
+ * Which issue template each kind opens, and where the message goes in it. The
+ * field ids are the `id:`s in `.github/ISSUE_TEMPLATE/`. `blank_issues_enabled`
+ * is off there, so every kind needs a template.
+ */
+const ISSUE_FORMS: Record<FeedbackKind, { template: string; prefix: string; field: string }> = {
+  bug: { template: "bug_report.yml", prefix: "[Bug]: ", field: "summary" },
+  idea: { template: "feature_request.yml", prefix: "[Idea]: ", field: "problem" },
+  confusing: { template: "feedback.yml", prefix: "[Confusing]: ", field: "feedback" },
+  praise: { template: "feedback.yml", prefix: "[Praise]: ", field: "feedback" },
+  other: { template: "feedback.yml", prefix: "[Feedback]: ", field: "feedback" },
+};
+
+/** How much of the message the issue title carries. */
+const TITLE_MAX = 72;
+
+/**
+ * GitHub's new-issue page for this masukan, with its template, title and
+ * fields filled in. Nothing is sent until the person submits it there.
+ *
+ * Call with input `validateFeedback` accepted.
+ */
+export function feedbackIssueUrl(input: FeedbackInput, origin: FeedbackOrigin): string {
+  const kind: FeedbackKind = isFeedbackKind(input.kind) ? input.kind : "other";
+  const form = ISSUE_FORMS[kind];
+  const message = input.message.trim().slice(0, FEEDBACK_LIMITS.message.max);
+  const firstLine = message.split(/\r?\n/).find((line) => line.trim())?.trim() ?? "";
+  const title = firstLine.length > TITLE_MAX ? `${firstLine.slice(0, TITLE_MAX - 1).trimEnd()}…` : firstLine;
+
+  const params = new URLSearchParams({ template: form.template, title: `${form.prefix}${title}`, [form.field]: message });
+  if (kind === "bug") {
+    params.set("site", origin.site);
+    params.set("environment", [origin.site, origin.userAgent].filter(Boolean).join("\n"));
+  } else if (form.template === "feedback.yml") {
+    params.set("site", origin.site);
+  }
+  return `https://github.com/${origin.repo}/issues/new?${params.toString()}`;
 }

@@ -63,7 +63,7 @@ export default async function PrivacyPage() {
         <h3>{tx(locale, "Masukan", "Feedback")}</h3>
         <p>
           {tx(locale, "Masukan yang dikirim lewat", "Feedback sent through")} <Link href="/feedback">/feedback</Link>{" "}
-          {tx(locale, "menyimpan jenis masukan, isi pesanmu, dan email balasan jika kamu mengisinya. Jika kamu sedang masuk, akunmu ikut tercatat agar pengelola dapat menindaklanjuti. Untuk membatasi spam dari pengunjung tanpa akun, sidik dari alamat IP disimpan bersama masukan selama sekitar satu jam lalu dihapus; alamat IP aslinya tidak pernah disimpan. Masukan tidak pernah ditampilkan di halaman mana pun dan hanya dibaca pengelola; kamu boleh mengirimkannya tanpa akun.", "stores the kind of feedback, what you wrote, and a reply address if you gave one. If you are signed in, your account is recorded with it so the maintainers can follow up. To limit spam from guests, a fingerprint derived from the IP address is kept with the feedback for about an hour and then deleted; the IP address itself is never stored. Feedback is never shown on any page and is read by the maintainers only; you may send it without an account.")}
+          {tx(locale, "tidak disimpan oleh situs ini. Form-nya hanya menyusun issue di GitHub dari isianmu dan membukanya di tab baru; tidak ada yang terkirim sampai kamu menekan Submit di GitHub dengan akunmu sendiri. Issue itu publik dan diatur oleh kebijakan privasi GitHub.", "is not stored by this site. The form only drafts a GitHub issue from what you typed and opens it in a new tab; nothing is sent until you press Submit on GitHub with your own account. That issue is public and governed by GitHub's privacy policy.")}
         </p>
 
         <h3>{tx(locale, "Data teknis", "Technical data")}</h3>
@@ -74,7 +74,7 @@ export default async function PrivacyPage() {
         <h2>{tx(locale, "2. Informasi publik dan privat", "2. Public and private information")}</h2>
         <ul>
           <li><strong>{tx(locale, "Selalu publik:", "Always public:")}</strong> {tx(locale, "proyek dan isinya, kolom profil yang kamu isi, jejak aktivitas selain jenis yang kamu sembunyikan, komentar, dan pengikut.", "projects and their content, profile fields you fill in, your activity trail except kinds you hide, comments, and follows.")}</li>
-          <li><strong>{tx(locale, "Selalu privat:", "Always private:")}</strong> {tx(locale, "email akun (kecuali ditambahkan sebagai email publik), kata sandi, isi kotak masuk, isi proposal sebelum keputusan dibuat, dan masukan yang kamu kirim.", "your account email unless added as a public email, your password, inbox contents, proposal contents before a decision is made, and any feedback you send.")}</li>
+          <li><strong>{tx(locale, "Selalu privat:", "Always private:")}</strong> {tx(locale, "email akun (kecuali ditambahkan sebagai email publik), kata sandi, isi kotak masuk, dan isi proposal sebelum keputusan dibuat.", "your account email unless added as a public email, your password, inbox contents, and proposal contents before a decision is made.")}</li>
         </ul>
 
         <h2>{tx(locale, "3. Penggunaan data", "3. How data is used")}</h2>

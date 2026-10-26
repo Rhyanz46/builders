@@ -1,10 +1,8 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireSupabase, type Supabase } from "./lib/supabase";
-import { getFeedbackAdminSupabase, guestFingerprint } from "./lib/feedback-admin";
 import {
   MAXIMUM,
   domainOf,
@@ -20,7 +18,7 @@ import { hiddenFrom } from "./lib/activity";
 import { isReactionKey, isReactionTarget } from "./lib/reactions";
 import { getGitHubProjectDraft, isGitHubRepositoryUrl, type GitHubProjectDraft } from "./lib/github";
 import { fetchLinkMetadata, normaliseLink, titleFromLink } from "./lib/link-metadata";
-import { currentViewer, sessionViewerId, viewerId } from "./lib/session";
+import { currentViewer, viewerId } from "./lib/session";
 import { normalisePeopleTerms } from "./lib/people";
 import { isOssRelation, parseRepoRef } from "./lib/oss";
 import { validateRepoSubmission, type RepoSubmissionInput } from "./lib/open-source";
@@ -35,14 +33,6 @@ import {
   type ProfileFieldErrors,
   type ProfileInput,
 } from "./lib/profile";
-import {
-  EMPTY_FEEDBACK,
-  FEEDBACK_LIMITS,
-  feedbackRateLimitMessage,
-  validateFeedback,
-  type FeedbackErrors,
-  type FeedbackInput,
-} from "./lib/feedback";
 import { tags } from "./lib/cache-tags";
 import { currentLocale } from "./lib/locale-server";
 import { tx, type Locale } from "./lib/locale";
@@ -97,13 +87,6 @@ export type RepoFormState = {
 export type ProfileState = {
   errors: ProfileFieldErrors & { form?: string };
   values: ProfileInput;
-};
-
-export type FeedbackState = {
-  errors: FeedbackErrors & { form?: string };
-  values: FeedbackInput;
-  /** True once the box has it, so the form can say thank you where it stood. */
-  sent?: boolean;
 };
 
 const GLYPHS = ["✦", "○○○", "▱", "⌖", "≡", "↗", "◔", "⌁"] as const;
@@ -884,76 +867,6 @@ export async function setReaction(url: string, emoji: string, on: boolean): Prom
 
   updateTag(tags.reactions);
   return { ok: true };
-}
-
-/* ------------------------------------------------------------------ *
- * Feedback
- * ------------------------------------------------------------------ */
-
-/**
- * Sends one masukan to whoever maintains the site.
- *
- * The only write here that does not invalidate anything: nothing on this site
- * reads the `feedback` table, by design — see the migration. That also makes it
- * the only write with no `redirect` at the end. Everywhere else the proof that
- * a save worked is the page it lands on; a masukan has no such page, so the
- * form is told to say so itself, and a bounce to the board would read as the
- * message having been thrown away.
- *
- * A guest may send one. The RPC runs with the server's private key, so it
- * cannot read `auth.uid()`: this function tells it who is sending — the
- * account the session proves, or a fingerprint of a guest's connection — and
- * `submit_feedback` holds the hourly cap on either.
- */
-export async function sendFeedback(_state: FeedbackState, formData: FormData): Promise<FeedbackState> {
-  const values: FeedbackInput = {
-    kind: text(formData, "kind"),
-    message: text(formData, "message"),
-    contact: text(formData, "contact"),
-  };
-
-  const locale = await currentLocale();
-  const errors = validateFeedback(values, locale);
-  if (Object.keys(errors).length > 0) return { errors, values };
-
-  // Feedback writes use a server-only client: the public anon key must not be
-  // able to call the RPC directly and skip the app's guest rate limit.
-  const unavailable = {
-    errors: {
-      form: tx(
-        locale,
-        "Masukan belum dapat dikirim saat ini. Coba lagi nanti.",
-        "Feedback can't be sent right now. Please try again later.",
-      ),
-    },
-    values,
-  };
-  const supabase = getFeedbackAdminSupabase();
-  if (!supabase) return unavailable;
-
-  // The account the session cookie proves, never a DEV_VIEW_AS preview: this
-  // client bypasses every policy, so a preview would write as somebody else.
-  const submitterId = await sessionViewerId();
-  const fingerprint = submitterId ? null : guestFingerprint((await headers()).get("x-nf-client-connection-ip"));
-
-  const { error } = await supabase.rpc("submit_feedback", {
-    feedback_kind: values.kind,
-    message: values.message.slice(0, FEEDBACK_LIMITS.message.max),
-    contact: values.contact.slice(0, FEEDBACK_LIMITS.contact.max),
-    submitter_id: submitterId,
-    guest_fingerprint_arg: fingerprint,
-  });
-  if (error?.code === "53400") {
-    return { errors: { form: feedbackRateLimitMessage(locale) }, values };
-  }
-  // The form already checked what a person can fix; anything else is ours,
-  // and its text is the database's, in one language, not theirs.
-  if (error) {
-    console.error("[builders] Feedback could not be saved.", error);
-    return unavailable;
-  }
-
-  return { errors: {}, values: EMPTY_FEEDBACK, sent: true };
 }
 
 /* ------------------------------------------------------------------ *

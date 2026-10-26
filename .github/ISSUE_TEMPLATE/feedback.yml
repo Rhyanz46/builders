@@ -1,0 +1,25 @@
+name: Feedback
+description: Something confusing, something that works well, or anything else about the sites.
+title: "[Feedback]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for telling us. Most of these arrive from the feedback form on the site, already filled in; edit anything before you submit. Do not include secrets, private data, or security vulnerabilities here; use the private security reporting link instead.
+  - type: dropdown
+    id: site
+    attributes:
+      label: Which site?
+      options:
+        - builders.swegrowth.id
+        - oss.swegrowth.id
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: Which page, and what you noticed. A screenshot helps.
+    validations:
+      required: true
