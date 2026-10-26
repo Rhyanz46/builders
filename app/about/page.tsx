@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "@/app/components/responsive-link";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
-import { shareCard, waCommunityUrl } from "../content";
+import { shareCard } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx } from "../lib/locale";
 import { isOss, site } from "../lib/site";
@@ -479,11 +479,10 @@ export default async function AboutPage() {
             <Link className="ab-button" href={isOss ? "/recommend" : "/new"}>
               <span aria-hidden="true">+</span> {isOss ? tx(locale, "Usulkan repo", "Suggest a repo") : tx(locale, "Tambah project", "Add a project")}
             </Link>
-            {waCommunityUrl ? (
-              <a className="ab-button" href={waCommunityUrl} target="_blank" rel="noopener noreferrer">
-                Join WA Community
-              </a>
-            ) : null}
+            {/* The group's rules come first, on /community, then the link to join. */}
+            <Link className="ab-button" href="/community">
+              {tx(locale, "Gabung komunitas", "Join the community")}
+            </Link>
           </div>
         </section>
       </main>
