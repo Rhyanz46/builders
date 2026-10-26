@@ -1580,6 +1580,13 @@ form button[aria-busy="true"]::after,
    activity-view.tsx). Wider than the directory's filters, for names and
    scores side by side; sticky on a laptop, above the feed on a phone. */
 .ax-layout { grid-template-columns: 280px minmax(0, 1fr); }
+/* The filters above both columns, then the feed's own heading and search. */
+.ax-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; padding-top: 24px; }
+.ax-filters .ax-kind { margin-left: auto; }
+.ax-filters + .ax-layout { padding-top: 18px; }
+.ax-feed-head { align-items: baseline; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
+.ax-feed-head h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
+.ax-layout .dx-toolbar .dx-search { flex: 1; max-width: none; }
 /* The filter sheet is the phone's; a laptop has the toolbar. */
 @media (min-width: 901px) {
   .ax-layout > .dx-side { display: none; }
@@ -1633,7 +1640,8 @@ form button[aria-busy="true"]::after,
   /* The column comes apart: the filter bar, the board, the feed, then the
      repos. The toolbar's toggles move into the filter sheet. */
   .ax-layout > .dx-filterbar { order: -1; }
-  .ax-layout .dx-toolbar .dx-scope, .ax-layout .ax-kind, .ax-layout .ax-chips { display: none; }
+  .ax-filters, .ax-layout .ax-chips { display: none; }
+  .ax-filters + .ax-layout { padding-top: 16px; }
   .ax-side { display: contents; }
   .ax-board { order: 0; }
   .ax-layout > .dx-results { order: 1; }

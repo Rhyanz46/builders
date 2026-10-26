@@ -191,6 +191,73 @@ export function ActivityView({
 
   return (
     <InstantNav navigate={navigate}>
+      {/* A laptop's filters: one row across both columns, since they steer the
+          board as well as the feed. A phone has the same in its Filter sheet. */}
+      <div className="ax-filters" role="group" aria-label={tx(locale, "Filter", "Filters")}>
+        {/* Whose repositories: other people's, their own, or both. */}
+        <nav className="dx-scope" aria-label={tx(locale, "Repo orang lain atau sendiri", "Other people's repos or their own")}>
+          {ACTIVITY_SCOPES.map((scope) => (
+            <InstantLink
+              key={scope}
+              className={current.scope === scope ? "is-active" : ""}
+              aria-current={current.scope === scope ? "true" : undefined}
+              // A new scope starts the member and repo afresh: one picked in one may not be in the other.
+              href={activityPath({ scope, q: current.q, place: current.place, board: current.board })}
+            >
+              {scopeLabels[scope]}
+              {scope !== "all" ? <span>{scopes[scope]}</span> : null}
+            </InstantLink>
+          ))}
+        </nav>
+        {/* Local or global repositories, as the directory splits them. Not
+            for members' own work, and not offered when nothing is local. */}
+        {current.scope !== "own" && local.size > 0 ? (
+          <nav className="dx-scope" aria-label={tx(locale, "Repo lokal atau global", "Local or global repos")}>
+            {ACTIVITY_PLACES.map((each) => (
+              <InstantLink
+                key={each}
+                className={place === each ? "is-active" : ""}
+                aria-current={place === each ? "true" : undefined}
+                href={activityPath({ ...current, place: each })}
+              >
+                {placeLabels[each]}
+                {each !== "all" ? <span>{places[each]}</span> : null}
+              </InstantLink>
+            ))}
+          </nav>
+        ) : null}
+        {/* What kind of entry: a real GET form, like the directory's sort, so
+            it works before the script does. */}
+        <form className="dx-sort ax-kind" action="/">
+          {current.scope !== "external" ? <input type="hidden" name="scope" value={current.scope} /> : null}
+          {current.member ? <input type="hidden" name="member" value={current.member} /> : null}
+          {current.repo ? <input type="hidden" name="repo" value={current.repo} /> : null}
+          {current.q ? <input type="hidden" name="q" value={current.q} /> : null}
+          {current.board !== "month" ? <input type="hidden" name="board" value={current.board} /> : null}
+          {current.place !== "all" ? <input type="hidden" name="place" value={current.place} /> : null}
+          <label>
+            <span className="sr-only">{tx(locale, "Jenis aktivitas", "Kind of activity")}</span>
+            <select
+              name="show"
+              value={current.kind}
+              onChange={(event) => navigate(activityPath({ ...current, kind: isGitHubActivityFilter(event.target.value) ? event.target.value : "all" }))}
+            >
+              {(["all", "merged", "open", "commits"] as const)
+                .filter((kind) => kind === "all" || kinds[kind] > 0 || current.kind === kind)
+                .map((kind) => (
+                  <option key={kind} value={kind}>
+                    {kind === "all" ? tx(locale, "Semua jenis", "All kinds") : kindLabels[kind]}
+                    {kind === "all" ? "" : ` (${kinds[kind]})`}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <noscript>
+            <button type="submit">{tx(locale, "Terapkan", "Apply")}</button>
+          </noscript>
+        </form>
+      </div>
+
       <div className="dx-layout ax-layout">
         {/* A phone's filters: a bar above the board, opening a sheet. On a
             laptop the same filters sit in the feed's toolbar instead. */}
@@ -257,7 +324,16 @@ export function ActivityView({
           ) : null}
         </div>
 
-        <section ref={results} className="dx-results" aria-label={tx(locale, "Kontribusi terbaru", "Latest contributions")}>
+        <section ref={results} className="dx-results" aria-labelledby="feed-title">
+          {/* The feed under its own name: the page is the leaderboard, this is
+              what the ranking is made of. */}
+          <div className="ax-feed-head">
+            <h2 id="feed-title">{tx(locale, "Aktivitas terbaru", "Latest activity")}</h2>
+            <p className="dx-count" role="status">
+              <strong>{matched.length}</strong> {tx(locale, "aktivitas", "entries")}
+              {filtered ? <> · <InstantLink href={reset}>reset</InstantLink></> : null}
+            </p>
+          </div>
           <div className="dx-toolbar">
             <form
               className="dx-search"
@@ -280,74 +356,6 @@ export function ActivityView({
                 />
               </label>
             </form>
-            {/* Whose repositories: the same toggle as the directory's local and
-                global, in plain sight rather than in the sidebar. */}
-            <nav className="dx-scope" aria-label={tx(locale, "Repo orang lain atau sendiri", "Other people's repos or their own")}>
-              {ACTIVITY_SCOPES.map((scope) => (
-                <InstantLink
-                  key={scope}
-                  className={current.scope === scope ? "is-active" : ""}
-                  aria-current={current.scope === scope ? "true" : undefined}
-                  // A new scope starts its sidebar afresh: a member or repo picked in one may not be in the other.
-                  href={activityPath({ scope, q: current.q, place: current.place, board: current.board })}
-                >
-                  {scopeLabels[scope]}
-                  {scope !== "all" ? <span>{scopes[scope]}</span> : null}
-                </InstantLink>
-              ))}
-            </nav>
-            {/* Local or global repositories, as the directory splits them. Not
-                for members' own work, and not offered when nothing is local. */}
-            {current.scope !== "own" && local.size > 0 ? (
-              <nav className="dx-scope" aria-label={tx(locale, "Repo lokal atau global", "Local or global repos")}>
-                {ACTIVITY_PLACES.map((each) => (
-                  <InstantLink
-                    key={each}
-                    className={place === each ? "is-active" : ""}
-                    aria-current={place === each ? "true" : undefined}
-                    href={activityPath({ ...current, place: each })}
-                  >
-                    {placeLabels[each]}
-                    {each !== "all" ? <span>{places[each]}</span> : null}
-                  </InstantLink>
-                ))}
-              </nav>
-            ) : null}
-            {/* What kind of entry: a select rather than a list, now that the
-                left column is the leaderboard. A real GET form, like the
-                directory's sort, so it works before the script does. */}
-            <form className="dx-sort ax-kind" action="/">
-              {current.scope !== "external" ? <input type="hidden" name="scope" value={current.scope} /> : null}
-              {current.member ? <input type="hidden" name="member" value={current.member} /> : null}
-              {current.repo ? <input type="hidden" name="repo" value={current.repo} /> : null}
-              {current.q ? <input type="hidden" name="q" value={current.q} /> : null}
-              {current.board !== "month" ? <input type="hidden" name="board" value={current.board} /> : null}
-              {current.place !== "all" ? <input type="hidden" name="place" value={current.place} /> : null}
-              <label>
-                <span className="sr-only">{tx(locale, "Jenis aktivitas", "Kind of activity")}</span>
-                <select
-                  name="show"
-                  value={current.kind}
-                  onChange={(event) => navigate(activityPath({ ...current, kind: isGitHubActivityFilter(event.target.value) ? event.target.value : "all" }))}
-                >
-                  {(["all", "merged", "open", "commits"] as const)
-                    .filter((kind) => kind === "all" || kinds[kind] > 0 || current.kind === kind)
-                    .map((kind) => (
-                      <option key={kind} value={kind}>
-                        {kind === "all" ? tx(locale, "Semua jenis", "All kinds") : kindLabels[kind]}
-                        {kind === "all" ? "" : ` (${kinds[kind]})`}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              <noscript>
-                <button type="submit">{tx(locale, "Terapkan", "Apply")}</button>
-              </noscript>
-            </form>
-            <p className="dx-count" role="status">
-              <strong>{matched.length}</strong> {tx(locale, "aktivitas", "entries")}
-              {filtered ? <> · <InstantLink href={reset}>reset</InstantLink></> : null}
-            </p>
           </div>
 
           {chips.length > 0 ? (
