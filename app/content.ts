@@ -16,6 +16,13 @@ export const waCommunityUrl = isOss
   : "https://chat.whatsapp.com/KPJDVO9A6RBLNa6HG2dQlF";
 
 /**
+ * ContribReady: global open source repos that welcome outside PRs, refreshed
+ * daily. Where the open source directory sends somebody who wants more global
+ * repos than it lists.
+ */
+export const contribReadyUrl = "https://contrib.idnremote.com";
+
+/**
  * The SWE Growth admin's WhatsApp (0823-3858-8078), in international form.
  * For now an offer to help on a product's role goes here rather than through
  * proposals on the site.

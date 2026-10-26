@@ -2401,6 +2401,7 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 /* ------------------------------------------------- catalogue: suggest line */
 .dx-suggest { color: var(--dx-muted); font-size: 13px; margin: 18px 0 0; text-align: center; }
 .dx-suggest a { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.dx-suggest-more { margin-top: 6px; }
 
 /* ----------------------------------------------------- repo form & admin
    /recommend and /admin: the catalogue's way in, and its queue. */
