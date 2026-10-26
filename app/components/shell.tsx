@@ -560,21 +560,24 @@ export async function SiteFooter() {
             : tx(locale, "Direktori produk buatan member komunitas swegrowth.", "A directory of products built by swegrowth community members.")}
         </p>
       </div>
+      {/* Only the pages the header leaves out: the directory, adding to it and
+          GitHub are a click away up there already. */}
       <nav aria-label={tx(locale, "Navigasi footer", "Footer navigation")}>
-        <Link href="/">{tx(locale, "Direktori", "Directory")}</Link>
-        <Link href={ADD_HREF}>{addLabel(locale)}</Link>
         <Link href="/how-it-works">{tx(locale, "Cara kerjanya", "How it works")}</Link>
         <Link href="/about">{tx(locale, "Tentang Kami", "About Us")}</Link>
         <Link href="/community">{tx(locale, "Komunitas", "Community")}</Link>
         <Link href="/feedback">{tx(locale, "Masukan", "Feedback")}</Link>
         <Link href="/privacy">{tx(locale, "Privasi", "Privacy")}</Link>
-        {/* The only reach a signed-out visitor has left to change language,
-            now that the header no longer carries the switcher directly. */}
-        <Link href="/account/language">{tx(locale, "Bahasa", "Language")}</Link>
-        <a href={`https://github.com/${sourceRepo}`} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <ThemeToggle row />
       </nav>
-      <small>© <CopyrightYear /> {site.name}</small>
+      <div className="footer-end">
+        {/* A signed-out visitor on a laptop has no account menu, so language
+            and theme stay here for them, apart from the pages. */}
+        <div className="footer-prefs">
+          <Link href="/account/language">{tx(locale, "Bahasa", "Language")}</Link>
+          <ThemeToggle row />
+        </div>
+        <small>© <CopyrightYear /> {site.name}</small>
+      </div>
     </footer>
   );
 }
