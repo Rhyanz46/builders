@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch (error) {
-    console.warn("[ahsan] Sitemap was published without project and people listings:", error);
+    console.warn("[builders] Sitemap was published without project and people listings:", error);
     return base;
   }
 }

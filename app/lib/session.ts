@@ -51,7 +51,7 @@ const authUser = cache(async (): Promise<AuthIdentity | null> => {
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
-    console.error("[ahsan] Visitor session could not be read; continuing as a guest.", error);
+    console.error("[builders] Visitor session could not be read; continuing as a guest.", error);
     return null;
   }
 });
@@ -113,7 +113,7 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
     // Identity only personalises public pages. If Auth is temporarily down,
     // keep those pages available as a guest and let protected actions deny the
     // request normally instead of breaking the whole streamed response.
-    console.error("[ahsan] Visitor session could not be read; continuing as a guest.", error);
+    console.error("[builders] Visitor session could not be read; continuing as a guest.", error);
     return null;
   }
 });
@@ -133,7 +133,7 @@ async function devPreviewIdentity(supabase: NonNullable<Awaited<ReturnType<typeo
 
   const { data } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
   if (!data) {
-    console.warn(`[ahsan] DEV_VIEW_AS: no member is called "${username}"; continuing as a guest.`);
+    console.warn(`[builders] DEV_VIEW_AS: no member is called "${username}"; continuing as a guest.`);
     return null;
   }
   return { id: data.id, email: "", userMetadata: {} };

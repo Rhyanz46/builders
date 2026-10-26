@@ -42,7 +42,7 @@ export async function generateStaticParams(): Promise<{ username: string }[]> {
     const people = await listPeople(80);
     return people.slice(0, 32).map((person) => ({ username: person.username }));
   } catch (error) {
-    console.warn("[ahsan] Profile detail was not prerendered:", error);
+    console.warn("[builders] Profile detail was not prerendered:", error);
     return [];
   }
 }

@@ -85,7 +85,7 @@ export async function proxy(request: NextRequest) {
     // A stale session must not make every public route unreachable when the
     // auth service is briefly unavailable. The page can continue as a guest;
     // writes still perform their own authenticated checks.
-    console.error("[ahsan] Session refresh was skipped because Supabase Auth did not respond.", error);
+    console.error("[builders] Session refresh was skipped because Supabase Auth did not respond.", error);
   }
 
   return response;

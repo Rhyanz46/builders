@@ -233,7 +233,7 @@ function warnMissingTable(table: string): void {
   if (warned.has(table)) return;
   warned.add(table);
   console.warn(
-    `[ahsan] Table "${table}" does not exist in Supabase yet. Run the files in supabase/migrations/ ` +
+    `[builders] Table "${table}" does not exist in Supabase yet. Run the files in supabase/migrations/ ` +
       `in order. This feature will be skipped for now.`,
   );
 }
@@ -1492,7 +1492,7 @@ async function readMergedOssRows(supabase: Supabase, userId?: string): Promise<{
   if (error) {
     // A deploy ahead of 20261027000100_github_contributions.sql keeps the
     // typed record alone.
-    console.warn(`[ahsan] Verified open source records were skipped: ${error.message}`);
+    console.warn(`[builders] Verified open source records were skipped: ${error.message}`);
     return [];
   }
   return (data ?? []).map((row) => ({ userId: row.user_id, repo: row.repo }));
@@ -1511,7 +1511,7 @@ async function readTypedOssRows(supabase: Supabase, userId?: string): Promise<{ 
     // The records decorate the directory and the profile; neither depends on
     // them. A deploy that runs ahead of 20261020000000_oss_contributions.sql
     // loses the badges, not the page.
-    console.warn(`[ahsan] Open source records were skipped: ${error.message}`);
+    console.warn(`[builders] Open source records were skipped: ${error.message}`);
     return [];
   }
 
@@ -1590,7 +1590,7 @@ export async function listCatalogue(): Promise<OpenSourceRepo[]> {
   if (error) {
     // A deploy ahead of 20261021000000_oss_catalogue.sql loses the repos, not
     // the directory: products still list, and the log says why.
-    console.warn(`[ahsan] The open source catalogue was skipped: ${error.message}`);
+    console.warn(`[builders] The open source catalogue was skipped: ${error.message}`);
     return [];
   }
   return toCatalogue(data ?? []);
@@ -1623,7 +1623,7 @@ export async function listRepoSignals(): Promise<Record<string, RepoSignals>> {
   if (error) {
     // A deploy ahead of 20261022000000_repo_signals.sql loses the numbers and
     // the tiers fall back to "Accepting PRs"; the directory still lists.
-    console.warn(`[ahsan] Repository signals were skipped: ${error.message}`);
+    console.warn(`[builders] Repository signals were skipped: ${error.message}`);
     return {};
   }
 
@@ -1665,7 +1665,7 @@ export async function listMySubmissions(userId: string): Promise<OpenSourceRepo[
     .eq("submitted_by", userId)
     .order("created_at", { ascending: false });
   if (error) {
-    console.warn(`[ahsan] Your submissions could not be read: ${error.message}`);
+    console.warn(`[builders] Your submissions could not be read: ${error.message}`);
     return [];
   }
   return toCatalogue(data ?? []);
@@ -1692,7 +1692,7 @@ export async function isSiteAdmin(): Promise<boolean> {
   const { data, error } = await supabase.rpc("is_site_admin");
   if (error) {
     // Before the migration there are no admins, which is the safe answer.
-    console.warn(`[ahsan] Admin check failed: ${error.message}`);
+    console.warn(`[builders] Admin check failed: ${error.message}`);
     return false;
   }
   return data === true;
@@ -1739,7 +1739,7 @@ export async function listGitHubActivity(): Promise<GitHubActivityEntry[]> {
   if (error) {
     // A deploy ahead of 20261024000000_github_activity.sql shows an empty
     // page, not an error.
-    console.warn(`[ahsan] GitHub activity was skipped: ${error.message}`);
+    console.warn(`[builders] GitHub activity was skipped: ${error.message}`);
     return [];
   }
 
@@ -1771,7 +1771,7 @@ export async function listActivityReactions(): Promise<ReactionRow[]> {
   if (error) {
     // A deploy ahead of 20261025000000_activity_reactions.sql shows the
     // activity without reactions, not an error.
-    console.warn(`[ahsan] Activity reactions were skipped: ${error.message}`);
+    console.warn(`[builders] Activity reactions were skipped: ${error.message}`);
     return [];
   }
 
@@ -1803,7 +1803,7 @@ export async function listAdminPicks(): Promise<AdminPicks> {
   if (error) {
     // A deploy ahead of 20261029000000_admin_picks.sql lists the directory
     // without picks, not an error.
-    console.warn(`[ahsan] Admin picks were skipped: ${error.message}`);
+    console.warn(`[builders] Admin picks were skipped: ${error.message}`);
     return { repoIds: [], projectIds: [] };
   }
   return {

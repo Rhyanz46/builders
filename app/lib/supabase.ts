@@ -62,7 +62,7 @@ export const getSupabase = cache(async (): Promise<Supabase | null> => {
           // like a misconfigured redirect URL and is not one. Swallowing that
           // silently is how it stayed invisible, so say it out loud.
           const names = cookiesToSet.map((cookie) => cookie.name).join(", ");
-          console.error(`[ahsan] Session cookie could not be written (${names}).`, error);
+          console.error(`[builders] Session cookie could not be written (${names}).`, error);
         }
       },
     },

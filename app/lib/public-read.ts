@@ -16,7 +16,7 @@ export async function readPublicly<T>(
   try {
     return { value: await read(), unavailable: false };
   } catch (error) {
-    console.error(`[ahsan] Public data "${label}" could not load; using fallback data.`, error);
+    console.error(`[builders] Public data "${label}" could not load; using fallback data.`, error);
     return { value: fallback, unavailable: true };
   }
 }
