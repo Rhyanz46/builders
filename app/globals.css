@@ -1587,26 +1587,35 @@ form button[aria-busy="true"]::after,
 .ax-toolbar .dx-search { flex: 1 1 240px; max-width: none; }
 .ax-toolbar .ax-show select { font-weight: 550; }
 .ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
-.ax-board { background: var(--tone-soft); border-radius: 10px; padding: 14px 12px 12px; }
-.ax-board-head { display: grid; gap: 10px; margin-bottom: 10px; }
-.ax-board h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; padding: 0 4px; }
-.ax-board-periods { background: light-dark(rgba(255, 255, 255, .7), rgba(0, 0, 0, .2)); border-radius: 8px; display: flex; gap: 2px; padding: 3px; }
-.ax-board-periods a {
-  border-radius: 6px; color: var(--dx-muted); flex: 1; font-size: 12.5px; font-weight: 600; padding: 5px 8px; text-align: center;
+/* A plain card like the rest of the page; purple is only an accent — the
+   choices that are not the default, the row being looked at, the links. */
+.ax-board { border: 1px solid var(--dx-line); border-radius: 12px; padding: 14px 12px 12px; }
+.ax-board-head { display: grid; gap: 8px; margin-bottom: 10px; padding: 0 4px; }
+.ax-board h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
+/* "this month · all repos": the board's choices as one line of pills. */
+.ax-board-pills { align-items: center; color: var(--dx-faint); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 6px; margin: 0; }
+.ax-board-pills label { display: block; margin: 0; }
+.ax-board .ax-pill {
+  align-items: center; background-color: var(--dx-soft); border: 1px solid transparent; border-radius: 99px; color: var(--dx-text);
+  display: inline-flex; font: inherit; font-size: 12.5px; font-weight: 600; height: 28px; line-height: normal; margin: 0; padding: 0 10px; width: auto;
 }
-.ax-board-periods a:hover { color: var(--dx-ink); }
-.ax-board-periods a.is-active { background: light-dark(#ffffff, #3a3a3e); box-shadow: 0 1px 2px light-dark(rgba(9, 9, 11, .08), rgba(0, 0, 0, .3)); color: var(--dx-ink); }
-.ax-board-window { color: var(--dx-muted); font-size: 12.5px; font-weight: 600; margin: 0; padding: 0 4px; }
-.ax-board-places a span { color: var(--dx-faint); font-family: var(--font-geist-mono), monospace; font-size: 11px; margin-left: 4px; }
-.ax-board-places a.is-active span { color: var(--dx-muted); }
+.ax-board select.ax-pill {
+  /* As wide as the choice showing, not the longest one, where supported. */
+  appearance: none; cursor: pointer; field-sizing: content; padding-right: 26px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-position: right 9px center; background-repeat: no-repeat; background-size: 12px 12px;
+}
+.ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { border-color: var(--dx-line); color: var(--dx-ink); outline: none; }
+.ax-board .ax-pill.is-set { background-color: var(--tone-soft); color: var(--tone); }
+.ax-board-pills noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12px; height: 28px; padding: 0 10px; }
 .ax-board-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .ax-board-list:not(.is-expanded) > li:nth-child(n + 11) { display: none; }
 .ax-board-list a {
   align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; gap: 8px; grid-template-columns: 24px 24px minmax(0, 1fr) auto;
   min-height: 40px; padding: 6px 6px;
 }
-.ax-board-list a:hover { background: light-dark(rgba(255, 255, 255, .7), rgba(255, 255, 255, .05)); color: var(--dx-ink); }
-.ax-board-list li.is-active a { background: light-dark(#ffffff, rgba(255, 255, 255, .08)); box-shadow: inset 0 0 0 1px var(--tone); color: var(--dx-ink); }
+.ax-board-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
+.ax-board-list li.is-active a { background: var(--tone-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent); color: var(--dx-ink); }
 .ax-board-list li.is-mine .ax-board-name { color: var(--tone); }
 .ax-board-rank { color: var(--dx-muted); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 650; text-align: center; }
 .ax-board-list li:nth-child(-n + 3) .ax-board-rank { font-size: 17px; line-height: 1; }
@@ -1616,13 +1625,13 @@ form button[aria-busy="true"]::after,
 .ax-board-score strong { color: var(--dx-ink); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .ax-board-score small { font-size: 11px; }
 .ax-board-empty { color: var(--dx-muted); font-size: 13px; line-height: 1.55; margin: 4px 4px 8px; }
-.ax-board-you { border-top: 1px dashed color-mix(in srgb, var(--tone) 40%, transparent); color: var(--dx-text); font-size: 12.5px; margin: 8px 4px 0; padding-top: 8px; }
+.ax-board-you { border-top: 1px dashed var(--dx-line); color: var(--dx-text); font-size: 12.5px; margin: 8px 4px 0; padding-top: 8px; }
 .ax-board-you strong { color: var(--tone); }
 .ax-board-toggle {
   background: none; border: 0; color: var(--tone); cursor: pointer; font-size: 12.5px; font-weight: 650; margin: 6px 0 0; padding: 4px; width: 100%;
 }
 .ax-board-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
-.ax-board-foot { border-top: 1px solid color-mix(in srgb, var(--tone) 20%, transparent); color: var(--dx-muted); font-size: 11.5px; line-height: 1.5; margin: 10px 4px 0; padding-top: 10px; }
+.ax-board-foot { border-top: 1px solid var(--dx-line); color: var(--dx-muted); font-size: 11.5px; line-height: 1.5; margin: 10px 4px 0; padding-top: 10px; }
 .ax-board-foot a { color: var(--tone); font-weight: 650; white-space: nowrap; }
 .ax-board .is-phone-only { display: none; }
 /* Who or where the feed is narrowed to, above it. */

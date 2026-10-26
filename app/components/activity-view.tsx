@@ -197,6 +197,7 @@ export function ActivityView({
             places={current.scope !== "own" && local.size > 0 ? places : null}
             viewerHandle={viewerHandle}
             locale={locale}
+            navigate={navigate}
           />
 
           {repos.length > 0 ? (
@@ -408,9 +409,12 @@ function Leaderboard({
   places,
   viewerHandle,
   locale,
+  navigate,
 }: {
   rows: LeaderboardRow[];
   current: ActivityFilters;
+  /** Moves the page to another address without a reload: the pills' choices. */
+  navigate: (href: string) => void;
   /** How many contributions went to local and global repos; null when the split is not offered. */
   places: Record<ActivityPlace, number> | null;
   /** Members' own work: PRs merged into their own repos over SUMMARY_DAYS, with no week or month. */
@@ -422,13 +426,13 @@ function Leaderboard({
   const viewerKey = viewerHandle?.toLowerCase() ?? "";
   const viewerRank = viewerKey ? rows.findIndex(({ person }) => person.handle.toLowerCase() === viewerKey) : -1;
   const placeLabels: Record<ActivityPlace, string> = {
-    all: tx(locale, "Semua", "All"),
-    local: tx(locale, "Lokal", "Local"),
-    global: tx(locale, "Global", "Global"),
+    all: tx(locale, "semua repo", "all repos"),
+    local: tx(locale, "repo lokal", "local repos"),
+    global: tx(locale, "repo global", "global repos"),
   };
   const periodLabels: Record<LeaderboardPeriod, string> = {
-    month: tx(locale, "Bulan ini", "This month"),
-    week: tx(locale, "Minggu ini", "This week"),
+    month: tx(locale, "bulan ini", "this month"),
+    week: tx(locale, "minggu ini", "this week"),
   };
 
   return (
@@ -437,41 +441,64 @@ function Leaderboard({
         <h2 id="board-title">
           <span aria-hidden="true">🏆</span> {tx(locale, "Peringkat", "Ranking")}
         </h2>
+        {/* The board's choices read as one line under its name — "this month ·
+            all repos" — each a pill that opens a native picker. A real GET
+            form, so it works before the script does. Own repos have neither:
+            their numbers only come as the last SUMMARY_DAYS. */}
         {own ? (
-          <p className="ax-board-window">
-            {tx(locale, `Repo sendiri · ${SUMMARY_DAYS} hari terakhir`, `Own repos · last ${SUMMARY_DAYS} days`)}
+          <p className="ax-board-pills">
+            <span className="ax-pill">{tx(locale, `${SUMMARY_DAYS} hari terakhir`, `last ${SUMMARY_DAYS} days`)}</span>
+            <span aria-hidden="true">·</span>
+            <span className="ax-pill">{tx(locale, "repo sendiri", "own repos")}</span>
           </p>
         ) : (
-          <nav className="ax-board-periods" aria-label={tx(locale, "Periode", "Period")}>
-            {LEADERBOARD_PERIODS.map((period) => (
-              <InstantLink
-                key={period}
-                className={current.board === period ? "is-active" : ""}
-                aria-current={current.board === period ? "true" : undefined}
-                href={activityPath({ ...current, board: period })}
+          <form className="ax-board-pills" action="/">
+            {current.kind !== "all" ? <input type="hidden" name="show" value={current.kind} /> : null}
+            {current.member ? <input type="hidden" name="member" value={current.member} /> : null}
+            {current.repo ? <input type="hidden" name="repo" value={current.repo} /> : null}
+            {current.q ? <input type="hidden" name="q" value={current.q} /> : null}
+            <label>
+              <span className="sr-only">{tx(locale, "Periode", "Period")}</span>
+              <select
+                name="board"
+                className={`ax-pill ${current.board !== "month" ? "is-set" : ""}`}
+                value={current.board}
+                onChange={(event) => navigate(activityPath({ ...current, board: event.target.value === "week" ? "week" : "month" }))}
               >
-                {periodLabels[period]}
-              </InstantLink>
-            ))}
-          </nav>
+                {LEADERBOARD_PERIODS.map((period) => (
+                  <option key={period} value={period}>
+                    {periodLabels[period]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {places ? (
+              <>
+                <span aria-hidden="true">·</span>
+                <label>
+                  <span className="sr-only">{tx(locale, "Repo lokal atau global", "Local or global repos")}</span>
+                  <select
+                    name="place"
+                    className={`ax-pill ${current.place !== "all" ? "is-set" : ""}`}
+                    value={current.place}
+                    onChange={(event) =>
+                      navigate(activityPath({ ...current, place: ACTIVITY_PLACES.find((place) => place === event.target.value) ?? "all" }))
+                    }
+                  >
+                    {ACTIVITY_PLACES.map((place) => (
+                      <option key={place} value={place}>
+                        {placeLabels[place]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            ) : null}
+            <noscript>
+              <button type="submit">{tx(locale, "Terapkan", "Apply")}</button>
+            </noscript>
+          </form>
         )}
-        {/* Local or global repositories, as the directory splits them: a
-            dimension of the ranking, and of the feed beside it. */}
-        {places && !own ? (
-          <nav className="ax-board-periods ax-board-places" aria-label={tx(locale, "Repo lokal atau global", "Local or global repos")}>
-            {ACTIVITY_PLACES.map((place) => (
-              <InstantLink
-                key={place}
-                className={current.place === place ? "is-active" : ""}
-                aria-current={current.place === place ? "true" : undefined}
-                href={activityPath({ ...current, place })}
-              >
-                {placeLabels[place]}
-                {place !== "all" ? <span>{places[place]}</span> : null}
-              </InstantLink>
-            ))}
-          </nav>
-        ) : null}
       </div>
 
       {rows.length === 0 ? (
