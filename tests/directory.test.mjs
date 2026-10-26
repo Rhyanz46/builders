@@ -236,7 +236,7 @@ test("the code path ranks by PR tier and offers the tiers as a filter", () => {
   ];
   const none = { source: "", badge: "", facet: [], q: "" };
 
-  assert.deepEqual(filterDirectory(entries, { ...none, track: "github" }).map((e) => e.name), ["busy", "waiting", "closed", "dead"]);
+  assert.deepEqual(filterDirectory(entries, { ...none, track: "github", sort: "ready" }).map((e) => e.name), ["busy", "waiting", "closed", "dead"]);
   assert.deepEqual(filterDirectory(entries, { ...none, track: "github", pr: ["first"] }).map((e) => e.name), ["waiting"]);
   assert.deepEqual(prTierCounts(entries).map(({ tier }) => tier), ["active", "first", "unopened", "inactive"]);
   assert.deepEqual(prTierCounts([entries[0]]), [], "one tier for everything is no filter");
@@ -357,7 +357,7 @@ test("paginate slices by page and clamps pages that do not exist", () => {
   assert.deepEqual(paginate([], "2", 20), { items: [], page: 1, pages: 1 });
 });
 
-test("the code path sorts by last push, stars or listing date when asked, unknowns last", () => {
+test("the directory lists the newest first by default, and sorts by last push or stars when asked, unknowns last", () => {
   const make = (id, slug, stats, createdAt) => repoEntry(repo({ id, repo: slug, createdAt, stats }), "en");
   const stats = (stars, pushedAt) => ({ stars, description: "", openIssues: 0, language: "Go", pushedAt, archived: false });
   const entries = [
@@ -369,12 +369,16 @@ test("the code path sorts by last push, stars or listing date when asked, unknow
   const names = (sort) => filterDirectory(entries, { ...none, sort }).map((entry) => entry.name);
   assert.deepEqual(names("updated"), ["fresh", "old", "unknown"]);
   assert.deepEqual(names("stars"), ["old", "fresh", "unknown"]);
+  assert.deepEqual(names(""), ["old", "fresh", "unknown"]);
+  // An old link asking for "newest" lands on the default, which is the same.
   assert.deepEqual(names("newest"), ["old", "fresh", "unknown"]);
-  // Stars mean nothing on the role path: its own order stands.
-  const roles = [product({ id: 1, title: "A", openSeatCount: 1 }), product({ id: 2, title: "B", openSeatCount: 1 })].flatMap((p) =>
-    productEntries(p, describe, roleName, "en"),
-  );
-  assert.deepEqual(filterDirectory(roles, { ...none, track: "role", sort: "stars" }).map((entry) => entry.name), ["A", "B"]);
+  // Stars mean nothing on the role path: the newest listed still comes first.
+  const roles = [
+    product({ id: 1, title: "A", openSeatCount: 1, createdAt: "2026-09-01T00:00:00Z", lastActivityAt: "2026-10-20T00:00:00Z" }),
+    product({ id: 2, title: "B", openSeatCount: 1, createdAt: "2026-10-01T00:00:00Z", lastActivityAt: "2026-10-02T00:00:00Z" }),
+  ].flatMap((p) => productEntries(p, describe, roleName, "en"));
+  assert.deepEqual(filterDirectory(roles, { ...none, track: "role", sort: "stars" }).map((entry) => entry.name), ["B", "A"]);
+  assert.deepEqual(filterDirectory(roles, { ...none, track: "role", sort: "active" }).map((entry) => entry.name), ["A", "B"]);
 });
 
 test("chips in one group widen, groups narrow, and stages filter the role path", () => {
@@ -391,7 +395,7 @@ test("chips in one group widen, groups narrow, and stages filter the role path",
 });
 
 test("a role card knows how fresh it is, and when it is new to the directory", () => {
-  const now = Date.parse("2026-10-23T00:00:00Z");
+  const now = Date.parse("2026-10-20T00:00:00Z");
   const [entry] = productEntries(
     product({ openSeatCount: 2, createdAt: "2026-10-15T00:00:00Z", lastActivityAt: "2026-10-20T00:00:00Z" }),
     describe,
@@ -400,13 +404,14 @@ test("a role card knows how fresh it is, and when it is new to the directory", (
   );
   assert.equal(entry.openSeats, 2);
   assert.equal(isNew(entry, now), true);
+  assert.equal(isNew(entry, Date.parse("2026-10-23T00:00:00Z") + 1), false, "a week, no more");
   assert.equal(isQuiet(entry, now), false);
   const later = Date.parse("2027-01-01T00:00:00Z");
   assert.equal(isNew(entry, later), false);
   assert.equal(isQuiet(entry, later), true, "two months and more without activity recedes");
 });
 
-test("an admin's pick comes first in the path's own order, but only while it takes PRs", () => {
+test("an admin's pick comes first, but in the PR order only while it takes PRs", () => {
   const make = (id, slug, extra) =>
     productEntries(product({ id, slug, title: slug, repoUrl: `https://github.com/ana/${slug}`, ...extra }), describe, roleName, "en")[0];
   const entries = [
@@ -415,7 +420,8 @@ test("an admin's pick comes first in the path's own order, but only while it tak
     make(3, "picked-closed", { adminPick: true }),
   ];
   const none = { track: "github", source: "", badge: "", facet: [], q: "" };
-  assert.deepEqual(filterDirectory(entries, none).map((e) => e.name), ["picked", "busy", "picked-closed"]);
+  assert.deepEqual(filterDirectory(entries, { ...none, sort: "ready" }).map((e) => e.name), ["picked", "busy", "picked-closed"]);
+  assert.deepEqual(filterDirectory(entries, none).map((e) => e.name), ["picked", "picked-closed", "busy"]);
   // An order the visitor asked for is theirs, picks or not.
   assert.equal(filterDirectory(entries, { ...none, sort: "stars" })[0].name, "busy");
   assert.deepEqual(entries[1].badges.map((badge) => badge.kind), ["admin-pick"]);
