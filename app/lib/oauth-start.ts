@@ -105,7 +105,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
   }
 
   if (started.error || !started.url) {
-    console.error(`[ahsan] ${provider} OAuth could not start.`, started.error);
+    console.error(`[builders] ${provider} OAuth could not start.`, started.error);
     return refuse(provider, next);
   }
 
@@ -113,7 +113,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
     // Without a verifier the round trip cannot succeed, and the provider would
     // send them back to a failure. Better to stop here than to spend
     // somebody's time proving it.
-    console.error(`[ahsan] No PKCE verifier was created; ${provider} OAuth was cancelled.`);
+    console.error(`[builders] No PKCE verifier was created; ${provider} OAuth was cancelled.`);
     return refuse(provider, next);
   }
 

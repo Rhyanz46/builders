@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-const OPEN_EVENT = "ahsanproject:header-menu-open";
+const OPEN_EVENT = "swegrowth:header-menu-open";
 
 /**
  * Keeps the header menus native and keyboard-friendly, then adds the two

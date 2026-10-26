@@ -36,7 +36,7 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   } catch (error) {
     // A temporary database outage should not make a deploy fail. Unknown
     // slugs still receive the segment loading state and upgrade on first use.
-    console.warn("[ahsan] Project detail was not prerendered:", error);
+    console.warn("[builders] Project detail was not prerendered:", error);
     return [];
   }
 }

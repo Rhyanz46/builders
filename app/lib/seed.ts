@@ -105,7 +105,7 @@ export const seedUsers: SeedUser[] = [
     yearsExperience: 6,
     fields: ["Civic Tech", "Productivity"],
     availability: "open_to_both",
-    website: "https://ahsanproject-id.netlify.app",
+    website: "https://builders.swegrowth.id",
     publicEmail: "",
     github: "https://github.com/zikrulihsan",
     linkedin: "",

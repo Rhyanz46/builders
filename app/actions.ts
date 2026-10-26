@@ -875,7 +875,7 @@ export async function setReaction(url: string, emoji: string, on: boolean): Prom
   // Pressing twice before the first press lands is not a failure: the
   // reaction is there, which is what was asked for.
   if (error && error.code !== "23505") {
-    console.warn(`[ahsan] Reaction could not be saved: ${error.message}`);
+    console.warn(`[builders] Reaction could not be saved: ${error.message}`);
     return { ok: false, reason: "failed" };
   }
 
@@ -1161,7 +1161,7 @@ export async function saveRepo(_state: RepoFormState, formData: FormData): Promi
         .from("oss_contributions")
         .insert({ user_id: viewer, repo: repo.repo, relation: values.contributed });
       if (recordError && recordError.code !== "23505") {
-        console.warn(`[ahsan] The submitter's own record was not updated: ${recordError.message}`);
+        console.warn(`[builders] The submitter's own record was not updated: ${recordError.message}`);
       }
       updateTag(tags.oss);
     }
