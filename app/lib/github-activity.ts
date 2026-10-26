@@ -221,6 +221,65 @@ export function activityPeople(entries: GitHubActivityEntry[]): { person: Activi
   return [...byHandle.values()].sort((a, b) => b.count - a.count || a.person.name.localeCompare(b.person.name));
 }
 
+/**
+ * The leaderboard's periods: this calendar month and this calendar week, in
+ * WIB, so the board resets where the members live. The month is the default.
+ */
+export const LEADERBOARD_PERIODS = ["month", "week"] as const;
+export type LeaderboardPeriod = (typeof LEADERBOARD_PERIODS)[number];
+
+export function isLeaderboardPeriod(value: string): value is LeaderboardPeriod {
+  return (LEADERBOARD_PERIODS as readonly string[]).includes(value);
+}
+
+/**
+ * The first day of the period `today` is in, as `YYYY-MM-DD`: the 1st of the
+ * month, or the Monday of the week. Calendar arithmetic on the date alone, so
+ * it is the same on the server and in the browser.
+ */
+export function periodStart(today: string, period: LeaderboardPeriod): string {
+  if (period === "month") return `${today.slice(0, 7)}-01`;
+  const date = new Date(`${today}T00:00:00Z`);
+  const sinceMonday = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - sinceMonday);
+  return date.toISOString().slice(0, 10);
+}
+
+export type LeaderboardRow = { person: ActivityPerson; merged: number; repos: number };
+
+/**
+ * Who has had the most pull requests merged into other people's repositories
+ * this period. That is the whole score for now: merged, so a flood of PRs
+ * earns nothing until somebody accepts them; other people's, so a member's
+ * own repositories do not count. Ties go to whoever reached more repos, then
+ * by name. Points, streaks and the rest are being worked out on #186.
+ */
+export function leaderboard(
+  entries: GitHubActivityEntry[],
+  period: LeaderboardPeriod,
+  today: string,
+  timeZone = "Asia/Jakarta",
+): LeaderboardRow[] {
+  const from = periodStart(today, period);
+  const byHandle = new Map<string, { person: ActivityPerson; merged: number; repos: Set<string> }>();
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request" || entry.state !== "merged") continue;
+    const counted = entry.pullRequests.filter((pullRequest) => {
+      const day = dayKey(pullRequest.at, timeZone);
+      return day >= from && day <= today;
+    }).length;
+    if (counted === 0) continue;
+    const key = entry.person.handle.toLowerCase();
+    const row = byHandle.get(key) ?? { person: entry.person, merged: 0, repos: new Set<string>() };
+    row.merged += counted;
+    row.repos.add(entry.repo);
+    byHandle.set(key, row);
+  }
+  return [...byHandle.values()]
+    .map(({ person, merged, repos }) => ({ person, merged, repos: repos.size }))
+    .sort((a, b) => b.merged - a.merged || b.repos - a.repos || (a.person.name || a.person.handle).localeCompare(b.person.name || b.person.handle));
+}
+
 export type ActivityStats = { people: number; merged: number; open: number; repos: number };
 
 /**

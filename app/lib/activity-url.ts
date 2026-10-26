@@ -1,4 +1,11 @@
-import { isActivityScope, isGitHubActivityFilter, type ActivityQuery, type ActivityScope } from "./github-activity";
+import {
+  isActivityScope,
+  isGitHubActivityFilter,
+  isLeaderboardPeriod,
+  type ActivityQuery,
+  type ActivityScope,
+  type LeaderboardPeriod,
+} from "./github-activity";
 
 /**
  * The activity page's address — the home page, `/` — both ways: what a URL asks for, and the URL for a
@@ -7,7 +14,7 @@ import { isActivityScope, isGitHubActivityFilter, type ActivityQuery, type Activ
  * the same arrangement as directory-url.ts.
  */
 
-export type ActivityFilters = ActivityQuery & { scope: ActivityScope };
+export type ActivityFilters = ActivityQuery & { scope: ActivityScope; board: LeaderboardPeriod };
 
 type Query = Record<string, string | string[] | undefined> | URLSearchParams;
 
@@ -24,6 +31,7 @@ export function readActivityFilters(query: Query): ActivityFilters {
   const scope = read(query, "scope");
   const member = read(query, "member").trim();
   const repo = read(query, "repo").trim().toLowerCase();
+  const board = read(query, "board");
   return {
     // Contributions unless asked otherwise: what the page is for.
     scope: isActivityScope(scope) ? scope : "external",
@@ -31,6 +39,8 @@ export function readActivityFilters(query: Query): ActivityFilters {
     member: HANDLE.test(member) ? member : "",
     repo: REPO_KEY.test(repo) ? repo : "",
     q: read(query, "q").slice(0, 100),
+    // The leaderboard's period: this month unless the week is asked for.
+    board: isLeaderboardPeriod(board) ? board : "month",
   };
 }
 
@@ -48,6 +58,7 @@ export function activityPath(filters: Partial<ActivityFilters>, page = 1): strin
   if (filters.member) params.set("member", filters.member);
   if (filters.repo) params.set("repo", filters.repo);
   if (filters.q?.trim()) params.set("q", filters.q.trim());
+  if (filters.board && filters.board !== "month") params.set("board", filters.board);
   if (page > 1) params.set("page", String(page));
   const search = params.toString();
   return `/${search ? `?${search}` : ""}`;

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { cookies } from "next/headers";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { ActivityBanner } from "../components/activity-banner";
@@ -8,7 +7,7 @@ import { ActivityView } from "../components/activity-view";
 import { ProductFeedView, type FeedProductLook } from "../components/product-feed-view";
 import { feedStats, groupProductFeed } from "../lib/product-feed";
 import { Skeleton } from "../components/skeleton";
-import { LEADERBOARD_NOTE_COOKIE, shareCard } from "../content";
+import { shareCard } from "../content";
 import { activityPath, readActivityFilters, readActivityPage } from "../lib/activity-url";
 import { listActivityReactions, listGitHubActivity, listProductFeed, listProjects } from "../lib/data";
 import { summarizeReactions } from "../lib/reactions";
@@ -17,6 +16,7 @@ import { activityStats, dayKey, type GitHubActivityEntry } from "../lib/github-a
 import { readPublicly } from "../lib/public-read";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { githubHandle } from "../lib/oss";
 import { isOss, site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -122,11 +122,10 @@ async function ActivityBody({ query, locale }: { query: SearchParams; locale: Lo
   // Waiting for the request keeps the feed in the server's first answer,
   // filtered as the address asks; from then on it filters in the browser.
   await query;
-  const [result, reactionRows, viewer, cookieStore] = await Promise.all([
+  const [result, reactionRows, viewer] = await Promise.all([
     readPublicly<GitHubActivityEntry[]>("github activity", listGitHubActivity, []),
     readPublicly("activity reactions", listActivityReactions, []),
     currentViewer(),
-    cookies(),
   ]);
   const stats = activityStats(result.value);
 
@@ -156,7 +155,7 @@ async function ActivityBody({ query, locale }: { query: SearchParams; locale: Lo
         today={dayKey(new Date(), "Asia/Jakarta")}
         locale={locale}
         unavailable={result.unavailable}
-        leaderboardNoteClosed={cookieStore.get(LEADERBOARD_NOTE_COOKIE)?.value === "1"}
+        viewerHandle={viewer?.githubActivityShown ? githubHandle(viewer.github) || null : null}
       />
     </>
   );
