@@ -23,6 +23,12 @@ export const waCommunityUrl = isOss
 export const contribReadyUrl = "https://contrib.idnremote.com";
 
 /**
+ * The issue where /activity's leaderboard and gamification are being worked
+ * out; the page points ideas there until it ships.
+ */
+export const leaderboardIssueUrl = `https://github.com/${sourceRepo}/issues/186`;
+
+/**
  * The SWE Growth admin's WhatsApp (0823-3858-8078), in international form.
  * For now an offer to help on a product's role goes here rather than through
  * proposals on the site.

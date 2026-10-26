@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
-import { ActivityBanner, LeaderboardNote } from "../components/activity-banner";
+import { ActivityBanner } from "../components/activity-banner";
 import { ActivityView } from "../components/activity-view";
 import { ProductFeedView, type FeedProductLook } from "../components/product-feed-view";
 import { feedStats, groupProductFeed } from "../lib/product-feed";
@@ -63,9 +63,6 @@ export default async function ActivityPage({ searchParams }: { searchParams?: Se
       <main id="main-content" className="dx-page">
         <Suspense fallback={null}>
           <ActivityBanner locale={locale} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <LeaderboardNote locale={locale} />
         </Suspense>
 
         <Suspense fallback={<ActivitySkeleton locale={locale} />}>

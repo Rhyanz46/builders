@@ -4,10 +4,8 @@ import { DismissibleBanner } from "./dismissible-banner";
 import { currentViewer } from "../lib/session";
 import { tx, type Locale } from "../lib/locale";
 import { isOss } from "../lib/site";
-import { sourceRepo } from "../content";
 
 const ACTIVITY_BANNER_COOKIE = "builders_activity_banner_closed";
-const LEADERBOARD_NOTE_COOKIE = "builders_leaderboard_note_closed";
 
 /**
  * A member whose GitHub activity is not shown yet is reminded at the top of
@@ -36,31 +34,3 @@ export async function ActivityBanner({ locale }: { locale: Locale }) {
   );
 }
 
-/** Where the leaderboard is being worked out, and where ideas go. */
-const LEADERBOARD_ISSUE = `https://github.com/${sourceRepo}/issues/186`;
-
-/**
- * /activity is on its way to becoming a leaderboard. Until it is, the page
- * says so and asks for ideas on the issue, to everyone — guests included —
- * and closes for a month like the reminder above.
- */
-export async function LeaderboardNote({ locale }: { locale: Locale }) {
-  // Merged PRs are the open source site's; builders' activity is products.
-  if (!isOss) return null;
-  const cookieStore = await cookies();
-  if (cookieStore.get(LEADERBOARD_NOTE_COOKIE)?.value === "1") return null;
-
-  return (
-    <DismissibleBanner cookie={LEADERBOARD_NOTE_COOKIE} closeLabel={tx(locale, "Tutup info", "Close this note")}>
-      <strong>{tx(locale, "Halaman ini bakal jadi leaderboard.", "This page is becoming a leaderboard.")}</strong>{" "}
-      {tx(
-        locale,
-        "Lengkap dengan gamifikasi—masih dikerjakan. Punya ide? Langsung komen di issue-nya.",
-        "With gamification—still in progress. Have an idea? Just comment on the issue.",
-      )}{" "}
-      <a href={LEADERBOARD_ISSUE} target="_blank" rel="noopener noreferrer">
-        {tx(locale, "Buka issue", "Open the issue")} <span aria-hidden="true">↗</span>
-      </a>
-    </DismissibleBanner>
-  );
-}
