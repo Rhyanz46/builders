@@ -35,7 +35,7 @@ Next.js on Netlify, with Supabase for both the database and sign-in.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in your Supabase URL and anon key
+cp .env.example .env.local   # fill in your Supabase URL and public anon key
 npm run dev                  # http://localhost:3000, the builders site
 NEXT_PUBLIC_SITE=oss npm run dev   # the open source site
 ```
@@ -56,8 +56,11 @@ and everything that writes will say so rather than failing quietly.
    afterwards, in the SQL editor:
    `insert into public.site_admins (user_id) select id from public.profiles where username = '<you>';`
 3. Copy the project URL and the **anon** key from Project Settings → API into
-   `.env.local`. Never put the `service_role` key in this app; it bypasses every
-   policy.
+   `.env.local`. Feedback submissions also need the `service_role` key as the
+   server-only `SUPABASE_SERVICE_ROLE_KEY`; keep it private, never prefix it
+   with `NEXT_PUBLIC_`, and never commit its value. It is used only by the
+   feedback action to call the RPC whose execute grant is restricted to
+   `service_role`.
 4. Sign up through the site with your own email.
 5. Optional: open `supabase/seed.sql`, change `owner_email` at the top to that
    same address, and run it. That imports the starting projects under your
@@ -203,7 +206,8 @@ site does not have redirects to the other (`next.config.ts`).
   to carry to be worth answering. The `feedback` table it validates for is the
   only one on the site nothing reads back: it is written through
   `submit_feedback()` and read in the Supabase dashboard — see
-  `20260901000000_feedback.sql`.
+  `20260901000000_feedback.sql` and
+  `20261101000100_feedback_server_rate_limit.sql`.
 - `app/lib/roles.ts` — the kinds of help a project can ask for.
 - `app/lib/tasks.ts` — the three task statuses and what a task must carry.
 - `app/lib/activity.ts` — the eleven kinds of trail entry and how each one reads
@@ -286,6 +290,8 @@ in each one's Site settings → Environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — the same
   project on both sites
+- `SUPABASE_SERVICE_ROLE_KEY` — private server-only key required by the
+  feedback action. Do not prefix it with `NEXT_PUBLIC_`.
 - `NEXT_PUBLIC_SITE` — `oss` on the open source site; leave unset (or
   `builders`) on builders
 - `NEXT_PUBLIC_COOKIE_DOMAIN=.swegrowth.id` on both, so the auth cookies sit on
