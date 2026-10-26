@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 permissions:
   contents: read
@@ -35,5 +35,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Build and test
+      - name: Build and test (builders)
         run: npm test
+
+      - name: Build the open source site
+        run: npx next build
+        env:
+          NEXT_PUBLIC_SITE: oss

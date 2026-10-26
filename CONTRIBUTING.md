@@ -1,6 +1,6 @@
-# Contributing to Builders
+# Contributing
 
-Thank you for helping make Builders better. Contributions can be code,
+Thank you for helping make builders.swegrowth.id and oss.swegrowth.id better. Contributions can be code,
 tests, documentation, design feedback, bug reports, or feature ideas. English
 and Indonesian are both welcome.
 
@@ -18,7 +18,8 @@ not in an issue or public pull request.
   and safer to ship.
 
 You do not need repository write access. Fork the repository, create a branch in
-your fork, and open a pull request back to `main`.
+your fork, and open a pull request against `develop`. `main` is what is
+deployed; maintainers merge `develop` into it.
 
 ## Local setup
 
@@ -29,11 +30,12 @@ Requirements:
 - A Supabase project only when working on authentication or persisted data
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/ahsanproject.git
-cd ahsanproject
+git clone https://github.com/YOUR-USERNAME/builders.git
+cd builders
 npm ci
 cp .env.example .env.local
-npm run dev
+npm run dev                        # the builders site
+NEXT_PUBLIC_SITE=oss npm run dev   # the open source site
 ```
 
 The app works in read-only seed mode without Supabase credentials. See the main
@@ -41,9 +43,10 @@ The app works in read-only seed mode without Supabase credentials. See the main
 
 ## Making a change
 
-1. Branch from the latest `main`, using a short descriptive name such as
+1. Branch from the latest `develop`, using a short descriptive name such as
    `fix/mobile-project-card`.
-2. Match the existing TypeScript and UI patterns. Keep authorization in
+2. Match the existing TypeScript and UI patterns. A change that only one of
+   the two sites should see goes behind `isOss` from `app/lib/site.ts`. Keep authorization in
    Supabase row-level security; server-action checks only improve error messages.
 3. Add or update tests for changed behavior.
 4. Update documentation when setup, behavior, routes, or configuration changes.
@@ -51,7 +54,8 @@ The app works in read-only seed mode without Supabase credentials. See the main
 
    ```bash
    npm run lint
-   npm test
+   npm test                             # builds builders, runs the tests
+   NEXT_PUBLIC_SITE=oss npx next build  # and the open source site
    ```
 
 6. Open a pull request and complete its checklist. Link the relevant issue with

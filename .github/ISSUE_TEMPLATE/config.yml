@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/zikrulihsan/ahsanproject/security/advisories/new
+    url: https://github.com/swegrowthid/builders/security/advisories/new
     about: Report vulnerabilities privately; do not open a public issue.
   - name: Support guide
-    url: https://github.com/zikrulihsan/ahsanproject/blob/main/SUPPORT.md
+    url: https://github.com/swegrowthid/builders/blob/main/SUPPORT.md
     about: Find the right place for setup and usage questions.
