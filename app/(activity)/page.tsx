@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   // The home page: the people, before the directory.
   const title = isOss
-    ? tx(locale, `${site.name} — Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Contributions`)
+    ? tx(locale, `${site.name} — Leaderboard Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Leaderboard`)
     : tx(locale, "Builders — Yang Lagi Dibangun Komunitas swegrowth", "Builders — What the swegrowth Community Is Building");
   const description = isOss
     ? tx(
@@ -102,7 +102,7 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
   return (
     <header className="dx-head ax-head">
       <div>
-        <h1>{tx(locale, "Aktivitas open source", "Open source activity")}</h1>
+        <h1>{tx(locale, "Leaderboard open source", "Open source leaderboard")}</h1>
         <p>
           {tx(
             locale,

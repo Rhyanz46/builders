@@ -26,8 +26,8 @@ export async function ActivityBanner({ locale }: { locale: Locale }) {
       <strong>{tx(locale, "Aktivitas GitHub-mu belum tampil.", "Your GitHub activity is not shown yet.")}</strong>{" "}
       {tx(
         locale,
-        "Nyalakan biar PR-mu yang di-merge muncul di halaman Aktivitas dan profilmu.",
-        "Turn it on so your merged PRs show on the Activity page and your profile.",
+        "Nyalakan biar PR-mu yang di-merge masuk leaderboard dan muncul di profilmu.",
+        "Turn it on so your merged PRs count on the leaderboard and show on your profile.",
       )}{" "}
       <Link href="/account/profile#github-account">{tx(locale, "Tampilkan sekarang", "Show it now")}</Link>
     </DismissibleBanner>

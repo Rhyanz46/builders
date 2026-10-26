@@ -257,7 +257,7 @@ export function ActivityView({
           ) : null}
         </div>
 
-        <section ref={results} className="dx-results" aria-label={tx(locale, "Aktivitas", "Activity")}>
+        <section ref={results} className="dx-results" aria-label={tx(locale, "Kontribusi terbaru", "Latest contributions")}>
           <div className="dx-toolbar">
             <form
               className="dx-search"
@@ -489,7 +489,7 @@ function Leaderboard({
     <aside className="ax-board tone-done" aria-labelledby="board-title">
       <div className="ax-board-head">
         <h2 id="board-title">
-          <span aria-hidden="true">🏆</span> Leaderboard
+          <span aria-hidden="true">🏆</span> {tx(locale, "Peringkat", "Ranking")}
         </h2>
         {own ? (
           <p className="ax-board-window">
