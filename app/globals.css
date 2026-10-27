@@ -2774,6 +2774,8 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
   .lb-board .lb-wide { display: none; }
 }
 .ab-cta { background: var(--tone-soft); border-radius: 10px; margin-top: 40px; padding: 22px 24px; }
+/* A call to action that opens the page, under its intro, rather than closing it. */
+.ab-cta.ab-cta-top { margin-top: 24px; }
 .ab-cta h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; margin: 0 0 4px; }
 .ab-cta p { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0; }
 .ab-cta-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
