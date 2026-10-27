@@ -1588,13 +1588,13 @@ form button[aria-busy="true"]::after,
 .ax-toolbar .ax-show select { font-weight: 550; }
 .ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
 /* A plain card like the rest of the page, with purple — a merged PR's
-   colour — as the accent: the scores, the choices that are set, the links. */
+   colour — as the accent: the head, the scores, the choices that are set,
+   the links. */
 .ax-board { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding: 0 0 12px; }
 .ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
-/* A quiet grey head over a plain list; the purple is in the scores, the
-   pills that are set and the link, not a band of colour. */
+/* The head carries the colour: a soft purple band over a plain list. */
 .ax-board-head {
-  background: var(--dx-soft); border-bottom: 1px solid var(--dx-line); display: grid; gap: 8px;
+  background: var(--tone-soft); border-bottom: 1px solid color-mix(in srgb, var(--tone) 18%, transparent); display: grid; gap: 8px;
   margin-bottom: 8px; padding: 14px 16px 12px;
 }
 .ax-board h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
