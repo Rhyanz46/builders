@@ -503,7 +503,7 @@ function Leaderboard({
     <aside className="ax-board tone-done" aria-labelledby="board-title">
       <div className="ax-board-head">
         <h2 id="board-title">
-          <span aria-hidden="true">🏆</span> {tx(locale, "Peringkat", "Ranking")}
+          <span aria-hidden="true">🏆</span> {tx(locale, "Leaderboard", "Leaderboard")}
         </h2>
         {/* The board's choices read as one line under its name — "this month ·
             all repos" — each a pill that opens a native picker. A real GET
