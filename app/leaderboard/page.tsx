@@ -3,7 +3,7 @@ import Link from "@/app/components/responsive-link";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { leaderboardIssueUrl, shareCard } from "../content";
 import { currentLocale } from "../lib/locale-server";
-import { tx } from "../lib/locale";
+import { tx, type Locale } from "../lib/locale";
 import { site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -51,6 +51,91 @@ const PLANNED: [string, string, string, string][] = [
 ];
 
 /**
+ * A made-up board for the preview: invented names, not members, and numbers
+ * of no meaning. It only shows the shape the real one will take — points,
+ * merged PRs, streaks, badges, repos — and sits blurred behind the lock.
+ */
+const PREVIEW_ROWS: { name: string; points: number; merged: number; streak: number; badges: string; repos: number; hue: number }[] = [
+  { name: "Raka Pratama", points: 1240, merged: 18, streak: 6, badges: "🥇🌍🚀", repos: 7, hue: 262 },
+  { name: "Dewi Anggraini", points: 1105, merged: 15, streak: 5, badges: "🌍🚀", repos: 6, hue: 200 },
+  { name: "Bima Saputra", points: 980, merged: 13, streak: 4, badges: "🚀⭐", repos: 5, hue: 24 },
+  { name: "Sinta Maharani", points: 760, merged: 10, streak: 3, badges: "⭐", repos: 4, hue: 330 },
+  { name: "Fajar Nugroho", points: 690, merged: 9, streak: 3, badges: "🌍", repos: 4, hue: 150 },
+  { name: "Ayu Lestari", points: 540, merged: 7, streak: 2, badges: "⭐", repos: 3, hue: 45 },
+  { name: "Galih Wicaksono", points: 420, merged: 6, streak: 2, badges: "🌱", repos: 3, hue: 280 },
+  { name: "Nadia Putri", points: 310, merged: 4, streak: 1, badges: "🌱", repos: 2, hue: 180 },
+];
+
+/**
+ * The board as it will look, blurred and locked: a table of made-up rows
+ * behind a "coming soon" lock that points to #186. The table is hidden from
+ * assistive tech — it is a picture of the idea, not data.
+ */
+function LockedPreview({ locale }: { locale: Locale }) {
+  return (
+    <section className="lb-preview" aria-labelledby="lb-lock-title">
+      <div className="lb-board" aria-hidden="true">
+        <div className="lb-board-tabs">
+          <span className="is-active">{tx(locale, "Bulan ini", "This month")}</span>
+          <span>{tx(locale, "Minggu ini", "This week")}</span>
+          <span>{tx(locale, "Sepanjang masa", "All time")}</span>
+          <span className="lb-board-gap" />
+          <span className="is-active">{tx(locale, "Semua", "All")}</span>
+          <span>{tx(locale, "Lokal", "Local")}</span>
+          <span>{tx(locale, "Global", "Global")}</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{tx(locale, "Member", "Member")}</th>
+              <th>{tx(locale, "Poin", "Points")}</th>
+              <th>{tx(locale, "PR merged", "Merged PRs")}</th>
+              <th>Streak</th>
+              <th className="lb-wide">Badge</th>
+              <th className="lb-wide">Repo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {PREVIEW_ROWS.map((row, index) => (
+              <tr key={row.name}>
+                <td>{["🥇", "🥈", "🥉"][index] ?? index + 1}</td>
+                <td>
+                  <span className="lb-avatar" style={{ "--hue": row.hue } as React.CSSProperties}>
+                    {row.name.split(" ").map((part) => part[0]).join("")}
+                  </span>
+                  {row.name}
+                </td>
+                <td className="lb-points">{row.points.toLocaleString("id-ID")}</td>
+                <td>{row.merged}</td>
+                <td>🔥 {row.streak}</td>
+                <td className="lb-wide">{row.badges}</td>
+                <td className="lb-wide">{row.repos}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="lb-lock">
+        <span className="lb-lock-icon" aria-hidden="true">🔒</span>
+        <h2 id="lb-lock-title">{tx(locale, "Segera hadir", "Coming soon")}</h2>
+        <p>
+          {tx(
+            locale,
+            "Poin, streak, dan badge lagi kami siapkan. Bantu tentukan aturannya.",
+            "Points, streaks and badges are on their way. Help decide the rules.",
+          )}
+        </p>
+        <a className="ab-button ab-button-primary" href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
+          {tx(locale, "Kasih ide di #186", "Share ideas on #186")} <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+  );
+}
+
+/**
  * The leaderboard, before it exists.
  *
  * Points, streaks and badges are still being worked out on #186, so this page
@@ -81,6 +166,8 @@ export default async function LeaderboardPage() {
             </p>
           </div>
         </header>
+
+        <LockedPreview locale={locale} />
 
         <section className="ab-section" aria-labelledby="planned-title">
           <h2 id="planned-title">{tx(locale, "Yang lagi direncanakan", "What is planned")}</h2>
