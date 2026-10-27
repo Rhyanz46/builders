@@ -63,8 +63,8 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
               {isOss
                 ? tx(
                     locale,
-                    "Repo open source rekomendasi dan kurasi komunitas—lokal maupun global, proyek member sendiri maupun milik orang lain—yang bagus buat mulai kontribusi. Mau lihat lebih banyak repo global? Cek ",
-                    "Open source repos recommended and curated by the community—local or global, members' own projects or other people's—good places to start contributing. Want more global repos? See ",
+                    "Repo open source kurasi komunitas, dari proyek member sampai repo global. Cari lebih banyak? Cek ",
+                    "Open source repos curated by the community, from members' projects to global repos. Want more? See ",
                   )
                 : null}
               {isOss ? (
