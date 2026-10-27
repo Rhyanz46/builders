@@ -1,8 +1,9 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
-import { ActivityBanner, LeaderboardNote } from "../components/activity-banner";
+import { ActivityBanner } from "../components/activity-banner";
 import { ActivityView } from "../components/activity-view";
 import { ProductFeedView, type FeedProductLook } from "../components/product-feed-view";
 import { feedStats, groupProductFeed } from "../lib/product-feed";
@@ -16,11 +17,16 @@ import { activityStats, dayKey, type GitHubActivityEntry } from "../lib/github-a
 import { readPublicly } from "../lib/public-read";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
+import { githubHandle } from "../lib/oss";
+import { localRepos } from "../lib/directory-read";
 import { isOss, site } from "../lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
-  const title = tx(locale, `Aktivitas — ${site.name}`, `Activity — ${site.name}`);
+  // The home page: the people, before the directory.
+  const title = isOss
+    ? tx(locale, `${site.name} — Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Contributions`)
+    : tx(locale, "Builders — Yang Lagi Dibangun Komunitas swegrowth", "Builders — What the swegrowth Community Is Building");
   const description = isOss
     ? tx(
         locale,
@@ -32,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
         "Kabar dari produk member komunitas swegrowth: produk baru, pindah tahap, kabar terbaru, peran dibuka dan terisi.",
         "News from swegrowth community members' products: new products, new stages, updates, roles opened and filled.",
       );
-  return { title, description, alternates: { canonical: "/activity" }, openGraph: shareCard({ title, description, url: "/activity" }) };
+  return { title, description, alternates: { canonical: "/" }, openGraph: shareCard({ title, description, url: "/" }) };
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -60,9 +66,6 @@ export default async function ActivityPage({ searchParams }: { searchParams?: Se
       <main id="main-content" className="dx-page">
         <Suspense fallback={null}>
           <ActivityBanner locale={locale} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <LeaderboardNote locale={locale} />
         </Suspense>
 
         <Suspense fallback={<ActivitySkeleton locale={locale} />}>
@@ -100,20 +103,66 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
   return (
     <header className="dx-head ax-head">
       <div>
-        <h1>{tx(locale, "Aktivitas open source", "Open source activity")}</h1>
+        <h1>{tx(locale, "Komunitas kontributor open source", "Open source contributor community")}</h1>
         <p>
           {tx(
             locale,
-            "Kontribusi open source member, langsung dari GitHub, biar saling kelihatan dan yang lain ikut mulai. ",
-            "Members' open source contributions, straight from GitHub, so we see each other's and others start too. ",
+            "Tempat berkumpul dan berbagi untuk yang serius berkontribusi ke open source. ",
+            "A place to gather and share for people serious about contributing to open source. ",
           )}
-          <Link className="ax-head-link" href="/account/profile#github-account">
-            {tx(locale, "Tampilkan punyamu", "Show yours")}
-          </Link>
+          {/* Its own line on a laptop; on a phone it simply runs on. */}
+          <span className="ax-head-line">
+            <Link className="ax-head-link" href="/account/profile#github-account">
+              {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
+            </Link>
+            {tx(locale, " dan saling dukung.", " and back each other up.")}
+          </span>
         </p>
+        {/* The home page is the landing page too: the community first, then
+            the directory, the way the directory's heading lays out its own.
+            Showing one's activity is a link in the sentence above. */}
+        <div className="dx-head-actions ax-head-actions">
+          {/* Who is looking decides the first step, so it streams in; until
+              then a guest's is shown, the more common case here. */}
+          <Suspense fallback={<LandingCta locale={locale} signedIn={false} />}>
+            <ViewerLandingCta locale={locale} />
+          </Suspense>
+          <Link className="ab-button" href="/directory">
+            {tx(locale, "Lihat direktori", "See the directory")} <span aria-hidden="true">→</span>
+          </Link>
+          {/* Moved here from the directory: the landing page is where the
+              community behind the site is introduced. */}
+          <p className="dx-head-powered">
+            Powered by
+            <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">
+              <Image src="/swegrowth-logo.png" alt="Software Engineer Growth Community" width={25} height={24} />
+            </a>
+          </p>
+        </div>
       </div>
       {children}
     </header>
+  );
+}
+
+/**
+ * The landing page's first step: a guest is asked to join the site — an
+ * account is what puts them on the activity page and the ranking; a member
+ * is pointed at the community's group, through /community and its rules.
+ */
+async function ViewerLandingCta({ locale }: { locale: Locale }) {
+  return <LandingCta locale={locale} signedIn={Boolean(await currentViewer())} />;
+}
+
+function LandingCta({ locale, signedIn }: { locale: Locale; signedIn: boolean }) {
+  return signedIn ? (
+    <Link className="primary-action" href="/community">
+      {tx(locale, "Gabung komunitas", "Join the community")}
+    </Link>
+  ) : (
+    <Link className="primary-action" href="/signin">
+      {tx(locale, `Gabung ${site.name}`, `Join ${site.name}`)}
+    </Link>
   );
 }
 
@@ -121,10 +170,12 @@ async function ActivityBody({ query, locale }: { query: SearchParams; locale: Lo
   // Waiting for the request keeps the feed in the server's first answer,
   // filtered as the address asks; from then on it filters in the browser.
   await query;
-  const [result, reactionRows, viewer] = await Promise.all([
+  const [result, reactionRows, viewer, local] = await Promise.all([
     readPublicly<GitHubActivityEntry[]>("github activity", listGitHubActivity, []),
     readPublicly("activity reactions", listActivityReactions, []),
     currentViewer(),
+    // The directory's own reads, cached, so local means the same on both pages.
+    localRepos(locale),
   ]);
   const stats = activityStats(result.value);
 
@@ -154,6 +205,8 @@ async function ActivityBody({ query, locale }: { query: SearchParams; locale: Lo
         today={dayKey(new Date(), "Asia/Jakarta")}
         locale={locale}
         unavailable={result.unavailable}
+        viewerHandle={viewer?.githubActivityShown ? githubHandle(viewer.github) || null : null}
+        localRepos={local}
       />
     </>
   );

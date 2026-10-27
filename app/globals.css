@@ -998,7 +998,9 @@ footer {
 footer p { margin: 0; }
 .footer-brand-group { display: grid; gap: 6px; }
 footer nav { display: flex; flex-wrap: wrap; font-size: 12px; font-weight: 650; gap: 20px; }
-footer nav a:hover { color: var(--ink); }
+footer nav a:hover, .footer-prefs a:hover { color: var(--ink); }
+.footer-end { display: grid; gap: 10px; justify-items: end; }
+.footer-prefs { align-items: center; display: flex; font-weight: 650; gap: 16px; }
 .footer-brand { color: var(--ink); }
 .footer-brand .brand-mark { background: transparent; color: var(--ink); padding: 0; }
 .footer-brand .brand-alt { color: light-dark(#8a8a8a, #7e7e7e); }
@@ -1173,6 +1175,7 @@ form label.help-toggle.is-on { background: light-dark(#ffffff, #1f1f1f); border-
 @media (max-width: 1024px) {
   .sidebar { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; }
   footer { grid-template-columns: 1fr; }
+  .footer-end { justify-items: start; }
 }
 
 @media (max-width: 820px) {
@@ -1559,6 +1562,11 @@ form button[aria-busy="true"]::after,
   .dx-head-actions { grid-column: 1; }
   .dx-head-stats { grid-column: 2; grid-row: 3; margin-top: 12px; }
 }
+/* Between a phone and a laptop the sentence and the numbers do not fit side
+   by side: they stack, the numbers under the actions, as on a phone. */
+@media (max-width: 900px) {
+  .dx-head { align-items: flex-start; flex-direction: column; gap: 14px; }
+}
 .dx-head-stats div { display: flex; flex-direction: column-reverse; gap: 2px; }
 .dx-head-stats dt { color: var(--dx-muted); font-size: 12px; }
 .dx-head-stats dd { font-size: 24px; font-variant-numeric: tabular-nums; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; margin: 0; }
@@ -1573,6 +1581,135 @@ form button[aria-busy="true"]::after,
 .dx-sheet-head, .dx-filterbar { display: none; }
 .dx-sheet-body { display: grid; gap: 14px; }
 .dx-facet + .dx-facet { border-top: 1px solid var(--dx-line); padding-top: 14px; }
+/* The activity page's left column: the leaderboard (see Leaderboard in
+   activity-view.tsx). Wider than the directory's filters, for names and
+   scores side by side; sticky on a laptop, above the feed on a phone. */
+.ax-layout { grid-template-columns: 280px minmax(0, 1fr); }
+/* The feed's heading, then what to show beside the search. */
+.ax-feed-head { align-items: baseline; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
+.ax-feed-head h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
+.ax-toolbar { flex-wrap: wrap; gap: 8px; }
+.ax-toolbar .dx-search { flex: 1 1 240px; max-width: none; }
+.ax-toolbar .ax-show select { font-weight: 550; }
+.ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
+/* A plain card like the rest of the page, with purple — a merged PR's
+   colour — in its head, its scores and its links. */
+.ax-board { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding: 0 0 12px; }
+.ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
+/* The head is the scoreboard: a deep purple — a merged PR's colour — over a
+   plain list, with the title and the pills in white on it. White on purple in
+   both themes, so those pairs name the same colour twice. */
+.ax-board-head {
+  background: linear-gradient(135deg, light-dark(#8250df, #6e40c9), light-dark(#6639ba, #4c2889)); display: grid; gap: 8px;
+  margin-bottom: 8px; padding: 14px 16px 12px;
+}
+.ax-board h2 { align-items: center; color: light-dark(#ffffff, #ffffff); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
+/* "this month · all repos": the board's choices as one line of pills. */
+.ax-board-pills { align-items: center; color: light-dark(rgba(255, 255, 255, .6), rgba(255, 255, 255, .6)); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 6px; margin: 0; }
+.ax-board-pills label { display: block; margin: 0; }
+.ax-board .ax-pill {
+  align-items: center; background-color: light-dark(rgba(255, 255, 255, .18), rgba(255, 255, 255, .18)); border: 1px solid transparent; border-radius: 99px;
+  color: light-dark(#ffffff, #ffffff);
+  display: inline-flex; font: inherit; font-size: 12.5px; font-weight: 600; height: 28px; line-height: normal; margin: 0; padding: 0 10px; width: auto;
+}
+.ax-board select.ax-pill {
+  /* As wide as the choice showing, not the longest one, where supported. */
+  appearance: none; cursor: pointer; field-sizing: content; padding-right: 26px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-position: right 9px center; background-repeat: no-repeat; background-size: 12px 12px;
+}
+.ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { background-color: light-dark(rgba(255, 255, 255, .28), rgba(255, 255, 255, .28)); outline: none; }
+/* A choice that is not the default: the pill turns white, its text purple. */
+.ax-board .ax-pill.is-set, .ax-board select.ax-pill.is-set:hover {
+  background-color: light-dark(#ffffff, #ffffff); color: light-dark(#6639ba, #4c2889);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236639ba' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+}
+/* The native picker's own list keeps the page's colours, not white on white. */
+.ax-board select.ax-pill option { color: var(--dx-ink); }
+.ax-board-pills noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12px; height: 28px; padding: 0 10px; }
+.ax-board-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.ax-board-list:not(.is-expanded) > li:nth-child(n + 11) { display: none; }
+.ax-board-list a {
+  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; gap: 8px; grid-template-columns: 24px 24px minmax(0, 1fr) auto;
+  min-height: 40px; padding: 6px 6px;
+}
+.ax-board-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
+.ax-board-list li.is-active a { background: var(--tone-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent); color: var(--dx-ink); }
+.ax-board-list li.is-mine .ax-board-name { color: var(--tone); }
+.ax-board-rank { color: var(--dx-muted); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 650; text-align: center; }
+.ax-board-list li:nth-child(-n + 3) .ax-board-rank { font-size: 17px; line-height: 1; }
+.ax-board-list img { border-radius: 50%; height: 24px; width: 24px; }
+.ax-board-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-board-score { color: var(--dx-muted); display: grid; font-size: 12px; justify-items: end; line-height: 1.2; }
+.ax-board-score strong { color: var(--tone); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.ax-board-score small { font-size: 11px; }
+.ax-board-empty { color: var(--dx-muted); font-size: 13px; line-height: 1.55; margin: 4px 4px 8px; }
+.ax-board-you { border-top: 1px dashed var(--dx-line); color: var(--dx-text); font-size: 12.5px; margin: 8px 4px 0; padding-top: 8px; }
+.ax-board-you strong { color: var(--tone); }
+.ax-board-toggle {
+  background: none; border: 0; color: var(--tone); cursor: pointer; font-size: 12.5px; font-weight: 650; margin: 6px 0 0; padding: 4px; width: 100%;
+}
+.ax-board-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ax-board-foot { border-top: 1px solid var(--dx-line); color: var(--dx-muted); font-size: 11.5px; line-height: 1.5; margin: 10px 4px 0; padding-top: 10px; }
+.ax-board-foot a { color: var(--tone); font-weight: 650; white-space: nowrap; }
+.ax-board .is-phone-only { display: none; }
+/* Who or where the feed is narrowed to, above it. */
+/* Where the PRs went: no card, a plain list under the ranking like the
+   directory's sidebar — a small grey title with the order beside it, then a
+   handful of rows: the repo on one line, who went there and how lately under
+   it, the PR count on the right. Only the ranking is a card. */
+.ax-where-head { align-items: center; display: flex; gap: 8px; justify-content: space-between; margin: 0 0 6px; padding: 0 10px; }
+.ax-where-head h2 { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0; }
+.ax-where-head label { display: block; margin: 0; }
+.ax-where-order {
+  appearance: none; background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 0 center / 11px 11px;
+  border: 0; color: var(--dx-muted); cursor: pointer; field-sizing: content; font: inherit; font-size: 12.5px; font-weight: 500;
+  height: auto; line-height: normal; margin: 0; padding: 2px 16px 2px 0; width: auto;
+}
+.ax-where-order:hover, .ax-where-order:focus-visible { color: var(--dx-ink); outline: none; }
+.ax-where-list { display: grid; gap: 1px; list-style: none; margin: 0; padding: 0; }
+.ax-where-list:not(.is-expanded) > li:nth-child(n + 6) { display: none; }
+.ax-where-list a {
+  align-items: center; border-radius: 7px; color: var(--dx-text); display: grid; gap: 9px;
+  grid-template-columns: 18px minmax(0, 1fr) auto; min-height: 34px; padding: 6px 10px;
+}
+.ax-where-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
+.ax-where-list li.is-active a { background: var(--dx-soft); color: var(--dx-ink); font-weight: 600; }
+.ax-where-logo { align-self: start; border-radius: 4px; height: 18px; margin-top: 1px; width: 18px; }
+.ax-where-body { display: grid; gap: 2px; min-width: 0; }
+.ax-where-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-where-name small { color: var(--dx-muted); font-size: inherit; }
+.ax-where-meta { align-items: center; color: var(--dx-faint); display: flex; font-size: 11px; gap: 5px; }
+.ax-where-faces { align-items: center; display: inline-flex; }
+.ax-where-faces img { border: 1.5px solid light-dark(#ffffff, #1f1f1f); border-radius: 50%; height: 14px; width: 14px; }
+.ax-where-faces img + img { margin-left: -4px; }
+.ax-where-more { color: var(--dx-faint); font-size: 11px; font-weight: 600; margin-left: 3px; }
+.ax-where-count { align-self: start; color: var(--dx-faint); font-family: var(--font-geist-mono), monospace; font-size: 12px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.ax-where-toggle { background: none; border: 0; color: var(--dx-muted); cursor: pointer; font-size: 12.5px; font-weight: 600; margin: 4px 0 0; padding: 4px 10px; text-align: left; }
+.ax-where-toggle:hover { color: var(--dx-ink); }
+.ax-where .is-phone-only { display: none; }
+.ax-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 12px; padding: 0; }
+.ax-chips a {
+  align-items: center; background: var(--dx-soft); border-radius: 99px; color: var(--dx-ink); display: inline-flex; font-size: 13px;
+  font-weight: 600; gap: 6px; padding: 5px 10px 5px 12px;
+}
+.ax-chips a span { color: var(--dx-muted); font-size: 15px; }
+@media (max-width: 900px) {
+  .ax-layout { grid-template-columns: minmax(0, 1fr); }
+  /* The column comes apart: the board, the feed, then the repos. */
+  .ax-side { display: contents; }
+  .ax-toolbar .ax-show, .ax-toolbar .ax-show label, .ax-toolbar .ax-show select { width: 100%; }
+  /* The toolbar stacks here, so a flex basis would be a height. */
+  .ax-toolbar .dx-search { flex: none; }
+  .ax-board { order: 0; }
+  .ax-layout > .dx-results { order: 1; }
+  /* Above the feed here, shorter still: the feed's pages end the page. */
+  .ax-where { order: 0; }
+  .ax-where-list:not(.is-expanded) > li:nth-child(n + 4) { display: none; }
+  .ax-where .is-phone-only { display: block; }
+  .ax-board-list:not(.is-expanded) > li:nth-child(n + 6) { display: none; }
+  .ax-board .is-phone-only { display: block; }
+}
 .dx-facet-title { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0 0 6px; padding: 0 10px; }
 .dx-facet-more details > ul { display: grid; gap: 1px; list-style: none; margin: 0; padding: 0; }
 .dx-facet-more summary {
@@ -2242,13 +2379,15 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
    button. Activity has no button, so the numbers sit beside the title and
    sentence instead of on a row of their own. */
 @media (min-width: 901px) {
-  .dx-head.ax-head h1, .dx-head.ax-head p { grid-column: 1; }
-  .dx-head.ax-head .dx-head-stats { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  .dx-head.ax-head h1, .dx-head.ax-head p, .dx-head.ax-head .ax-head-actions { grid-column: 1; }
+  .dx-head.ax-head .dx-head-stats { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
+}
+@media (min-width: 901px) {
+  .ax-head-line { display: block; }
 }
 .ax-head-link { color: var(--dx-ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--dx-line); text-underline-offset: 3px; }
 .ax-head-link:hover { text-decoration-color: currentColor; }
 .ax-avatar { border-radius: 50%; flex: none; }
-.ax-facet-avatar { border-radius: 4px; flex: none; }
 .ax-pr-icon { fill: none; flex: none; height: 16px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; width: 16px; }
 .ax-pr-icon.is-merged { color: light-dark(#8250df, #b392f0); }
 .ax-pr-icon.is-open { color: light-dark(#1a7f37, #57ab5a); }
@@ -2593,7 +2732,55 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .ab-faq details:first-child summary { border-radius: 8px 8px 0 0; }
 .ab-faq details:last-child:not([open]) summary { border-radius: 0 0 8px 8px; }
 .ab-faq p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.65; margin: 0; padding: 0 14px 14px; }
+/* /leaderboard, before it exists: the about page's frame, with a badge. */
+.lb-soon-badge {
+  background: var(--tone-soft); border-radius: 99px; color: var(--tone); display: inline-block;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; margin: 0 0 10px; padding: 4px 10px; text-transform: uppercase;
+}
+.lb-soon h1 { align-items: center; display: flex; gap: 10px; }
+/* The preview: this month's real leaders in the clear, then made-up rows
+   fading into a blur, with a "coming soon" lock over the fog. No frame: the
+   table floats on the page and dissolves into it. */
+.lb-preview { margin-top: 28px; padding-bottom: 8px; position: relative; }
+.lb-preview-note { color: var(--dx-muted); font-size: 12px; font-weight: 600; letter-spacing: .04em; margin: 0 0 8px; text-transform: uppercase; }
+.lb-board { border-collapse: collapse; font-size: 13.5px; width: 100%; }
+.lb-board th { border-bottom: 1px solid var(--dx-line); color: var(--dx-muted); font-size: 12px; font-weight: 600; padding: 8px 10px; text-align: left; }
+.lb-board td { border-bottom: 1px solid var(--dx-line); color: var(--dx-text); padding: 10px; white-space: nowrap; }
+.lb-board td:nth-child(2) { align-items: center; color: var(--dx-ink); display: flex; font-weight: 600; gap: 10px; }
+.lb-board .lb-points { color: light-dark(#8250df, #b392f0); font-weight: 700; }
+.lb-board .lb-soon-cell { color: var(--dx-faint); }
+.lb-avatar {
+  align-items: center; background: hsl(var(--hue, 262) 55% 55%); border-radius: 50%; color: light-dark(#ffffff, #ffffff); display: inline-flex;
+  flex: none; font-size: 11px; font-weight: 700; height: 28px; justify-content: center; object-fit: cover; width: 28px;
+}
+.lb-made { pointer-events: none; user-select: none; }
+/* Made-up rows are never sharp, whatever the fog does: a name in them must not read as a member's. */
+.lb-made td { filter: blur(3px); }
+.lb-fog {
+  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+  background: linear-gradient(to bottom, light-dark(rgba(255, 255, 255, 0), rgba(31, 31, 31, 0)) var(--lb-clear, 66px), light-dark(rgba(255, 255, 255, .92), rgba(31, 31, 31, .92)) 92%);
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent calc(var(--lb-clear, 66px) - 2px), light-dark(#000, #000) calc(var(--lb-clear, 66px) + 14px));
+  mask-image: linear-gradient(to bottom, transparent 0, transparent calc(var(--lb-clear, 66px) - 2px), light-dark(#000, #000) calc(var(--lb-clear, 66px) + 14px));
+  pointer-events: none; position: absolute;
+}
+.lb-lock {
+  align-items: center; bottom: 28px; display: flex; flex-direction: column; gap: 8px; left: 0; padding: 0 24px; position: absolute;
+  right: 0; text-align: center;
+}
+.lb-lock-icon {
+  align-items: center; background: light-dark(#ffffff, #2a2a2e); border: 1px solid var(--dx-line); border-radius: 50%;
+  box-shadow: 0 8px 24px light-dark(rgba(41, 41, 41, .12), rgba(0, 0, 0, .4)); display: inline-flex; font-size: 24px; height: 56px;
+  justify-content: center; width: 56px;
+}
+.lb-lock h2 { color: var(--dx-ink); font-size: 20px; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 0; }
+.lb-lock p { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0 0 6px; max-width: 360px; }
+@media (max-width: 640px) {
+  .lb-board .lb-wide { display: none; }
+}
 .ab-cta { background: var(--tone-soft); border-radius: 10px; margin-top: 40px; padding: 22px 24px; }
+/* A call to action that opens the page, under its intro, rather than closing it. */
+.ab-cta.ab-cta-top { margin-top: 24px; }
 .ab-cta h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; margin: 0 0 4px; }
 .ab-cta p { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0; }
 .ab-cta-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }

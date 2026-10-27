@@ -298,7 +298,7 @@ export function DirectoryView({
         <div className="dx-toolbar">
           <form
             className="dx-search"
-            action="/"
+            action="/directory"
             role="search"
             onSubmit={(event) => {
               event.preventDefault();
@@ -338,7 +338,7 @@ export function DirectoryView({
             </p>
             {/* A real GET form, like the search: without JavaScript the button
                 beside the select sends it; with it, picking is enough. */}
-            <form className="dx-sort" action="/">
+            <form className="dx-sort" action="/directory">
               <HiddenFilters filters={filters} except="sort" />
               <label>
                 <span className="sr-only">{tx(locale, "Urutkan", "Sort by")}</span>

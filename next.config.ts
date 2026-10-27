@@ -31,9 +31,10 @@ const nextConfig: NextConfig = {
             { source: "/projects/:path*", destination: builderUrl("/projects/:path*"), permanent: false },
             { source: "/inbox", destination: builderUrl("/inbox"), permanent: false },
             { source: "/how-it-works/roles", destination: builderUrl("/how-it-works"), permanent: false },
-            { source: "/", has: [{ type: "query" as const, key: "track", value: "role" }], destination: builderUrl("/"), permanent: false },
-            { source: "/explore", destination: builderUrl("/?track=role"), permanent: false },
-            { source: "/kolaborasi", destination: builderUrl("/?track=role"), permanent: false },
+            { source: "/", has: [{ type: "query" as const, key: "track", value: "role" }], destination: builderUrl("/directory"), permanent: false },
+            { source: "/directory", has: [{ type: "query" as const, key: "track", value: "role" }], destination: builderUrl("/directory"), permanent: false },
+            { source: "/explore", destination: builderUrl("/directory?track=role"), permanent: false },
+            { source: "/kolaborasi", destination: builderUrl("/directory?track=role"), permanent: false },
             // Its "add a project" is suggesting a repo.
             { source: "/submit", destination: "/recommend", permanent: false },
             // Browsers ask for these by name, whatever the page links; the
@@ -45,15 +46,30 @@ const nextConfig: NextConfig = {
             // And the builders site has none of GitHub's: the repo catalogue
             // lives on the open source site. Its /activity is a product feed.
             { source: "/recommend", destination: ossUrl("/recommend"), permanent: false },
+            // The leaderboard is open source contributions, the open source site's.
+            { source: "/leaderboard", destination: ossUrl("/leaderboard"), permanent: false },
             // Its "add a project" is listing a product; its walk-through is the roles one.
             { source: "/submit", destination: "/new", permanent: false },
             { source: "/how-it-works/roles", destination: "/how-it-works", permanent: false },
           ]),
+      // Activity is the home page now and the directory has its own address.
+      // Old links to /activity land on the home page, and old directory links
+      // — `/` with a filter only the directory reads — on /directory. Not
+      // permanent, so the two can still trade places. `scope` is both pages':
+      // only the directory's values move.
+      { source: "/activity", destination: "/", permanent: false },
+      ...["track", "open", "pr", "badge", "facet", "phase", "sort", "source"].map((key) => ({
+        source: "/",
+        has: [{ type: "query" as const, key }],
+        destination: "/directory",
+        permanent: false,
+      })),
+      { source: "/", has: [{ type: "query" as const, key: "scope", value: "local|global" }], destination: "/directory", permanent: false },
       // The old board and the talent pool are gone; the directory covers both.
-      { source: "/explore", destination: "/?track=role", permanent: true },
-      { source: "/kolaborasi", destination: "/?track=role", permanent: true },
-      { source: "/people", destination: "/", permanent: true },
-      { source: "/orang", destination: "/", permanent: true },
+      { source: "/explore", destination: "/directory?track=role", permanent: true },
+      { source: "/kolaborasi", destination: "/directory?track=role", permanent: true },
+      { source: "/people", destination: "/directory", permanent: true },
+      { source: "/orang", destination: "/directory", permanent: true },
       { source: "/mulai", destination: "/get-started", permanent: true },
       { source: "/lupa-password", destination: "/forgot-password", permanent: true },
       { source: "/akun/profil", destination: "/account/profile", permanent: true },

@@ -90,7 +90,7 @@ export default async function ProjectPage({ params }: { params: Params }) {
       <main id="main-content" className="project-page">
         <div className="breadcrumb breadcrumb-row">
           <p>
-            <Link href="/?track=role">{tx(locale, "Direktori", "Directory")}</Link> <span aria-hidden="true">/</span> {project.title}
+            <Link href="/directory?track=role">{tx(locale, "Direktori", "Directory")}</Link> <span aria-hidden="true">/</span> {project.title}
           </p>
           {isOwner ? <Link className="edit-link" href={`/projects/${project.slug}/edit`}>{tx(locale, "Edit proyek", "Edit project")}</Link> : null}
         </div>

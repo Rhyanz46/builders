@@ -4,7 +4,7 @@ import { LoadingNote, Skeleton } from "../components/skeleton";
 export default function Loading() {
   return (
     <>
-      <HeaderShell active="home" />
+      <HeaderShell active="directory" />
       <main id="main-content" className="dx-page">
         <LoadingNote />
         <div className="dx-head">
