@@ -49,8 +49,8 @@ import type { ReactionCount } from "../lib/reactions";
 import { tx, type Locale } from "../lib/locale";
 
 const PAGE_SIZE = 20;
-/** Repositories shown under the leaderboard before the rest fold behind "More…". */
-const REPOS_SHOWN = 8;
+/** Repositories shown under the leaderboard before "See all": a handful, not the list. */
+const REPOS_SHOWN = 5;
 /** How many repositories a commit summary names before "+N". */
 const SUMMARY_REPOS = 4;
 /** Pull requests listed in a grouped entry before the rest fold away. */
@@ -369,7 +369,7 @@ function countedLabel(current: ActivityFilters, locale: Locale): string {
   return tx(locale, `Dihitung dari ${what} ke ${where}. `, `Counts ${what} to ${where}. `);
 }
 
-/** Repos shown before "See all": eight beside the feed on a laptop, three above it on a phone. */
+/** Repos shown before "See all" on a phone, where the card sits above the feed. */
 const REPOS_SHOWN_PHONE = 3;
 /** Faces shown per repo before "+n". */
 const FACES_SHOWN = 3;
@@ -394,23 +394,32 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
     people: tx(locale, "kontributor terbanyak", "most people"),
   };
 
+  // The ranking card's frame, head and pills, so the column reads as one
+  // family: only the rows differ, a repo where the ranking has a person.
   return (
-    <section className="ax-where tone-done" aria-labelledby="repos-title">
-      <div className="ax-where-head">
+    <section className="ax-board ax-where tone-done" aria-labelledby="repos-title">
+      <div className="ax-board-head">
         <h2 id="repos-title">
           <span aria-hidden="true">🎯</span> {tx(locale, "Repo tujuan PR", "Where PRs went")}
-          <span className="ax-where-total">{repos.length}</span>
         </h2>
-        <label>
-          <span className="sr-only">{tx(locale, "Urutkan repo", "Order repos")}</span>
-          <select className="ax-where-order" value={order} onChange={(event) => setOrder(REPO_ORDERS.find((each) => each === event.target.value) ?? "recent")}>
-            {REPO_ORDERS.map((each) => (
-              <option key={each} value={each}>
-                {orderLabels[each]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <p className="ax-board-pills">
+          <label>
+            <span className="sr-only">{tx(locale, "Urutkan repo", "Order repos")}</span>
+            <select
+              className={`ax-pill ${order !== "recent" ? "is-set" : ""}`}
+              value={order}
+              onChange={(event) => setOrder(REPO_ORDERS.find((each) => each === event.target.value) ?? "recent")}
+            >
+              {REPO_ORDERS.map((each) => (
+                <option key={each} value={each}>
+                  {orderLabels[each]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span aria-hidden="true">·</span>
+          <span className="ax-pill">{tx(locale, `${repos.length} repo`, `${repos.length} ${repos.length === 1 ? "repo" : "repos"}`)}</span>
+        </p>
       </div>
       <ol className={`ax-where-list ${open ? "is-expanded" : ""}`}>
         {repos.map(({ repo, prs, people, lastAt }) => {
@@ -436,8 +445,10 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
                     <RelativeTime value={lastAt} locale={locale} />
                   </span>
                 </span>
-                <span className="ax-where-count">
-                  {prs} <small>PR</small>
+                <span className="ax-board-score">
+                  <span>
+                    <strong>{prs}</strong> PR
+                  </span>
                 </span>
               </InstantLink>
             </li>
