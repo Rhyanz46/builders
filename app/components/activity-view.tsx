@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "./responsive-link";
-import { FacetGroup, FacetLink } from "./directory-view";
 import { InstantLink, InstantNav } from "./instant-link";
 import { RelativeTime } from "./relative-time";
 import { ReactionBar } from "./reaction-bar";
@@ -199,28 +198,7 @@ export function ActivityView({
             navigate={navigate}
           />
 
-          {repos.length > 0 ? (
-            <div className="ax-side-repos">
-              <FacetGroup
-                title={tx(locale, "Repo tujuan PR", "PRs went to")}
-                more={repos.length > REPOS_SHOWN ? tx(locale, "Repo lainnya…", "More repos…") : undefined}
-                openMore={repos.findIndex(({ repo }) => repo === current.repo) >= REPOS_SHOWN}
-              >
-                {repos.map(({ repo, count }) => (
-                  <FacetLink
-                    key={repo}
-                    active={current.repo === repo}
-                    href={activityPath({ ...current, repo: current.repo === repo ? "" : repo })}
-                    count={count}
-                    // eslint-disable-next-line @next/next/no-img-element -- the repository owner's GitHub picture
-                    icon={<img className="ax-facet-avatar" src={ownerAvatar(repo, 36)} alt="" width={18} height={18} loading="lazy" />}
-                  >
-                    {repo}
-                  </FacetLink>
-                ))}
-              </FacetGroup>
-            </div>
-          ) : null}
+          {repos.length > 0 ? <RepoList repos={repos} current={current} locale={locale} /> : null}
         </div>
 
         <section ref={results} className="dx-results" aria-labelledby="feed-title">
@@ -388,6 +366,53 @@ function countedLabel(current: ActivityFilters, locale: Locale): string {
         ? tx(locale, "repo global", "global repos")
         : tx(locale, "repo orang lain", "other people's repos");
   return tx(locale, `Dihitung dari ${what} ke ${where}. `, `Counts ${what} to ${where}. `);
+}
+
+/**
+ * Where the pull requests in the feed went, as a card under the ranking: the
+ * same frame, a quieter head. Each repo narrows the feed to it; long names
+ * stay on one line, whole in the tooltip.
+ */
+function RepoList({ repos, current, locale }: { repos: { repo: string; count: number }[]; current: ActivityFilters; locale: Locale }) {
+  // The repo being looked at is never folded away.
+  const [expanded, setExpanded] = useState(false);
+  const open = expanded || repos.findIndex(({ repo }) => repo === current.repo) >= REPOS_SHOWN;
+
+  return (
+    <section className="ax-where tone-done" aria-labelledby="repos-title">
+      <div className="ax-where-head">
+        <h2 id="repos-title">
+          <span aria-hidden="true">🎯</span> {tx(locale, "Repo tujuan PR", "Where PRs went")}
+        </h2>
+        <span className="ax-where-total">{tx(locale, `${repos.length} repo`, `${repos.length} ${repos.length === 1 ? "repo" : "repos"}`)}</span>
+      </div>
+      <ol className={`ax-where-list ${open ? "is-expanded" : ""}`}>
+        {repos.map(({ repo, count }) => {
+          const on = current.repo === repo;
+          return (
+            <li key={repo} className={on ? "is-active" : ""}>
+              <InstantLink href={activityPath({ ...current, repo: on ? "" : repo })} aria-current={on ? "true" : undefined} title={repo}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- the repository owner's GitHub picture */}
+                <img src={ownerAvatar(repo, 36)} alt="" width={18} height={18} loading="lazy" />
+                <span className="ax-where-name">
+                  <small>{repo.slice(0, repo.indexOf("/") + 1)}</small>
+                  {repoName(repo)}
+                </span>
+                <span className="ax-where-count">
+                  {count} <small>PR</small>
+                </span>
+              </InstantLink>
+            </li>
+          );
+        })}
+      </ol>
+      {repos.length > REPOS_SHOWN ? (
+        <button type="button" className="ax-board-toggle" aria-expanded={open} onClick={() => setExpanded((was) => !was)}>
+          {open ? tx(locale, "Tampilkan lebih sedikit", "Show fewer") : tx(locale, `Lihat semua (${repos.length})`, `See all (${repos.length})`)}
+        </button>
+      ) : null}
+    </section>
+  );
 }
 
 /** How many rows the board shows before "See all": fewer on a phone, where it sits above the feed. */
