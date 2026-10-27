@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "@/app/components/responsive-link";
 import { setActivityVisibility } from "../../actions";
 import { SiteFooter, SiteHeader } from "../../components/shell";
@@ -10,6 +10,7 @@ import { ShareProfileButton } from "../../components/share-profile-button";
 import { OssRecordEmpty, OssRecordList } from "../../components/oss-record";
 import { SubmitButton } from "../../components/submit-button";
 import {
+  currentUsernameForFormer,
   getPerson,
   getPersonStats,
   getPortfolio,
@@ -90,7 +91,20 @@ export default async function ProfilePage({
   const { username } = await params;
   const query = (await searchParams) ?? {};
   const [person, viewer, locale] = await Promise.all([getPerson(username), currentViewer(), currentLocale()]);
-  if (!person) notFound();
+  if (!person) {
+    // A link to a name its owner has since changed still finds them.
+    const current = await currentUsernameForFormer(username);
+    if (current && current !== username) {
+      // The query goes along: a shared link to a longer trail stays one.
+      const search = new URLSearchParams();
+      for (const [key, value] of Object.entries(query)) {
+        for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) search.append(key, item);
+      }
+      const rest = search.toString();
+      permanentRedirect(`/u/${current}${rest ? `?${rest}` : ""}`);
+    }
+    notFound();
+  }
 
   // "Muat lebih lama" grows the limit instead of paging cursors: the list is
   // one request either way, and the URL stays shareable.

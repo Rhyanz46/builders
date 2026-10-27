@@ -538,6 +538,49 @@ export const getPerson = cache(async (username: string): Promise<Person | null> 
   return data ? toPerson(data) : null;
 });
 
+/**
+ * The current username of whoever once used `former`, or null.
+ *
+ * Only called when a profile lookup missed, so it is the slow path and stays
+ * uncached. It resolves through the holder's id rather than the stored name,
+ * so a chain of renames (a to b to c) still lands on the live one.
+ */
+export async function currentUsernameForFormer(former: string): Promise<string | null> {
+  const supabase = getPublicSupabase();
+  if (!supabase) return null;
+
+  const { data: past } = await supabase
+    .from("username_history")
+    .select("user_id")
+    .eq("username", former)
+    .maybeSingle();
+  if (!past) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", past.user_id)
+    .maybeSingle();
+  return profile?.username ?? null;
+}
+
+/**
+ * Whether `username` is free for `self` to take: nobody else has it now, and
+ * nobody else has left it behind. The database decides on save; this only
+ * keeps the editor from suggesting a name it would refuse.
+ */
+export async function isUsernameFreeFor(username: string, self: string): Promise<boolean> {
+  const supabase = getPublicSupabase();
+  if (!supabase) return true;
+
+  const [live, former] = await Promise.all([
+    supabase.from("profiles").select("id").eq("username", username).neq("id", self).limit(1),
+    supabase.from("username_history").select("user_id").eq("username", username).neq("user_id", self).limit(1),
+  ]);
+  if (live.error || former.error) return false;
+  return (live.data ?? []).length === 0 && (former.data ?? []).length === 0;
+}
+
 /** A project somebody helps on, together with the role they hold there. */
 export type Contribution = ProjectSummary & { role: string };
 

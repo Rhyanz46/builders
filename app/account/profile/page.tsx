@@ -4,12 +4,14 @@ import { redirect } from "next/navigation";
 import { SiteFooter, SiteHeader } from "../../components/shell";
 import { ProfileForm, type EditableProfile } from "../../components/profile-form";
 import { GitHubForm } from "../../components/github-form";
-import { listOssContributionsOf, listPeople } from "../../lib/data";
+import { UsernameForm } from "../../components/username-form";
+import { validateUsername } from "../../lib/profile";
+import { isUsernameFreeFor, listOssContributionsOf, listPeople } from "../../lib/data";
 import { OssAddForm, OssRecordEmpty, OssRecordList } from "../../components/oss-record";
 import { githubHandle } from "../../lib/oss";
 import { termSuggestions } from "../../lib/people";
 import { readPublicly } from "../../lib/public-read";
-import { currentViewer, type Viewer } from "../../lib/session";
+import { currentViewer, linkedGitHubHandle, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
@@ -52,6 +54,16 @@ export default async function EditProfilePage({
   ]);
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
   const handle = githubHandle(viewer.github);
+  // Offer the handle of the GitHub account linked at sign-in — verified, not
+  // the free-text field above — and only when it is a legal name nobody else
+  // holds or has left behind. The database still has the last word on save.
+  const linked = await linkedGitHubHandle();
+  const handleCheck = linked ? validateUsername(linked) : null;
+  const candidate = handleCheck && "username" in handleCheck ? handleCheck.username : "";
+  const usernameSuggestion =
+    candidate && candidate !== viewer.username && (await readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false)).value
+      ? candidate
+      : undefined;
 
   return (
     <>
@@ -69,6 +81,10 @@ export default async function EditProfilePage({
             the evidence links and the Activity page all read this account.
             A form of its own, since the open source record below is one too. */}
         <GitHubForm github={handle ? `https://github.com/${handle}` : viewer.github} shown={viewer.githubActivityShown} />
+
+        {/* Next to GitHub on purpose: the two are a member's identity here, and
+            the handle above is offered as the profile URL below. */}
+        <UsernameForm username={viewer.username} suggestion={usernameSuggestion} />
 
         {/* Second: every repo listed here becomes a badge on that repo's row. */}
         <section id="open-source" className="oss-editor tone-done" aria-labelledby="oss-editor-title">
@@ -103,7 +119,8 @@ export default async function EditProfilePage({
         />
 
         <p className="hint">
-          {tx(locale, "URL profilmu—", "Your profile URL—")}<code>/u/{viewer.username}</code>{tx(locale, "—dibuat oleh sistem dan tidak dapat diubah di sini. Ubah kata sandimu di ", "—is created by the system and cannot be changed here. Change your password on the ")}<Link href="/account/password">{tx(locale, "halaman kata sandi", "password page")}</Link>.
+          {tx(locale, "Mau ganti kata sandi? Buka ", "Want to change your password? Go to the ")}
+          <Link href="/account/password">{tx(locale, "halaman kata sandi", "password page")}</Link>.
         </p>
       </main>
 
