@@ -93,6 +93,13 @@ const nextConfig: NextConfig = {
     // over a high-latency mobile connection that request was ~0.4 s of blank
     // screen; the cost is ~30 KB (compressed) more HTML on each page load.
     inlineCss: true,
+    // Turbopack's filesystem cache (on by default since 16.3) kept serving a
+    // stale globals.css: Netlify restores `.next/cache` between deploys, and a
+    // build shipped new HTML with an old stylesheet — the leaderboard and
+    // footer unstyled in production. The same happened to `next dev` after
+    // switching branches. Off for both: a slower build that is always right.
+    turbopackFileSystemCacheForBuild: false,
+    turbopackFileSystemCacheForDev: false,
   },
   cacheLife: {
     // The board, the people directory, a project page. Someone posting a
