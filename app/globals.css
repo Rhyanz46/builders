@@ -1562,6 +1562,11 @@ form button[aria-busy="true"]::after,
   .dx-head-actions { grid-column: 1; }
   .dx-head-stats { grid-column: 2; grid-row: 3; margin-top: 12px; }
 }
+/* Between a phone and a laptop the sentence and the numbers do not fit side
+   by side: they stack, the numbers under the actions, as on a phone. */
+@media (max-width: 900px) {
+  .dx-head { align-items: flex-start; flex-direction: column; gap: 14px; }
+}
 .dx-head-stats div { display: flex; flex-direction: column-reverse; gap: 2px; }
 .dx-head-stats dt { color: var(--dx-muted); font-size: 12px; }
 .dx-head-stats dd { font-size: 24px; font-variant-numeric: tabular-nums; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; margin: 0; }
