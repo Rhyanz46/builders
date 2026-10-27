@@ -206,7 +206,7 @@ export function ActivityView({
           {/* The feed under its own name: the page is the leaderboard, this is
               what the ranking is made of. */}
           <div className="ax-feed-head">
-            <h2 id="feed-title">{tx(locale, "Aktivitas terbaru", "Latest activity")}</h2>
+            <h2 id="feed-title">{tx(locale, "Aktivitas publik terbaru dari GitHub anggota", "Latest public activity from members' GitHub")}</h2>
             <p className="dx-count" role="status">
               <strong>{matched.length}</strong> {tx(locale, "aktivitas", "entries")}
               {filtered ? <> · <InstantLink href={reset}>reset</InstantLink></> : null}

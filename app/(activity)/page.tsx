@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
@@ -102,17 +103,36 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
   return (
     <header className="dx-head ax-head">
       <div>
-        <h1>{tx(locale, "Aktivitas open source", "Open source activity")}</h1>
+        <h1>{tx(locale, "Komunitas kontributor open source", "Open source contributor community")}</h1>
         <p>
           {tx(
             locale,
-            "Kontribusi open source member langsung dari GitHub, plus peringkat siapa yang paling aktif—biar saling kelihatan dan yang lain ikut mulai. ",
-            "Members' open source contributions straight from GitHub, with a ranking of who is most active—so we see each other's and others start too. ",
+            "Tempat berkumpul dan berbagi untuk yang serius berkontribusi ke open source—lokal maupun global, proyek sendiri maupun milik orang lain. Tampilkan aktivitas GitHub-mu dan saling dukung.",
+            "A place to gather and share for people serious about contributing to open source—local or global, their own projects or other people's. Show your GitHub activity and back each other up.",
           )}
-          <Link className="ax-head-link" href="/account/profile#github-account">
-            {tx(locale, "Tampilkan punyamu", "Show yours")}
-          </Link>
         </p>
+        {/* The home page is the landing page too: the community first, then
+            the directory, then showing one's own activity. The directory's
+            heading uses the same three kinds of action. */}
+        <div className="dx-head-actions ax-head-actions">
+          <Link className="primary-action" href="/community">
+            {tx(locale, "Gabung komunitas", "Join the community")}
+          </Link>
+          <Link className="ab-button" href="/directory">
+            {tx(locale, "Lihat direktori", "See the directory")} <span aria-hidden="true">→</span>
+          </Link>
+          <Link className="dx-wa-link" href="/account/profile#github-account">
+            {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
+          </Link>
+          {/* Moved here from the directory: the landing page is where the
+              community behind the site is introduced. */}
+          <p className="dx-head-powered">
+            Powered by
+            <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">
+              <Image src="/swegrowth-logo.png" alt="Software Engineer Growth Community" width={25} height={24} />
+            </a>
+          </p>
+        </div>
       </div>
       {children}
     </header>

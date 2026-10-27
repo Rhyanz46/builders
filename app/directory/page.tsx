@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
@@ -84,12 +83,6 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
               <Suspense fallback={<WaButton />}>
                 <JoinCta locale={locale} />
               </Suspense>
-              <p className="dx-head-powered">
-                Powered by
-                <a href="https://swegrowth.id/" target="_blank" rel="noopener noreferrer">
-                  <Image src="/swegrowth-logo.png" alt="Software Engineer Growth Community" width={25} height={24} />
-                </a>
-              </p>
             </div>
           </div>
           <Suspense fallback={null}>
