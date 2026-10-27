@@ -584,10 +584,12 @@ function Leaderboard({
         {own
           ? tx(locale, "Dihitung dari PR merged ke repo sendiri; seri dipecah jumlah commit. ", "Counts PRs merged into their own repos; commits break ties. ")
           : countedLabel(current, locale)}
-        {/* The full leaderboard — points, streaks, badges — is still to come. */}
-        <InstantLink href="/leaderboard">
+        {/* The full leaderboard — points, streaks, badges — is still to come.
+            A plain Link: it leaves this page, where InstantLink only swaps
+            the feed's filters in place. */}
+        <Link href="/leaderboard">
           {tx(locale, "Leaderboard lengkap segera", "Full leaderboard coming soon")} <span aria-hidden="true">→</span>
-        </InstantLink>
+        </Link>
       </p>
     </aside>
   );
