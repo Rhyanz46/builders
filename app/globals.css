@@ -1592,17 +1592,19 @@ form button[aria-busy="true"]::after,
 .ax-board { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding: 0 0 12px; }
 .ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
 /* The head is the scoreboard: a deep purple — a merged PR's colour — over a
-   plain list, with the title and the pills in white on it. */
+   plain list, with the title and the pills in white on it. White on purple in
+   both themes, so those pairs name the same colour twice. */
 .ax-board-head {
   background: linear-gradient(135deg, light-dark(#8250df, #6e40c9), light-dark(#6639ba, #4c2889)); display: grid; gap: 8px;
   margin-bottom: 8px; padding: 14px 16px 12px;
 }
-.ax-board h2 { align-items: center; color: #ffffff; display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
+.ax-board h2 { align-items: center; color: light-dark(#ffffff, #ffffff); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
 /* "this month · all repos": the board's choices as one line of pills. */
-.ax-board-pills { align-items: center; color: rgba(255, 255, 255, .6); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 6px; margin: 0; }
+.ax-board-pills { align-items: center; color: light-dark(rgba(255, 255, 255, .6), rgba(255, 255, 255, .6)); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 6px; margin: 0; }
 .ax-board-pills label { display: block; margin: 0; }
 .ax-board .ax-pill {
-  align-items: center; background-color: rgba(255, 255, 255, .18); border: 1px solid transparent; border-radius: 99px; color: #ffffff;
+  align-items: center; background-color: light-dark(rgba(255, 255, 255, .18), rgba(255, 255, 255, .18)); border: 1px solid transparent; border-radius: 99px;
+  color: light-dark(#ffffff, #ffffff);
   display: inline-flex; font: inherit; font-size: 12.5px; font-weight: 600; height: 28px; line-height: normal; margin: 0; padding: 0 10px; width: auto;
 }
 .ax-board select.ax-pill {
@@ -1611,10 +1613,10 @@ form button[aria-busy="true"]::after,
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-position: right 9px center; background-repeat: no-repeat; background-size: 12px 12px;
 }
-.ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { background-color: rgba(255, 255, 255, .28); outline: none; }
+.ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { background-color: light-dark(rgba(255, 255, 255, .28), rgba(255, 255, 255, .28)); outline: none; }
 /* A choice that is not the default: the pill turns white, its text purple. */
 .ax-board .ax-pill.is-set, .ax-board select.ax-pill.is-set:hover {
-  background-color: #ffffff; color: light-dark(#6639ba, #4c2889);
+  background-color: light-dark(#ffffff, #ffffff); color: light-dark(#6639ba, #4c2889);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236639ba' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
 }
 /* The native picker's own list keeps the page's colours, not white on white. */
