@@ -107,22 +107,23 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
         <p>
           {tx(
             locale,
-            "Tempat berkumpul dan berbagi untuk yang serius berkontribusi ke open source—lokal maupun global, proyek sendiri maupun milik orang lain. Tampilkan aktivitas GitHub-mu dan saling dukung.",
-            "A place to gather and share for people serious about contributing to open source—local or global, their own projects or other people's. Show your GitHub activity and back each other up.",
+            "Tempat berkumpul dan berbagi untuk yang serius berkontribusi ke open source—lokal maupun global, proyek sendiri maupun milik orang lain. ",
+            "A place to gather and share for people serious about contributing to open source—local or global, their own projects or other people's. ",
           )}
+          <Link className="ax-head-link" href="/account/profile#github-account">
+            {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
+          </Link>
+          {tx(locale, " dan saling dukung.", " and back each other up.")}
         </p>
         {/* The home page is the landing page too: the community first, then
-            the directory, then showing one's own activity. The directory's
-            heading uses the same three kinds of action. */}
+            the directory, the way the directory's heading lays out its own.
+            Showing one's activity is a link in the sentence above. */}
         <div className="dx-head-actions ax-head-actions">
           <Link className="primary-action" href="/community">
             {tx(locale, "Gabung komunitas", "Join the community")}
           </Link>
           <Link className="ab-button" href="/directory">
             {tx(locale, "Lihat direktori", "See the directory")} <span aria-hidden="true">→</span>
-          </Link>
-          <Link className="dx-wa-link" href="/account/profile#github-account">
-            {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
           </Link>
           {/* Moved here from the directory: the landing page is where the
               community behind the site is introduced. */}
