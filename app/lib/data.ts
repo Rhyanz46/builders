@@ -538,6 +538,32 @@ export const getPerson = cache(async (username: string): Promise<Person | null> 
   return data ? toPerson(data) : null;
 });
 
+/**
+ * The current username of whoever once used `former`, or null.
+ *
+ * Only called when a profile lookup missed, so it is the slow path and stays
+ * uncached. It resolves through the holder's id rather than the stored name,
+ * so a chain of renames (a to b to c) still lands on the live one.
+ */
+export async function currentUsernameForFormer(former: string): Promise<string | null> {
+  const supabase = getPublicSupabase();
+  if (!supabase) return null;
+
+  const { data: past } = await supabase
+    .from("username_history")
+    .select("user_id")
+    .eq("username", former)
+    .maybeSingle();
+  if (!past) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", past.user_id)
+    .maybeSingle();
+  return profile?.username ?? null;
+}
+
 /** A project somebody helps on, together with the role they hold there. */
 export type Contribution = ProjectSummary & { role: string };
 

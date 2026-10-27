@@ -15,6 +15,7 @@ export type HeaderIconName =
   | "inbox"
   | "add"
   | "language"
+  | "lock"
   | "signout"
   | "signin";
 
@@ -32,6 +33,7 @@ export function HeaderIcon({ name }: { name: HeaderIconName }) {
     steps: <><path d="M4 7h5v13H4zM9.5 12h5v8h-5zM15 4h5v16h-5z" /></>,
     add: <path d="M12 5v14M5 12h14" />,
     language: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></>,
+    lock: <><rect x="5" y="11" width="14" height="9" rx="1.5" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
     signout: <><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></>,
     signin: <><path d="M14 5h5v14h-5M10 8l-4 4 4 4M6 12h9" /></>,
   };

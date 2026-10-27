@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PROFILE_MAXIMUM, validateGitHub, validateProfile } from "../app/lib/profile.ts";
+import { PROFILE_MAXIMUM, validateGitHub, validateProfile, validateUsername } from "../app/lib/profile.ts";
 
 const blank = {
   name: "",
@@ -59,5 +59,20 @@ test("GitHub takes a username or a profile link, and is stored as the link", () 
   assert.deepEqual(validateGitHub("github.com/zikrulihsan"), { url: "https://github.com/zikrulihsan" });
   for (const value of ["https://gitlab.com/zikrulihsan", "https://github.com/zikrulihsan/builders", "bukan username!", "javascript:alert(1)"]) {
     assert.ok("error" in validateGitHub(value), value);
+  }
+});
+
+test("a username takes the same shape the profile URL needs", () => {
+  assert.deepEqual(validateUsername("fajarhide"), { username: "fajarhide" });
+  assert.deepEqual(validateUsername("  FajarHide  "), { username: "fajarhide" }, "trimmed and lowercased");
+  assert.deepEqual(validateUsername("zain-fathoni"), { username: "zain-fathoni" });
+  for (const bad of ["a", "-leading", "has space", "UPPER!", "x".repeat(49)]) {
+    assert.ok("error" in validateUsername(bad), bad);
+  }
+});
+
+test("a username that is a site route is refused", () => {
+  for (const reserved of ["admin", "account", "u", "projects", "settings"]) {
+    assert.ok("error" in validateUsername(reserved), reserved);
   }
 });

@@ -868,6 +868,44 @@ select checks.equal((select count(*)::int from public.feedback), 0, 'tidak ada m
 select checks.equal((select count(*)::int from pg_proc where proname = 'submit_feedback' and pronamespace = 'public'::regnamespace), 0,
                     'fungsi submit_feedback sudah dihapus');
 
+-- -------------------------------------------------------------- username --
+--
+-- The name moves only through change_username; a direct write is refused, and
+-- the old name is kept so its links still resolve.
+
+reset role;
+
+-- A member cannot set their own username straight through the table: the
+-- column lost its update grant in 20261102000000.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.denied(
+  $$update public.profiles set username = 'hacker' where id = '11111111-1111-4111-8111-111111111111'$$,
+  'tulis username langsung ditolak');
+
+-- The function changes it, keeps the old name, and leaves a trail.
+select checks.allowed(
+  $$select public.change_username('zainfathoni')$$,
+  'ganti username lewat fungsi');
+select checks.equal(
+  (select username from public.profiles where id = '11111111-1111-4111-8111-111111111111'),
+  'zainfathoni', 'username baru tersimpan');
+select checks.equal(
+  (select p.username from public.username_history h
+     join public.profiles p on p.id = h.user_id
+   where h.username = 'zikrul-ihsan'),
+  'zainfathoni', 'nama lama menunjuk ke nama sekarang');
+
+-- A reserved name and a second change inside the cooldown are both refused.
+select checks.denied($$select public.change_username('admin')$$, 'nama sistem ditolak');
+select checks.denied($$select public.change_username('zain-fathoni')$$, 'ganti lagi sebelum 30 hari ditolak');
+
+-- Someone else cannot take the live name, nor a name retired by another member.
+select checks.act_as('22222222-2222-4222-8222-222222222222');
+select checks.denied($$select public.change_username('zainfathoni')$$, 'nama yang sedang dipakai orang lain ditolak');
+select checks.denied($$select public.change_username('zikrul-ihsan')$$, 'nama bekas orang lain ditolak');
+
+reset role;
+
 rollback;
 
 drop schema checks cascade;

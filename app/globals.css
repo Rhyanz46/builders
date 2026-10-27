@@ -2509,6 +2509,13 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .oss-record-verified { background: light-dark(#e8f5ec, #1d2f23); border-radius: 999px; color: light-dark(#1a7f37, #57ab5a); font-size: 11.5px; font-weight: 650; margin-left: 6px; padding: 1px 7px; }
 .gh-form-actions { align-items: center; display: flex; gap: 12px; margin-top: 14px; }
 .gh-form-saved { color: light-dark(#1a7f37, #57ab5a); font-size: 13.5px; font-weight: 600; }
+.username-form { margin-bottom: 28px; }
+.username-suggest {
+  background: none; border: 0; color: var(--ink-soft); cursor: pointer;
+  font: inherit; margin: 2px 0 0; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.username-suggest:hover { color: var(--ink); }
 
 .pf-products { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
 .pf-products li {
