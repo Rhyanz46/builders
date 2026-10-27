@@ -119,9 +119,11 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
             the directory, the way the directory's heading lays out its own.
             Showing one's activity is a link in the sentence above. */}
         <div className="dx-head-actions ax-head-actions">
-          <Link className="primary-action" href="/community">
-            {tx(locale, "Gabung komunitas", "Join the community")}
-          </Link>
+          {/* Who is looking decides the first step, so it streams in; until
+              then a guest's is shown, the more common case here. */}
+          <Suspense fallback={<LandingCta locale={locale} signedIn={false} />}>
+            <ViewerLandingCta locale={locale} />
+          </Suspense>
           <Link className="ab-button" href="/directory">
             {tx(locale, "Lihat direktori", "See the directory")} <span aria-hidden="true">→</span>
           </Link>
@@ -137,6 +139,27 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
       </div>
       {children}
     </header>
+  );
+}
+
+/**
+ * The landing page's first step: a guest is asked to join the site — an
+ * account is what puts them on the activity page and the ranking; a member
+ * is pointed at the community's group, through /community and its rules.
+ */
+async function ViewerLandingCta({ locale }: { locale: Locale }) {
+  return <LandingCta locale={locale} signedIn={Boolean(await currentViewer())} />;
+}
+
+function LandingCta({ locale, signedIn }: { locale: Locale; signedIn: boolean }) {
+  return signedIn ? (
+    <Link className="primary-action" href="/community">
+      {tx(locale, "Gabung komunitas", "Join the community")}
+    </Link>
+  ) : (
+    <Link className="primary-action" href="/signin">
+      {tx(locale, `Gabung ${site.name}`, `Join ${site.name}`)}
+    </Link>
   );
 }
 
