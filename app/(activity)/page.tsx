@@ -110,10 +110,13 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
             "Tempat berkumpul dan berbagi untuk yang serius berkontribusi ke open source. ",
             "A place to gather and share for people serious about contributing to open source. ",
           )}
-          <Link className="ax-head-link" href="/account/profile#github-account">
-            {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
-          </Link>
-          {tx(locale, " dan saling dukung.", " and back each other up.")}
+          {/* Its own line on a laptop; on a phone it simply runs on. */}
+          <span className="ax-head-line">
+            <Link className="ax-head-link" href="/account/profile#github-account">
+              {tx(locale, "Tampilkan aktivitas GitHub-mu", "Show your GitHub activity")}
+            </Link>
+            {tx(locale, " dan saling dukung.", " and back each other up.")}
+          </span>
         </p>
         {/* The home page is the landing page too: the community first, then
             the directory, the way the directory's heading lays out its own.
