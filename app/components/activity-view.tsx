@@ -435,7 +435,7 @@ function Leaderboard({
   };
 
   return (
-    <aside className="ax-board tone-gold" aria-labelledby="board-title">
+    <aside className="ax-board tone-done" aria-labelledby="board-title">
       <div className="ax-board-head">
         <h2 id="board-title">
           <span aria-hidden="true">🏆</span> {tx(locale, "Peringkat", "Ranking")}
