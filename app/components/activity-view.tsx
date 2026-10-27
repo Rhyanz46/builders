@@ -394,32 +394,22 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
     people: tx(locale, "kontributor terbanyak", "most people"),
   };
 
-  // The ranking card's frame, head and pills, so the column reads as one
-  // family: only the rows differ, a repo where the ranking has a person.
+  // No card: a plain list under the ranking, the way the directory's
+  // sidebar lists read — a small title with the order beside it, then rows.
   return (
-    <section className="ax-board ax-where" aria-labelledby="repos-title">
-      <div className="ax-board-head">
-        <h2 id="repos-title">
-          <span aria-hidden="true">🎯</span> {tx(locale, "Repo tujuan PR", "Where PRs went")}
-        </h2>
-        <p className="ax-board-pills">
-          <label>
-            <span className="sr-only">{tx(locale, "Urutkan repo", "Order repos")}</span>
-            <select
-              className={`ax-pill ${order !== "recent" ? "is-set" : ""}`}
-              value={order}
-              onChange={(event) => setOrder(REPO_ORDERS.find((each) => each === event.target.value) ?? "recent")}
-            >
-              {REPO_ORDERS.map((each) => (
-                <option key={each} value={each}>
-                  {orderLabels[each]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span aria-hidden="true">·</span>
-          <span className="ax-pill">{tx(locale, `${repos.length} repo`, `${repos.length} ${repos.length === 1 ? "repo" : "repos"}`)}</span>
-        </p>
+    <section className="ax-where" aria-labelledby="repos-title">
+      <div className="ax-where-head">
+        <h2 id="repos-title">{tx(locale, "Repo tujuan PR", "Where PRs went")}</h2>
+        <label>
+          <span className="sr-only">{tx(locale, "Urutkan repo", "Order repos")}</span>
+          <select className="ax-where-order" value={order} onChange={(event) => setOrder(REPO_ORDERS.find((each) => each === event.target.value) ?? "recent")}>
+            {REPO_ORDERS.map((each) => (
+              <option key={each} value={each}>
+                {orderLabels[each]}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <ol className={`ax-where-list ${open ? "is-expanded" : ""}`}>
         {repos.map(({ repo, prs, people, lastAt }) => {
@@ -445,11 +435,7 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
                     <RelativeTime value={lastAt} locale={locale} />
                   </span>
                 </span>
-                <span className="ax-board-score">
-                  <span>
-                    <strong>{prs}</strong> PR
-                  </span>
-                </span>
+                <span className="ax-where-count">{prs}</span>
               </InstantLink>
             </li>
           );
@@ -458,7 +444,7 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
       {repos.length > REPOS_SHOWN_PHONE ? (
         <button
           type="button"
-          className={`ax-board-toggle ${repos.length <= REPOS_SHOWN ? "is-phone-only" : ""}`}
+          className={`ax-where-toggle ${repos.length <= REPOS_SHOWN ? "is-phone-only" : ""}`}
           aria-expanded={open}
           onClick={() => setExpanded((was) => !was)}
         >

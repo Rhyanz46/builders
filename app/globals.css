@@ -1649,43 +1649,40 @@ form button[aria-busy="true"]::after,
 .ax-board-foot a { color: var(--tone); font-weight: 650; white-space: nowrap; }
 .ax-board .is-phone-only { display: none; }
 /* Who or where the feed is narrowed to, above it. */
-/* Where the PRs went: the ranking card's frame, head and pills (.ax-board),
-   with a repo in each row where the ranking has a person — its name, the
-   faces of who went there and how lately, and the PRs on the right. A
-   handful shown, the rest behind "See all". */
-/* Only the ranking is special: this card keeps its shape but not its
-   colour — a quiet grey head, dark title, white pills, scores in ink. */
-.ax-where .ax-board-head { background: var(--dx-soft); border-bottom: 1px solid var(--dx-line); }
-.ax-where h2 { color: var(--dx-ink); }
-.ax-where .ax-board-pills { color: var(--dx-faint); }
-.ax-where .ax-pill { background-color: light-dark(#ffffff, rgba(255, 255, 255, .06)); border-color: var(--dx-line); color: var(--dx-text); }
-.ax-where select.ax-pill {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+/* Where the PRs went: no card, a plain list under the ranking like the
+   directory's sidebar — a small grey title with the order beside it, then a
+   handful of rows: the repo on one line, who went there and how lately under
+   it, the PR count on the right. Only the ranking is a card. */
+.ax-where-head { align-items: center; display: flex; gap: 8px; justify-content: space-between; margin: 0 0 6px; padding: 0 10px; }
+.ax-where-head h2 { color: var(--dx-muted); font-size: 13px; font-weight: 600; margin: 0; }
+.ax-where-head label { display: block; margin: 0; }
+.ax-where-order {
+  appearance: none; background: transparent url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 0 center / 11px 11px;
+  border: 0; color: var(--dx-muted); cursor: pointer; field-sizing: content; font: inherit; font-size: 12.5px; font-weight: 500;
+  height: auto; line-height: normal; margin: 0; padding: 2px 16px 2px 0; width: auto;
 }
-.ax-where select.ax-pill:hover, .ax-where select.ax-pill:focus-visible { background-color: light-dark(#ffffff, rgba(255, 255, 255, .1)); border-color: var(--dx-faint); color: var(--dx-ink); }
-.ax-where .ax-pill.is-set, .ax-where select.ax-pill.is-set:hover {
-  background-color: light-dark(#ffffff, rgba(255, 255, 255, .1)); border-color: var(--dx-ink); color: var(--dx-ink);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
-}
-.ax-where .ax-board-score strong { color: var(--dx-ink); }
-.ax-where .ax-board-toggle { color: var(--dx-text); }
-.ax-where-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.ax-where-order:hover, .ax-where-order:focus-visible { color: var(--dx-ink); outline: none; }
+.ax-where-list { display: grid; gap: 1px; list-style: none; margin: 0; padding: 0; }
 .ax-where-list:not(.is-expanded) > li:nth-child(n + 6) { display: none; }
 .ax-where-list a {
-  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; gap: 10px;
-  grid-template-columns: 24px minmax(0, 1fr) auto; min-height: 40px; padding: 6px;
+  align-items: center; border-radius: 7px; color: var(--dx-text); display: grid; gap: 9px;
+  grid-template-columns: 18px minmax(0, 1fr) auto; min-height: 34px; padding: 6px 10px;
 }
 .ax-where-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
-.ax-where-list li.is-active a { background: var(--dx-soft); box-shadow: inset 0 0 0 1px var(--dx-line); color: var(--dx-ink); }
-.ax-where-logo { border-radius: 6px; height: 24px; width: 24px; }
-.ax-where-body { display: grid; gap: 3px; min-width: 0; }
-.ax-where-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ax-where-name small { color: var(--dx-muted); font-size: inherit; font-weight: 400; }
-.ax-where-meta { align-items: center; color: var(--dx-muted); display: flex; font-size: 11px; gap: 6px; }
+.ax-where-list li.is-active a { background: var(--dx-soft); color: var(--dx-ink); font-weight: 600; }
+.ax-where-logo { align-self: start; border-radius: 4px; height: 18px; margin-top: 1px; width: 18px; }
+.ax-where-body { display: grid; gap: 2px; min-width: 0; }
+.ax-where-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-where-name small { color: var(--dx-muted); font-size: inherit; }
+.ax-where-meta { align-items: center; color: var(--dx-faint); display: flex; font-size: 11px; gap: 5px; }
 .ax-where-faces { align-items: center; display: inline-flex; }
-.ax-where-faces img { border: 1.5px solid light-dark(#ffffff, #1f1f1f); border-radius: 50%; height: 16px; width: 16px; }
+.ax-where-faces img { border: 1.5px solid light-dark(#ffffff, #1f1f1f); border-radius: 50%; height: 14px; width: 14px; }
 .ax-where-faces img + img { margin-left: -4px; }
-.ax-where-more { color: var(--dx-muted); font-size: 11px; font-weight: 600; margin-left: 4px; }
+.ax-where-more { color: var(--dx-faint); font-size: 11px; font-weight: 600; margin-left: 3px; }
+.ax-where-count { align-self: start; color: var(--dx-faint); font-family: var(--font-geist-mono), monospace; font-size: 12px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.ax-where-toggle { background: none; border: 0; color: var(--dx-muted); cursor: pointer; font-size: 12.5px; font-weight: 600; margin: 4px 0 0; padding: 4px 10px; text-align: left; }
+.ax-where-toggle:hover { color: var(--dx-ink); }
+.ax-where .is-phone-only { display: none; }
 .ax-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 12px; padding: 0; }
 .ax-chips a {
   align-items: center; background: var(--dx-soft); border-radius: 99px; color: var(--dx-ink); display: inline-flex; font-size: 13px;
@@ -1704,6 +1701,7 @@ form button[aria-busy="true"]::after,
   /* Above the feed here, shorter still: the feed's pages end the page. */
   .ax-where { order: 0; }
   .ax-where-list:not(.is-expanded) > li:nth-child(n + 4) { display: none; }
+  .ax-where .is-phone-only { display: block; }
   .ax-board-list:not(.is-expanded) > li:nth-child(n + 6) { display: none; }
   .ax-board .is-phone-only { display: block; }
 }
