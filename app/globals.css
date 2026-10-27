@@ -1367,9 +1367,9 @@ body:has(main.discovery-page), body:has(main.people-page) { background: light-da
     user-select: none;
   }
   .bottom-nav > a:active { background: light-dark(rgba(9, 9, 11, .06), rgba(255, 255, 255, .08)); }
-  /* Where you are, unmistakably: a solid ink pill in light mode; in dark a
-     soft lit one, since a white pill on a dark screen glares. */
-  .bottom-nav > a.is-active { background: light-dark(#18181b, rgba(255, 255, 255, .14)); color: light-dark(#ffffff, #fafafa); font-weight: 600; }
+  /* Where you are: a soft pill with the label in full ink, the same in both
+     themes — a solid one weighed more than anything else on the screen. */
+  .bottom-nav > a.is-active { background: light-dark(rgba(9, 9, 11, .07), rgba(255, 255, 255, .14)); color: light-dark(#09090b, #fafafa); font-weight: 600; }
   .bottom-nav .menu-icon { height: 22px; width: 22px; }
   /* Room for the bar, so the last of every page is not hidden under it. */
   body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
