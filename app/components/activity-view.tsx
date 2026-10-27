@@ -397,7 +397,7 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
   // The ranking card's frame, head and pills, so the column reads as one
   // family: only the rows differ, a repo where the ranking has a person.
   return (
-    <section className="ax-board ax-where tone-done" aria-labelledby="repos-title">
+    <section className="ax-board ax-where" aria-labelledby="repos-title">
       <div className="ax-board-head">
         <h2 id="repos-title">
           <span aria-hidden="true">🎯</span> {tx(locale, "Repo tujuan PR", "Where PRs went")}
