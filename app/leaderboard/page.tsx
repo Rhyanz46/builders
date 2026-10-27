@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import Link from "@/app/components/responsive-link";
 import { Arrow, SiteFooter, SiteHeader } from "../components/shell";
 import { leaderboardIssueUrl, shareCard } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
 import { site } from "../lib/site";
+import { listGitHubActivity } from "../lib/data";
+import { readPublicly } from "../lib/public-read";
+import { dayKey, leaderboard, type GitHubActivityEntry, type LeaderboardRow } from "../lib/github-activity";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
@@ -66,56 +71,86 @@ const PREVIEW_ROWS: { name: string; points: number; merged: number; streak: numb
   { name: "Nadia Putri", points: 310, merged: 4, streak: 1, badges: "🌱", repos: 2, hue: 180 },
 ];
 
+/** How many of this month's real leaders lead the preview, in the clear. */
+const REAL_SHOWN = 3;
+
 /**
- * The board as it will look, blurred and locked: a table of made-up rows
- * behind a "coming soon" lock that points to #186. The table is hidden from
- * assistive tech — it is a picture of the idea, not data.
+ * The board as it will look. The first rows are real — this month's leaders
+ * by merged PRs, the ranking the activity page already shows — and clear;
+ * below them made-up rows fade into a blur, under a "coming soon" lock that
+ * points to #186. Points, streaks and badges do not exist yet, so the real
+ * rows show a dash there.
  */
-function LockedPreview({ locale }: { locale: Locale }) {
+async function LivePreview({ locale }: { locale: Locale }) {
+  // Today in WIB is read per request, not frozen into the prerendered shell.
+  await connection();
+  const result = await readPublicly<GitHubActivityEntry[]>("github activity for the leaderboard preview", listGitHubActivity, []);
+  const real = leaderboard(result.value, "month", dayKey(new Date(), "Asia/Jakarta")).slice(0, REAL_SHOWN);
+  return <LockedPreview locale={locale} real={real} />;
+}
+
+function LockedPreview({ locale, real }: { locale: Locale; real: LeaderboardRow[] }) {
+  const made = PREVIEW_ROWS.slice(0, PREVIEW_ROWS.length - real.length);
   return (
-    <section className="lb-preview" aria-labelledby="lb-lock-title">
-      <div className="lb-board" aria-hidden="true">
-        <div className="lb-board-tabs">
-          <span className="is-active">{tx(locale, "Bulan ini", "This month")}</span>
-          <span>{tx(locale, "Minggu ini", "This week")}</span>
-          <span>{tx(locale, "Sepanjang masa", "All time")}</span>
-          <span className="lb-board-gap" />
-          <span className="is-active">{tx(locale, "Semua", "All")}</span>
-          <span>{tx(locale, "Lokal", "Local")}</span>
-          <span>{tx(locale, "Global", "Global")}</span>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>{tx(locale, "Member", "Member")}</th>
-              <th>{tx(locale, "Poin", "Points")}</th>
-              <th>{tx(locale, "PR merged", "Merged PRs")}</th>
-              <th>Streak</th>
-              <th className="lb-wide">Badge</th>
-              <th className="lb-wide">Repo</th>
+    // The fog starts right under the last real row, so no made-up name is
+    // ever read as a member's: the note, the head, then about 49px a row.
+    <section className="lb-preview" aria-labelledby="lb-lock-title" style={{ "--lb-clear": `${66 + real.length * 49}px` } as React.CSSProperties}>
+      <p className="lb-preview-note">
+        {real.length > 0
+          ? tx(locale, "Peringkat bulan ini, sejauh ini", "This month's ranking, so far")
+          : tx(locale, "Contoh tampilan", "What it will look like")}
+      </p>
+      <table className="lb-board">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{tx(locale, "Member", "Member")}</th>
+            <th>{tx(locale, "PR merged", "Merged PRs")}</th>
+            <th className="lb-wide">Repo</th>
+            <th>{tx(locale, "Poin", "Points")}</th>
+            <th className="lb-wide">Streak</th>
+            <th className="lb-wide">Badge</th>
+          </tr>
+        </thead>
+        <tbody>
+          {real.map(({ person, prs, repos }, index) => (
+            <tr key={person.id}>
+              <td>{["🥇", "🥈", "🥉"][index] ?? index + 1}</td>
+              <td>
+                {/* eslint-disable-next-line @next/next/no-img-element -- the member's GitHub picture */}
+                <img className="lb-avatar" src={`https://github.com/${encodeURIComponent(person.handle)}.png?size=56`} alt="" width={28} height={28} />
+                {person.name || `@${person.handle}`}
+              </td>
+              <td>{prs}</td>
+              <td className="lb-wide">{repos}</td>
+              <td className="lb-soon-cell">—</td>
+              <td className="lb-wide lb-soon-cell">—</td>
+              <td className="lb-wide lb-soon-cell">—</td>
             </tr>
-          </thead>
-          <tbody>
-            {PREVIEW_ROWS.map((row, index) => (
-              <tr key={row.name}>
-                <td>{["🥇", "🥈", "🥉"][index] ?? index + 1}</td>
-                <td>
-                  <span className="lb-avatar" style={{ "--hue": row.hue } as React.CSSProperties}>
-                    {row.name.split(" ").map((part) => part[0]).join("")}
-                  </span>
-                  {row.name}
-                </td>
-                <td className="lb-points">{row.points.toLocaleString("id-ID")}</td>
-                <td>{row.merged}</td>
-                <td>🔥 {row.streak}</td>
-                <td className="lb-wide">{row.badges}</td>
-                <td className="lb-wide">{row.repos}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+          {/* Made-up rows from here on, hidden from assistive tech: they only
+              show the shape of the board to come, and fade into the blur. */}
+          {made.map((row, index) => (
+            <tr key={row.name} aria-hidden="true" className="lb-made">
+              <td>{["🥇", "🥈", "🥉"][real.length + index] ?? real.length + index + 1}</td>
+              <td>
+                <span className="lb-avatar" style={{ "--hue": row.hue } as React.CSSProperties}>
+                  {row.name.split(" ").map((part) => part[0]).join("")}
+                </span>
+                {row.name}
+              </td>
+              <td>{row.merged}</td>
+              <td className="lb-wide">{row.repos}</td>
+              <td className="lb-points">{row.points.toLocaleString("id-ID")}</td>
+              <td className="lb-wide">🔥 {row.streak}</td>
+              <td className="lb-wide">{row.badges}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* The fog: no blur at the top, more and more further down. */}
+      <div className="lb-fog" aria-hidden="true" />
 
       <div className="lb-lock">
         <span className="lb-lock-icon" aria-hidden="true">🔒</span>
@@ -167,7 +202,10 @@ export default async function LeaderboardPage() {
           </div>
         </header>
 
-        <LockedPreview locale={locale} />
+        {/* Made-up rows only, until this month's real ones have been read. */}
+        <Suspense fallback={<LockedPreview locale={locale} real={[]} />}>
+          <LivePreview locale={locale} />
+        </Suspense>
 
         <section className="ab-section" aria-labelledby="planned-title">
           <h2 id="planned-title">{tx(locale, "Yang lagi direncanakan", "What is planned")}</h2>

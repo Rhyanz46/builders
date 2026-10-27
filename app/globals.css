@@ -2716,25 +2716,35 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
   font-size: 11px; font-weight: 700; letter-spacing: .06em; margin: 0 0 10px; padding: 4px 10px; text-transform: uppercase;
 }
 .lb-soon h1 { align-items: center; display: flex; gap: 10px; }
-/* The locked preview: a made-up board, blurred, under a "coming soon" lock. */
-.lb-preview { border: 1px solid var(--dx-line); border-radius: 14px; margin-top: 28px; overflow: hidden; position: relative; }
-.lb-board { filter: blur(5px); padding: 16px; pointer-events: none; user-select: none; }
-.lb-board-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.lb-board-tabs span { background: var(--dx-soft); border-radius: 99px; color: var(--dx-muted); font-size: 12.5px; font-weight: 600; padding: 5px 12px; }
-.lb-board-tabs span.is-active { background: light-dark(#8250df, #b392f0); color: light-dark(#ffffff, #1f1f1f); }
-.lb-board-gap { background: none !important; flex: 1; padding: 0 !important; }
-.lb-board table { border-collapse: collapse; font-size: 13.5px; width: 100%; }
+/* The preview: this month's real leaders in the clear, then made-up rows
+   fading into a blur, with a "coming soon" lock over the fog. No frame: the
+   table floats on the page and dissolves into it. */
+.lb-preview { margin-top: 28px; padding-bottom: 8px; position: relative; }
+.lb-preview-note { color: var(--dx-muted); font-size: 12px; font-weight: 600; letter-spacing: .04em; margin: 0 0 8px; text-transform: uppercase; }
+.lb-board { border-collapse: collapse; font-size: 13.5px; width: 100%; }
 .lb-board th { border-bottom: 1px solid var(--dx-line); color: var(--dx-muted); font-size: 12px; font-weight: 600; padding: 8px 10px; text-align: left; }
 .lb-board td { border-bottom: 1px solid var(--dx-line); color: var(--dx-text); padding: 10px; white-space: nowrap; }
 .lb-board td:nth-child(2) { align-items: center; color: var(--dx-ink); display: flex; font-weight: 600; gap: 10px; }
 .lb-board .lb-points { color: light-dark(#8250df, #b392f0); font-weight: 700; }
+.lb-board .lb-soon-cell { color: var(--dx-faint); }
 .lb-avatar {
-  align-items: center; background: hsl(var(--hue) 55% 55%); border-radius: 50%; color: light-dark(#ffffff, #ffffff); display: inline-flex;
-  flex: none; font-size: 11px; font-weight: 700; height: 28px; justify-content: center; width: 28px;
+  align-items: center; background: hsl(var(--hue, 262) 55% 55%); border-radius: 50%; color: light-dark(#ffffff, #ffffff); display: inline-flex;
+  flex: none; font-size: 11px; font-weight: 700; height: 28px; justify-content: center; object-fit: cover; width: 28px;
+}
+.lb-made { pointer-events: none; user-select: none; }
+/* Made-up rows are never sharp, whatever the fog does: a name in them must not read as a member's. */
+.lb-made td { filter: blur(3px); }
+.lb-fog {
+  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+  background: linear-gradient(to bottom, light-dark(rgba(255, 255, 255, 0), rgba(31, 31, 31, 0)) var(--lb-clear, 66px), light-dark(rgba(255, 255, 255, .92), rgba(31, 31, 31, .92)) 92%);
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent calc(var(--lb-clear, 66px) - 2px), light-dark(#000, #000) calc(var(--lb-clear, 66px) + 14px));
+  mask-image: linear-gradient(to bottom, transparent 0, transparent calc(var(--lb-clear, 66px) - 2px), light-dark(#000, #000) calc(var(--lb-clear, 66px) + 14px));
+  pointer-events: none; position: absolute;
 }
 .lb-lock {
-  align-items: center; background: light-dark(rgba(255, 255, 255, .55), rgba(31, 31, 31, .55)); display: flex; flex-direction: column;
-  gap: 8px; inset: 0; justify-content: center; padding: 24px; position: absolute; text-align: center;
+  align-items: center; bottom: 28px; display: flex; flex-direction: column; gap: 8px; left: 0; padding: 0 24px; position: absolute;
+  right: 0; text-align: center;
 }
 .lb-lock-icon {
   align-items: center; background: light-dark(#ffffff, #2a2a2e); border: 1px solid var(--dx-line); border-radius: 50%;
