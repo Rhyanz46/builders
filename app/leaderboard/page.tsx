@@ -67,7 +67,7 @@ export default async function LeaderboardPage() {
 
       <main id="main-content" className="ab-page lb-soon">
         <header className="ab-intro" aria-labelledby="leaderboard-title">
-          <p className="lb-soon-badge">{tx(locale, "Segera hadir", "Coming soon")}</p>
+          <p className="lb-soon-badge tone-gold">{tx(locale, "Segera hadir", "Coming soon")}</p>
           <h1 id="leaderboard-title">
             <span aria-hidden="true">🏆</span> Leaderboard
           </h1>
@@ -86,7 +86,7 @@ export default async function LeaderboardPage() {
           <h2 id="planned-title">{tx(locale, "Yang lagi direncanakan", "What is planned")}</h2>
           <ul className="ab-cards ab-cards-two">
             {PLANNED.map(([titleId, titleEn, bodyId, bodyEn]) => (
-              <li key={titleEn} className="ab-card tone-done">
+              <li key={titleEn} className="ab-card tone-gold">
                 <h3>{tx(locale, titleId, titleEn)}</h3>
                 <p>{tx(locale, bodyId, bodyEn)}</p>
               </li>
@@ -97,7 +97,7 @@ export default async function LeaderboardPage() {
           </Link>
         </section>
 
-        <section className="ab-cta tone-done" aria-labelledby="leaderboard-cta-title">
+        <section className="ab-cta tone-gold" aria-labelledby="leaderboard-cta-title">
           <h2 id="leaderboard-cta-title">{tx(locale, "Punya ide? Ikut tentukan.", "Got an idea? Help decide.")}</h2>
           <p>
             {tx(

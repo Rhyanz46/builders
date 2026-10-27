@@ -1587,11 +1587,11 @@ form button[aria-busy="true"]::after,
 .ax-toolbar .dx-search { flex: 1 1 240px; max-width: none; }
 .ax-toolbar .ax-show select { font-weight: 550; }
 .ax-side { display: grid; gap: 20px; position: sticky; top: calc(var(--header-h) + 20px); }
-/* A plain card like the rest of the page; purple is only an accent — the
-   choices that are not the default, the row being looked at, the links. */
+/* A plain card like the rest of the page, with the trophy's gold as the
+   accent: the head, the scores, the choices that are set, the links. */
 .ax-board { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding: 0 0 12px; }
 .ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
-/* The head carries the colour: a soft purple band over a plain list. */
+/* The head carries the colour: a soft gold band over a plain list. */
 .ax-board-head {
   background: var(--tone-soft); border-bottom: 1px solid color-mix(in srgb, var(--tone) 18%, transparent); display: grid; gap: 8px;
   margin-bottom: 8px; padding: 14px 16px 12px;
@@ -2623,6 +2623,8 @@ form.rf label { margin-bottom: 0; }
 .tone-work { --tone: var(--dx-ink); --tone-soft: var(--dx-soft); }
 .tone-warn { --tone: var(--dx-warm); --tone-soft: var(--dx-warm-soft); }
 .tone-done { --tone: light-dark(#8250df, #b392f0); --tone-soft: light-dark(#fbefff, #241a33); }
+/* The trophy's: the ranking card and /leaderboard. */
+.tone-gold { --tone: light-dark(#b45309, #fbbf24); --tone-soft: light-dark(#fffbeb, #2a2111); }
 
 /* About and How it works: the directory's sizes and plainness. */
 .ab-page {
@@ -2681,7 +2683,7 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .ab-faq p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.65; margin: 0; padding: 0 14px 14px; }
 /* /leaderboard, before it exists: the about page's frame, with a badge. */
 .lb-soon-badge {
-  background: var(--tone-soft, light-dark(#fbefff, #241a33)); border-radius: 99px; color: light-dark(#8250df, #b392f0); display: inline-block;
+  background: var(--tone-soft); border-radius: 99px; color: var(--tone); display: inline-block;
   font-size: 11px; font-weight: 700; letter-spacing: .06em; margin: 0 0 10px; padding: 4px 10px; text-transform: uppercase;
 }
 .lb-soon h1 { align-items: center; display: flex; gap: 10px; }
