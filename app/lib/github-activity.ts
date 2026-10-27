@@ -238,6 +238,58 @@ export function activityRepos(entries: GitHubActivityEntry[]): { repo: string; c
   return [...counts].map(([repo, count]) => ({ repo, count })).sort((a, b) => b.count - a.count || a.repo.localeCompare(b.repo));
 }
 
+/**
+ * The orders the "where PRs went" card offers. Newest first by default, so
+ * one very busy repository does not sit on top for good; most PRs, or the
+ * most people, when asked — the last one being the repos many members have
+ * found their way to, not one member's favourite.
+ */
+export const REPO_ORDERS = ["recent", "prs", "people"] as const;
+export type RepoOrder = (typeof REPO_ORDERS)[number];
+
+export function isRepoOrder(value: string): value is RepoOrder {
+  return (REPO_ORDERS as readonly string[]).includes(value);
+}
+
+export type RepoSummary = {
+  repo: string;
+  /** Pull requests to it in the entries given. */
+  prs: number;
+  /** The members who sent them, the most recent first. */
+  people: ActivityPerson[];
+  /** The newest of those pull requests. */
+  lastAt: string;
+};
+
+/** Every repository the pull requests went to, with who went and when, in the order asked for. */
+export function repoSummaries(entries: GitHubActivityEntry[], order: RepoOrder = "recent"): RepoSummary[] {
+  const byRepo = new Map<string, { prs: number; people: Map<string, { person: ActivityPerson; at: string }>; lastAt: string }>();
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request") continue;
+    const found = byRepo.get(entry.repo) ?? { prs: 0, people: new Map(), lastAt: "" };
+    found.prs += entry.pullRequests.length;
+    if (entry.at > found.lastAt) found.lastAt = entry.at;
+    const key = entry.person.handle.toLowerCase();
+    const seen = found.people.get(key);
+    if (!seen || entry.at > seen.at) found.people.set(key, { person: entry.person, at: entry.at });
+    byRepo.set(entry.repo, found);
+  }
+  const rows = [...byRepo].map(([repo, { prs, people, lastAt }]) => ({
+    repo,
+    prs,
+    lastAt,
+    people: [...people.values()].sort((a, b) => b.at.localeCompare(a.at)).map(({ person }) => person),
+  }));
+  const newest = (a: RepoSummary, b: RepoSummary) => b.lastAt.localeCompare(a.lastAt);
+  return rows.sort((a, b) =>
+    order === "prs"
+      ? b.prs - a.prs || newest(a, b)
+      : order === "people"
+        ? b.people.length - a.people.length || b.prs - a.prs || newest(a, b)
+        : newest(a, b) || a.repo.localeCompare(b.repo),
+  );
+}
+
 /** Everybody on the page, most active first: the member filter's chips. */
 export function activityPeople(entries: GitHubActivityEntry[]): { person: ActivityPerson; count: number }[] {
   const byHandle = new Map<string, { person: ActivityPerson; count: number }>();

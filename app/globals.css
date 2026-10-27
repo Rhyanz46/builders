@@ -1650,28 +1650,43 @@ form button[aria-busy="true"]::after,
 .ax-board .is-phone-only { display: none; }
 /* Who or where the feed is narrowed to, above it. */
 /* Where the PRs went: a card under the ranking, the same frame with a quiet
-   grey head, so the column reads as two cards rather than a card and a list. */
+   grey head, so the column reads as two cards rather than a card and a list.
+   Each row says who went there and how lately, not only how many PRs. */
 .ax-where { border: 1px solid var(--dx-line); border-radius: 12px; overflow: hidden; padding-bottom: 8px; }
 .ax-where-head {
   align-items: center; background: var(--dx-soft); border-bottom: 1px solid var(--dx-line); display: flex; gap: 8px;
-  justify-content: space-between; margin-bottom: 6px; padding: 12px 16px;
+  justify-content: space-between; margin-bottom: 6px; padding: 10px 12px 10px 16px;
 }
-.ax-where-head h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 14px; font-weight: 700; gap: 6px; margin: 0; }
-.ax-where-total { color: var(--dx-muted); flex: none; font-size: 12px; font-variant-numeric: tabular-nums; }
+.ax-where-head h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 14px; font-weight: 700; gap: 6px; margin: 0; min-width: 0; }
+.ax-where-total { color: var(--dx-muted); font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.ax-where-head label { display: block; flex: none; margin: 0; }
+.ax-where-order {
+  appearance: none; background: light-dark(#ffffff, rgba(255, 255, 255, .08)) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 8px center / 11px 11px;
+  border: 1px solid var(--dx-line); border-radius: 99px; color: var(--dx-text); cursor: pointer; field-sizing: content; font: inherit;
+  font-size: 12px; font-weight: 600; height: 26px; line-height: normal; margin: 0; padding: 0 24px 0 10px; width: auto;
+}
+.ax-where-order:hover, .ax-where-order:focus-visible { border-color: var(--dx-faint); color: var(--dx-ink); outline: none; }
 .ax-where-list { display: grid; gap: 1px; list-style: none; margin: 0 8px; padding: 0; }
 .ax-where-list:not(.is-expanded) > li:nth-child(n + 9) { display: none; }
 .ax-where-list a {
-  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; font-size: 13.5px; gap: 9px;
-  grid-template-columns: 18px minmax(0, 1fr) auto; min-height: 34px; padding: 6px 8px;
+  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; gap: 10px;
+  grid-template-columns: 20px minmax(0, 1fr) auto; padding: 7px 8px;
 }
 .ax-where-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
 .ax-where-list li.is-active a { background: var(--tone-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent); color: var(--dx-ink); }
-.ax-where-list img { border-radius: 4px; height: 18px; width: 18px; }
-.ax-where-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax-where-logo { align-self: start; border-radius: 5px; height: 20px; margin-top: 1px; width: 20px; }
+.ax-where-body { display: grid; gap: 3px; min-width: 0; }
+.ax-where-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ax-where-name small { color: var(--dx-muted); font-size: inherit; font-weight: 400; }
-.ax-where-count { color: var(--dx-ink); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.ax-where-meta { align-items: center; color: var(--dx-muted); display: flex; font-size: 11.5px; gap: 6px; }
+.ax-where-faces { align-items: center; display: inline-flex; }
+.ax-where-faces img { border: 1.5px solid light-dark(#ffffff, #1f1f1f); border-radius: 50%; height: 18px; width: 18px; }
+.ax-where-faces img + img { margin-left: -5px; }
+.ax-where-more { color: var(--dx-muted); font-size: 11px; font-weight: 600; margin-left: 4px; }
+.ax-where-count { align-self: start; color: var(--dx-ink); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .ax-where-count small { color: var(--dx-muted); font-size: 11px; font-weight: 500; }
 .ax-where .ax-board-toggle { margin-top: 4px; }
+.ax-where .is-phone-only { display: none; }
 .ax-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 12px; padding: 0; }
 .ax-chips a {
   align-items: center; background: var(--dx-soft); border-radius: 99px; color: var(--dx-ink); display: inline-flex; font-size: 13px;
@@ -1687,7 +1702,10 @@ form button[aria-busy="true"]::after,
   .ax-toolbar .dx-search { flex: none; }
   .ax-board { order: 0; }
   .ax-layout > .dx-results { order: 1; }
-  .ax-where { order: 2; }
+  /* Above the feed here, short: the feed's pages end the page. */
+  .ax-where { order: 0; }
+  .ax-where-list:not(.is-expanded) > li:nth-child(n + 4) { display: none; }
+  .ax-where .is-phone-only { display: block; }
   .ax-board-list:not(.is-expanded) > li:nth-child(n + 6) { display: none; }
   .ax-board .is-phone-only { display: block; }
 }

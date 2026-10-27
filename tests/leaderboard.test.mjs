@@ -107,3 +107,23 @@ test("one show choice stands for scope and kind, and old links land on the neare
   assert.equal(activityPath({ ...showFilters("own") }), "/?scope=own");
   assert.equal(activityPath({ ...showFilters("open") }), "/?show=open");
 });
+
+test("where PRs went: newest first by default, or by PRs, or by people", async () => {
+  const { repoSummaries } = await import("../app/lib/github-activity.ts");
+  const ana = person("ana"), budi = person("budi"), cici = person("cici");
+  const entries = [
+    pr(ana, "big/one", "merged", "2026-10-01T03:00:00Z", "2026-10-02T03:00:00Z", "2026-10-03T03:00:00Z", "2026-10-04T03:00:00Z"),
+    pr(ana, "many/hands", "merged", "2026-10-10T03:00:00Z"),
+    pr(budi, "many/hands", "open", "2026-10-11T03:00:00Z"),
+    pr(cici, "many/hands", "merged", "2026-10-09T03:00:00Z"),
+    pr(budi, "new/one", "merged", "2026-10-26T03:00:00Z"),
+  ];
+  const names = (order) => repoSummaries(entries, order).map(({ repo }) => repo);
+  assert.deepEqual(names(), ["new/one", "many/hands", "big/one"]);
+  assert.deepEqual(names("prs"), ["big/one", "many/hands", "new/one"]);
+  assert.deepEqual(names("people"), ["many/hands", "big/one", "new/one"], "then by PRs");
+  const hands = repoSummaries(entries).find(({ repo }) => repo === "many/hands");
+  assert.deepEqual(hands.people.map(({ handle }) => handle), ["budi", "ana", "cici"], "the most recent first");
+  assert.equal(hands.prs, 3);
+  assert.equal(hands.lastAt, "2026-10-11T03:00:00Z");
+});

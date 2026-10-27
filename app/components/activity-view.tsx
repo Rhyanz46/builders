@@ -19,7 +19,6 @@ import {
 } from "../lib/activity-url";
 import {
   activityPeople,
-  activityRepos,
   dayKey,
   groupByDay,
   inPlace,
@@ -28,6 +27,8 @@ import {
   leaderboard,
   ownLeaderboard,
   placeCounts,
+  repoSummaries,
+  REPO_ORDERS,
   ownerAvatar,
   queryActivity,
   repoName,
@@ -41,6 +42,7 @@ import {
   type LeaderboardPeriod,
   type LeaderboardRow,
   type PullRequestEntry,
+  type RepoOrder,
   type PullRequestItem,
 } from "../lib/github-activity";
 import type { ReactionCount } from "../lib/reactions";
@@ -146,7 +148,6 @@ export function ActivityView({
     () => (ownBoard ? ownLeaderboard(entries) : leaderboard(inPlace(entries, place, local), current.board, today, states)),
     [entries, ownBoard, current.board, place, local, today, current.kind], // eslint-disable-line react-hooks/exhaustive-deps
   );
-  const repos = useMemo(() => activityRepos(scoped), [scoped]);
   const matched = useMemo(
     () => queryActivity(scoped, current),
     [scoped, current.kind, current.member, current.repo, current.q], // eslint-disable-line react-hooks/exhaustive-deps
@@ -198,7 +199,7 @@ export function ActivityView({
             navigate={navigate}
           />
 
-          {repos.length > 0 ? <RepoList repos={repos} current={current} locale={locale} /> : null}
+          <RepoList entries={scoped} current={current} locale={locale} />
         </div>
 
         <section ref={results} className="dx-results" aria-labelledby="feed-title">
@@ -368,46 +369,88 @@ function countedLabel(current: ActivityFilters, locale: Locale): string {
   return tx(locale, `Dihitung dari ${what} ke ${where}. `, `Counts ${what} to ${where}. `);
 }
 
+/** Repos shown before "See all": eight beside the feed on a laptop, three above it on a phone. */
+const REPOS_SHOWN_PHONE = 3;
+/** Faces shown per repo before "+n". */
+const FACES_SHOWN = 3;
+
 /**
- * Where the pull requests in the feed went, as a card under the ranking: the
- * same frame, a quieter head. Each repo narrows the feed to it; long names
- * stay on one line, whole in the tooltip.
+ * Where the pull requests in the feed went, as a card under the ranking: who
+ * went there and how lately, not only how many PRs — newest first by default,
+ * so one very busy repo does not sit on top for good, with most PRs and most
+ * people a pill away. Each repo narrows the feed to it; long names stay on one
+ * line, whole in the tooltip.
  */
-function RepoList({ repos, current, locale }: { repos: { repo: string; count: number }[]; current: ActivityFilters; locale: Locale }) {
-  // The repo being looked at is never folded away.
+function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]; current: ActivityFilters; locale: Locale }) {
+  const [order, setOrder] = useState<RepoOrder>("recent");
   const [expanded, setExpanded] = useState(false);
-  const open = expanded || repos.findIndex(({ repo }) => repo === current.repo) >= REPOS_SHOWN;
+  const repos = useMemo(() => repoSummaries(entries, order), [entries, order]);
+  if (repos.length === 0) return null;
+  // The repo being looked at is never folded away.
+  const open = expanded || repos.findIndex(({ repo }) => repo === current.repo) >= REPOS_SHOWN_PHONE;
+  const orderLabels: Record<RepoOrder, string> = {
+    recent: tx(locale, "terbaru", "newest"),
+    prs: tx(locale, "PR terbanyak", "most PRs"),
+    people: tx(locale, "kontributor terbanyak", "most people"),
+  };
 
   return (
     <section className="ax-where tone-done" aria-labelledby="repos-title">
       <div className="ax-where-head">
         <h2 id="repos-title">
           <span aria-hidden="true">🎯</span> {tx(locale, "Repo tujuan PR", "Where PRs went")}
+          <span className="ax-where-total">{repos.length}</span>
         </h2>
-        <span className="ax-where-total">{tx(locale, `${repos.length} repo`, `${repos.length} ${repos.length === 1 ? "repo" : "repos"}`)}</span>
+        <label>
+          <span className="sr-only">{tx(locale, "Urutkan repo", "Order repos")}</span>
+          <select className="ax-where-order" value={order} onChange={(event) => setOrder(REPO_ORDERS.find((each) => each === event.target.value) ?? "recent")}>
+            {REPO_ORDERS.map((each) => (
+              <option key={each} value={each}>
+                {orderLabels[each]}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <ol className={`ax-where-list ${open ? "is-expanded" : ""}`}>
-        {repos.map(({ repo, count }) => {
+        {repos.map(({ repo, prs, people, lastAt }) => {
           const on = current.repo === repo;
           return (
             <li key={repo} className={on ? "is-active" : ""}>
               <InstantLink href={activityPath({ ...current, repo: on ? "" : repo })} aria-current={on ? "true" : undefined} title={repo}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- the repository owner's GitHub picture */}
-                <img src={ownerAvatar(repo, 36)} alt="" width={18} height={18} loading="lazy" />
-                <span className="ax-where-name">
-                  <small>{repo.slice(0, repo.indexOf("/") + 1)}</small>
-                  {repoName(repo)}
+                <img className="ax-where-logo" src={ownerAvatar(repo, 36)} alt="" width={20} height={20} loading="lazy" />
+                <span className="ax-where-body">
+                  <span className="ax-where-name">
+                    <small>{repo.slice(0, repo.indexOf("/") + 1)}</small>
+                    {repoName(repo)}
+                  </span>
+                  <span className="ax-where-meta">
+                    <span className="ax-where-faces" aria-label={people.map((person) => person.name || person.handle).join(", ")}>
+                      {people.slice(0, FACES_SHOWN).map((person) => (
+                        <Avatar key={person.id} handle={person.handle} size={16} />
+                      ))}
+                      {people.length > FACES_SHOWN ? <span className="ax-where-more">+{people.length - FACES_SHOWN}</span> : null}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <RelativeTime value={lastAt} locale={locale} />
+                  </span>
                 </span>
                 <span className="ax-where-count">
-                  {count} <small>PR</small>
+                  {prs} <small>PR</small>
                 </span>
               </InstantLink>
             </li>
           );
         })}
       </ol>
-      {repos.length > REPOS_SHOWN ? (
-        <button type="button" className="ax-board-toggle" aria-expanded={open} onClick={() => setExpanded((was) => !was)}>
+      {repos.length > REPOS_SHOWN_PHONE ? (
+        <button
+          type="button"
+          className={`ax-board-toggle ${repos.length <= REPOS_SHOWN ? "is-phone-only" : ""}`}
+          aria-expanded={open}
+          onClick={() => setExpanded((was) => !was)}
+        >
           {open ? tx(locale, "Tampilkan lebih sedikit", "Show fewer") : tx(locale, `Lihat semua (${repos.length})`, `See all (${repos.length})`)}
         </button>
       ) : null}
