@@ -59,8 +59,7 @@ type NavLink = { href: string; label: string; labelId: string; key: Section; ico
  * start, not a complete catalogue. Adding to it is the header's one button.
  */
 const PRIMARY_LINKS: NavLink[] = [
-  // A leaderboard on the open source site; builders' is a feed of products.
-  { href: "/", label: isOss ? "Leaderboard" : "Activity", labelId: isOss ? "Leaderboard" : "Aktivitas", key: "activity", icon: isOss ? "pull-request" : "pulse" },
+  { href: "/", label: "Activity", labelId: "Aktivitas", key: "activity", icon: isOss ? "pull-request" : "pulse" },
   { href: "/directory", label: isOss ? "Picked repos" : "Directory", labelId: isOss ? "Repo pilihan" : "Direktori", key: "directory", icon: "directory" },
 ];
 

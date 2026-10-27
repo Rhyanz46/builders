@@ -50,12 +50,12 @@ export function GitHubForm({ github, shown }: { github: string; shown: boolean }
         <div className="gh-consent">
           <label htmlFor="github-activity">
             <input id="github-activity" type="checkbox" name="github_activity" value="1" defaultChecked={values.shown} />
-            {tx("Tampilkan aktivitas GitHub-ku di leaderboard", "Show my GitHub activity on the leaderboard")}
+            {tx("Tampilkan aktivitas GitHub-ku di halaman Aktivitas", "Show my GitHub activity on the Activity page")}
           </label>
           <p className="hint">
             {tx(
-              "Opsional, mati sampai kamu menyalakannya. Kalau dicentang, pull request dan jumlah commit publikmu muncul di leaderboard dalam beberapa menit, lalu diperbarui otomatis dari GitHub tiap 30 menit. Hilangkan centangnya kapan saja: datanya langsung disembunyikan lalu dihapus.",
-              "Optional, and off until you turn it on. When ticked, your public pull requests and commit counts show on the leaderboard within a few minutes, then refresh from GitHub every 30 minutes on their own. Untick it any time: they are hidden at once, then deleted.",
+              "Opsional, mati sampai kamu menyalakannya. Kalau dicentang, pull request dan jumlah commit publikmu muncul di halaman Aktivitas dalam beberapa menit, lalu diperbarui otomatis dari GitHub tiap 30 menit. Hilangkan centangnya kapan saja: datanya langsung disembunyikan lalu dihapus.",
+              "Optional, and off until you turn it on. When ticked, your public pull requests and commit counts show on the Activity page within a few minutes, then refresh from GitHub every 30 minutes on their own. Untick it any time: they are hidden at once, then deleted.",
             )}
           </p>
         </div>
@@ -69,7 +69,7 @@ export function GitHubForm({ github, shown }: { github: string; shown: boolean }
               {/* Saying yes asks GitHub at once, but the Activity page is cached
                   for a few minutes: say so, rather than let an empty page look broken. */}
               {values.shown
-                ? tx("Tersimpan. Aktivitasmu muncul di leaderboard dalam beberapa menit.", "Saved. Your activity shows on the leaderboard within a few minutes.")
+                ? tx("Tersimpan. Aktivitasmu muncul di halaman Aktivitas dalam beberapa menit.", "Saved. Your activity shows on the Activity page within a few minutes.")
                 : tx("Tersimpan.", "Saved.")}
             </span>
           ) : null}

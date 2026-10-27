@@ -96,8 +96,8 @@ export function nextSteps({
       title: tx(locale, "Tautkan GitHub & tampilkan aktivitasmu", "Link GitHub and show your activity"),
       blurb: tx(
         locale,
-        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, dan PR-mu yang di-merge masuk leaderboard—biar teman lain ikut semangat.",
-        "The account you send PRs with. Its picture shows on directory badges, and your merged PRs count on the leaderboard—so friends get the itch too.",
+        "Akun yang kamu pakai untuk kirim PR. Fotonya muncul di badge direktori, dan PR-mu yang di-merge muncul di halaman Aktivitas—biar teman lain ikut semangat.",
+        "The account you send PRs with. Its picture shows on directory badges, and your merged PRs show on the Activity page—so friends get the itch too.",
       ),
       href: "/account/profile#github-account",
       cta: tx(locale, "Tambah GitHub", "Add GitHub"),

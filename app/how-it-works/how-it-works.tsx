@@ -194,10 +194,10 @@ function steps(track: Track, locale: Locale): Step[] {
       title: tx(locale, "PR di-merge, muncul sendiri", "PR merged, shown for you"),
       body: tx(
         locale,
-        "Begitu PR-mu di-merge, PR itu masuk leaderboard dan muncul di profilmu. Member lain bisa kasih reaksi, dan teman yang lihat jadi ikut berani mulai.",
-        "Once your PR is merged, it counts on the leaderboard and shows on your profile. Other members can react, and friends who see it find the nerve to start too.",
+        "Begitu PR-mu di-merge, PR itu muncul di halaman Aktivitas dan di profilmu. Member lain bisa kasih reaksi, dan teman yang lihat jadi ikut berani mulai.",
+        "Once your PR is merged, it shows on the Activity page and on your profile. Other members can react, and friends who see it find the nerve to start too.",
       ),
-      action: { href: "/", label: tx(locale, "Lihat leaderboard", "See the leaderboard") },
+      action: { href: "/", label: tx(locale, "Lihat Aktivitas", "See the Activity") },
     },
   ];
 }

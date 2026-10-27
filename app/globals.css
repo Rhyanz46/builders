@@ -2679,6 +2679,12 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .ab-faq details:first-child summary { border-radius: 8px 8px 0 0; }
 .ab-faq details:last-child:not([open]) summary { border-radius: 0 0 8px 8px; }
 .ab-faq p { color: var(--dx-muted); font-size: 13.5px; line-height: 1.65; margin: 0; padding: 0 14px 14px; }
+/* /leaderboard, before it exists: the about page's frame, with a badge. */
+.lb-soon-badge {
+  background: var(--tone-soft, light-dark(#fbefff, #241a33)); border-radius: 99px; color: light-dark(#8250df, #b392f0); display: inline-block;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; margin: 0 0 10px; padding: 4px 10px; text-transform: uppercase;
+}
+.lb-soon h1 { align-items: center; display: flex; gap: 10px; }
 .ab-cta { background: var(--tone-soft); border-radius: 10px; margin-top: 40px; padding: 22px 24px; }
 .ab-cta h2 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; margin: 0 0 4px; }
 .ab-cta p { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0; }

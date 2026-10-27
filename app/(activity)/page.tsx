@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await currentLocale();
   // The home page: the people, before the directory.
   const title = isOss
-    ? tx(locale, `${site.name} — Leaderboard Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Leaderboard`)
+    ? tx(locale, `${site.name} — Kontribusi Open Source Komunitas swegrowth`, `${site.name} — The swegrowth Community's Open Source Contributions`)
     : tx(locale, "Builders — Yang Lagi Dibangun Komunitas swegrowth", "Builders — What the swegrowth Community Is Building");
   const description = isOss
     ? tx(
@@ -102,12 +102,12 @@ function Heading({ locale, children }: { locale: Locale; children?: React.ReactN
   return (
     <header className="dx-head ax-head">
       <div>
-        <h1>{tx(locale, "Leaderboard open source", "Open source leaderboard")}</h1>
+        <h1>{tx(locale, "Aktivitas open source", "Open source activity")}</h1>
         <p>
           {tx(
             locale,
-            "Kontribusi open source member, langsung dari GitHub, biar saling kelihatan dan yang lain ikut mulai. ",
-            "Members' open source contributions, straight from GitHub, so we see each other's and others start too. ",
+            "Kontribusi open source member langsung dari GitHub, plus peringkat siapa yang paling aktif—biar saling kelihatan dan yang lain ikut mulai. ",
+            "Members' open source contributions straight from GitHub, with a ranking of who is most active—so we see each other's and others start too. ",
           )}
           <Link className="ax-head-link" href="/account/profile#github-account">
             {tx(locale, "Tampilkan punyamu", "Show yours")}

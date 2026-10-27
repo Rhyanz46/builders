@@ -97,8 +97,8 @@ const OSS_TOGETHER: readonly (readonly [string, string, string, string])[] = [
   [
     "Kelihatan, lalu nular",
     "Seen, then catching",
-    "Tiap PR yang di-merge masuk leaderboard. Lihat teman ngirim PR minggu ini bikin kamu pengin nyoba juga.",
-    "Every merged PR counts on the leaderboard. Seeing a friend send a PR this week makes you want to try too.",
+    "Tiap PR yang di-merge muncul di halaman Aktivitas. Lihat teman ngirim PR minggu ini bikin kamu pengin nyoba juga.",
+    "Every merged PR shows on the Activity page. Seeing a friend send a PR this week makes you want to try too.",
   ],
   [
     "Dua arah",

@@ -18,7 +18,6 @@ import {
   type ActivityFilters,
   type ShowOption,
 } from "../lib/activity-url";
-import { leaderboardIssueUrl } from "../content";
 import {
   activityPeople,
   activityRepos,
@@ -560,9 +559,10 @@ function Leaderboard({
         {own
           ? tx(locale, "Dihitung dari PR merged ke repo sendiri; seri dipecah jumlah commit. ", "Counts PRs merged into their own repos; commits break ties. ")
           : countedLabel(current, locale)}
-        <a href={leaderboardIssueUrl} target="_blank" rel="noopener noreferrer">
-          {tx(locale, "Ide poin & gamifikasi", "Ideas for points & badges")} <span aria-hidden="true">↗</span>
-        </a>
+        {/* The full leaderboard — points, streaks, badges — is still to come. */}
+        <InstantLink href="/leaderboard">
+          {tx(locale, "Leaderboard lengkap segera", "Full leaderboard coming soon")} <span aria-hidden="true">→</span>
+        </InstantLink>
       </p>
     </aside>
   );
