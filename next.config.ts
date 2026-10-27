@@ -46,6 +46,8 @@ const nextConfig: NextConfig = {
             // And the builders site has none of GitHub's: the repo catalogue
             // lives on the open source site. Its /activity is a product feed.
             { source: "/recommend", destination: ossUrl("/recommend"), permanent: false },
+            // The leaderboard is open source contributions, the open source site's.
+            { source: "/leaderboard", destination: ossUrl("/leaderboard"), permanent: false },
             // Its "add a project" is listing a product; its walk-through is the roles one.
             { source: "/submit", destination: "/new", permanent: false },
             { source: "/how-it-works/roles", destination: "/how-it-works", permanent: false },

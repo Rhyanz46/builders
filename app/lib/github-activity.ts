@@ -96,6 +96,36 @@ export function inScope(entries: GitHubActivityEntry[], scope: ActivityScope): G
   return scope === "all" ? entries : entries.filter((entry) => scopeOf(entry) === scope);
 }
 
+/**
+ * Where a contribution went: a local repository — one the directory counts
+ * as local, a community member's project or one with Indonesian maintainers —
+ * or a global one. Only pull requests to other people's repositories have a
+ * place; a member's own work is neither.
+ */
+export const ACTIVITY_PLACES = ["all", "local", "global"] as const;
+export type ActivityPlace = (typeof ACTIVITY_PLACES)[number];
+
+export function isActivityPlace(value: string): value is ActivityPlace {
+  return (ACTIVITY_PLACES as readonly string[]).includes(value);
+}
+
+/** The entries one place shows. Narrowing to a place leaves out members' own work. */
+export function inPlace(entries: GitHubActivityEntry[], place: ActivityPlace, local: ReadonlySet<string>): GitHubActivityEntry[] {
+  if (place === "all") return entries;
+  return entries.filter((entry) => entry.kind === "pull_request" && local.has(entry.repo) === (place === "local"));
+}
+
+/** How many pull request entries went to local and to global repositories. */
+export function placeCounts(entries: GitHubActivityEntry[], local: ReadonlySet<string>): Record<ActivityPlace, number> {
+  const counts: Record<ActivityPlace, number> = { all: 0, local: 0, global: 0 };
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request") continue;
+    counts.all += 1;
+    counts[local.has(entry.repo) ? "local" : "global"] += 1;
+  }
+  return counts;
+}
+
 function kindOf(entry: GitHubActivityEntry): Exclude<GitHubActivityFilter, "all"> {
   return entry.kind === "commit_summary" ? "commits" : entry.state;
 }
@@ -208,6 +238,58 @@ export function activityRepos(entries: GitHubActivityEntry[]): { repo: string; c
   return [...counts].map(([repo, count]) => ({ repo, count })).sort((a, b) => b.count - a.count || a.repo.localeCompare(b.repo));
 }
 
+/**
+ * The orders the "where PRs went" card offers. Newest first by default, so
+ * one very busy repository does not sit on top for good; most PRs, or the
+ * most people, when asked — the last one being the repos many members have
+ * found their way to, not one member's favourite.
+ */
+export const REPO_ORDERS = ["recent", "prs", "people"] as const;
+export type RepoOrder = (typeof REPO_ORDERS)[number];
+
+export function isRepoOrder(value: string): value is RepoOrder {
+  return (REPO_ORDERS as readonly string[]).includes(value);
+}
+
+export type RepoSummary = {
+  repo: string;
+  /** Pull requests to it in the entries given. */
+  prs: number;
+  /** The members who sent them, the most recent first. */
+  people: ActivityPerson[];
+  /** The newest of those pull requests. */
+  lastAt: string;
+};
+
+/** Every repository the pull requests went to, with who went and when, in the order asked for. */
+export function repoSummaries(entries: GitHubActivityEntry[], order: RepoOrder = "recent"): RepoSummary[] {
+  const byRepo = new Map<string, { prs: number; people: Map<string, { person: ActivityPerson; at: string }>; lastAt: string }>();
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request") continue;
+    const found = byRepo.get(entry.repo) ?? { prs: 0, people: new Map(), lastAt: "" };
+    found.prs += entry.pullRequests.length;
+    if (entry.at > found.lastAt) found.lastAt = entry.at;
+    const key = entry.person.handle.toLowerCase();
+    const seen = found.people.get(key);
+    if (!seen || entry.at > seen.at) found.people.set(key, { person: entry.person, at: entry.at });
+    byRepo.set(entry.repo, found);
+  }
+  const rows = [...byRepo].map(([repo, { prs, people, lastAt }]) => ({
+    repo,
+    prs,
+    lastAt,
+    people: [...people.values()].sort((a, b) => b.at.localeCompare(a.at)).map(({ person }) => person),
+  }));
+  const newest = (a: RepoSummary, b: RepoSummary) => b.lastAt.localeCompare(a.lastAt);
+  return rows.sort((a, b) =>
+    order === "prs"
+      ? b.prs - a.prs || newest(a, b)
+      : order === "people"
+        ? b.people.length - a.people.length || b.prs - a.prs || newest(a, b)
+        : newest(a, b) || a.repo.localeCompare(b.repo),
+  );
+}
+
 /** Everybody on the page, most active first: the member filter's chips. */
 export function activityPeople(entries: GitHubActivityEntry[]): { person: ActivityPerson; count: number }[] {
   const byHandle = new Map<string, { person: ActivityPerson; count: number }>();
@@ -219,6 +301,93 @@ export function activityPeople(entries: GitHubActivityEntry[]): { person: Activi
     byHandle.set(key, found);
   }
   return [...byHandle.values()].sort((a, b) => b.count - a.count || a.person.name.localeCompare(b.person.name));
+}
+
+/**
+ * The leaderboard's periods: this calendar month and this calendar week, in
+ * WIB, so the board resets where the members live. The month is the default.
+ */
+export const LEADERBOARD_PERIODS = ["month", "week"] as const;
+export type LeaderboardPeriod = (typeof LEADERBOARD_PERIODS)[number];
+
+export function isLeaderboardPeriod(value: string): value is LeaderboardPeriod {
+  return (LEADERBOARD_PERIODS as readonly string[]).includes(value);
+}
+
+/**
+ * The first day of the period `today` is in, as `YYYY-MM-DD`: the 1st of the
+ * month, or the Monday of the week. Calendar arithmetic on the date alone, so
+ * it is the same on the server and in the browser.
+ */
+export function periodStart(today: string, period: LeaderboardPeriod): string {
+  if (period === "month") return `${today.slice(0, 7)}-01`;
+  const date = new Date(`${today}T00:00:00Z`);
+  const sinceMonday = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - sinceMonday);
+  return date.toISOString().slice(0, 10);
+}
+
+export type LeaderboardRow = {
+  person: ActivityPerson;
+  /** The pull requests that count: merged, in review, or both, as the feed's kind filter asks. */
+  prs: number;
+  repos: number;
+  /** Commits to their own repositories, on the own-work board only: the tie-break there. */
+  commits?: number;
+};
+
+/**
+ * The board for members' own work: pull requests merged into their own
+ * repositories over the last SUMMARY_DAYS, the window GitHub's numbers for
+ * own work are summed over — so it has no week or month. Pull requests rather
+ * than commits, which depend on how somebody happens to split their work;
+ * commits only break ties.
+ */
+export function ownLeaderboard(entries: GitHubActivityEntry[]): LeaderboardRow[] {
+  return entries
+    .filter((entry): entry is CommitSummaryEntry => entry.kind === "commit_summary" && entry.merged > 0)
+    .map((entry) => ({ person: entry.person, prs: entry.merged, repos: entry.repos.length, commits: entry.commits }))
+    .sort(
+      (a, b) =>
+        b.prs - a.prs ||
+        (b.commits ?? 0) - (a.commits ?? 0) ||
+        (a.person.name || a.person.handle).localeCompare(b.person.name || b.person.handle),
+    );
+}
+
+/**
+ * Who has sent the most pull requests to other people's repositories this
+ * period — merged by default; in review, or both, when the feed's kind
+ * filter asks for them. A merged PR counts on the day it was merged, one in
+ * review on the day it was opened. Other people's repositories only, so a
+ * member's own do not count. Ties go to whoever reached more repos, then by
+ * name. Points, streaks and the rest are being worked out on #186.
+ */
+export function leaderboard(
+  entries: GitHubActivityEntry[],
+  period: LeaderboardPeriod,
+  today: string,
+  states: readonly PullRequestEntry["state"][] = ["merged"],
+  timeZone = "Asia/Jakarta",
+): LeaderboardRow[] {
+  const from = periodStart(today, period);
+  const byHandle = new Map<string, { person: ActivityPerson; prs: number; repos: Set<string> }>();
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request" || !states.includes(entry.state)) continue;
+    const counted = entry.pullRequests.filter((pullRequest) => {
+      const day = dayKey(pullRequest.at, timeZone);
+      return day >= from && day <= today;
+    }).length;
+    if (counted === 0) continue;
+    const key = entry.person.handle.toLowerCase();
+    const row = byHandle.get(key) ?? { person: entry.person, prs: 0, repos: new Set<string>() };
+    row.prs += counted;
+    row.repos.add(entry.repo);
+    byHandle.set(key, row);
+  }
+  return [...byHandle.values()]
+    .map(({ person, prs, repos }) => ({ person, prs, repos: repos.size }))
+    .sort((a, b) => b.prs - a.prs || b.repos - a.repos || (a.person.name || a.person.handle).localeCompare(b.person.name || b.person.handle));
 }
 
 export type ActivityStats = { people: number; merged: number; open: number; repos: number };
