@@ -841,7 +841,12 @@ export async function saveGitHub(_state: GitHubState, formData: FormData): Promi
   return { errors: {}, values: { github: checked.url, shown }, saved: true };
 }
 
-export type UsernameState = { error?: string; username: string };
+export type UsernameState = {
+  error?: string;
+  username: string;
+  /** The name typed was already theirs: nothing to save, but say so. */
+  unchanged?: boolean;
+};
 
 /**
  * Changes the member's profile URL.
@@ -862,7 +867,7 @@ export async function changeUsername(_state: UsernameState, formData: FormData):
 
   const checked = validateUsername(typed, locale);
   if ("error" in checked) return { error: checked.error, username: typed };
-  if (checked.username === viewer.username) return { username: viewer.username };
+  if (checked.username === viewer.username) return { username: viewer.username, unchanged: true };
 
   const supabase = await requireSupabase();
   const { data, error } = await supabase.rpc("change_username", { new_name: checked.username });
@@ -870,24 +875,32 @@ export async function changeUsername(_state: UsernameState, formData: FormData):
     const message =
       error.code === "23505"
         ? tx(locale, "Username itu sudah dipakai. Coba yang lain.", "That username is taken. Try another.")
-        : error.code === "22023"
+        : error.code === "55000"
           ? tx(locale, "Username baru bisa diubah lagi 30 hari setelah perubahan terakhir.", "A username can only be changed again 30 days after the last change.")
-          : error.message;
+          : error.code === "22023"
+            ? tx(
+                locale,
+                "Username harus 2 sampai 48 karakter: huruf kecil, angka atau tanda hubung, diawali huruf atau angka.",
+                "A username is 2 to 48 characters: lowercase letters, digits or hyphens, starting with a letter or digit.",
+              )
+            : error.message;
     return { error: message, username: checked.username };
   }
 
   const next = typeof data === "string" ? data : checked.username;
   // Both names change views: the old /u redirects now, the new one is live,
-  // and every list and badge shows the handle.
+  // and every list and badge shows the handle. Their trail and the teams on
+  // projects link to them too, and the layout's account menu and bottom bar
+  // carry the name, so the whole tree is refreshed: a rename is rare enough.
   updateTag(tags.person(viewer.username));
   updateTag(tags.person(next));
   updateTag(tags.people);
   updateTag(tags.projects);
+  updateTag(tags.seats);
   updateTag(tags.activity);
   updateTag(tags.oss);
-  revalidatePath(`/u/${viewer.username}`);
-  revalidatePath(`/u/${next}`);
-  revalidatePath("/account/profile");
+  trailChanged(viewer.id);
+  revalidatePath("/", "layout");
   redirect(`/u/${next}?saved=1`);
 }
 

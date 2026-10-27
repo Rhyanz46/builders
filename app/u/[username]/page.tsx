@@ -94,7 +94,15 @@ export default async function ProfilePage({
   if (!person) {
     // A link to a name its owner has since changed still finds them.
     const current = await currentUsernameForFormer(username);
-    if (current && current !== username) permanentRedirect(`/u/${current}`);
+    if (current && current !== username) {
+      // The query goes along: a shared link to a longer trail stays one.
+      const search = new URLSearchParams();
+      for (const [key, value] of Object.entries(query)) {
+        for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) search.append(key, item);
+      }
+      const rest = search.toString();
+      permanentRedirect(`/u/${current}${rest ? `?${rest}` : ""}`);
+    }
     notFound();
   }
 

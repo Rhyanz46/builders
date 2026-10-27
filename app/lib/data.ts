@@ -564,6 +564,23 @@ export async function currentUsernameForFormer(former: string): Promise<string |
   return profile?.username ?? null;
 }
 
+/**
+ * Whether `username` is free for `self` to take: nobody else has it now, and
+ * nobody else has left it behind. The database decides on save; this only
+ * keeps the editor from suggesting a name it would refuse.
+ */
+export async function isUsernameFreeFor(username: string, self: string): Promise<boolean> {
+  const supabase = getPublicSupabase();
+  if (!supabase) return true;
+
+  const [live, former] = await Promise.all([
+    supabase.from("profiles").select("id").eq("username", username).neq("id", self).limit(1),
+    supabase.from("username_history").select("user_id").eq("username", username).neq("user_id", self).limit(1),
+  ]);
+  if (live.error || former.error) return false;
+  return (live.data ?? []).length === 0 && (former.data ?? []).length === 0;
+}
+
 /** A project somebody helps on, together with the role they hold there. */
 export type Contribution = ProjectSummary & { role: string };
 

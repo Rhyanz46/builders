@@ -96,6 +96,46 @@ $$;
 
 revoke all on function public.is_reserved_username(text) from public, anon, authenticated;
 
+-- Sign-up hands out neither a name another member has retired nor a reserved
+-- one. Both matter more now that the seed is a GitHub handle: a new member
+-- whose handle is somebody's former name would otherwise take over every link
+-- shared to the old one, and a handle like `admin` would get /u/admin.
+create or replace function public.available_username(seed text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  base      text;
+  candidate text;
+  suffix    int := 1;
+begin
+  base := lower(split_part(coalesce(seed, ''), '@', 1));
+  base := regexp_replace(base, '[^a-z0-9]+', '-', 'g');
+  base := trim(both '-' from base);
+  base := left(base, 40);
+
+  -- The username format check wants at least two characters, starting with a
+  -- letter or digit. Anything that shrank away falls back to a generic stem.
+  if char_length(base) < 2 or base !~ '^[a-z0-9]' then
+    base := 'orang';
+  end if;
+
+  candidate := base;
+  while exists (select 1 from public.profiles p where p.username = candidate)
+     or exists (select 1 from public.username_history h where h.username = candidate)
+     or public.is_reserved_username(candidate) loop
+    suffix    := suffix + 1;
+    candidate := base || '-' || suffix;
+  end loop;
+
+  return candidate;
+end;
+$$;
+
+revoke all on function public.available_username(text) from public, anon, authenticated;
+
 -- --------------------------------------------------------------- the change
 
 -- Changes the caller's own username, or raises a reason it cannot.
@@ -128,8 +168,11 @@ begin
     raise exception 'Username itu dipakai oleh sistem.' using errcode = '23505';
   end if;
 
+  -- Locked, so two changes sent at once queue up: the second sees the first's
+  -- name and cooldown instead of both passing and one name going unrecorded.
   select p.username, p.username_changed_at into current_name, last_changed
-  from public.profiles p where p.id = caller;
+  from public.profiles p where p.id = caller
+  for update;
 
   -- Nothing to do, and no cooldown spent on a no-op.
   if current_name = candidate then
@@ -139,7 +182,8 @@ begin
   -- ponytail: fixed 30-day cooldown, a column not a table. Move it to config
   -- if the number ever needs to differ per member.
   if last_changed is not null and last_changed > now() - interval '30 days' then
-    raise exception 'Username baru bisa diubah lagi 30 hari setelah perubahan terakhir.' using errcode = '22023';
+    -- Its own code: 22023 above is the format, and the app tells them apart.
+    raise exception 'Username baru bisa diubah lagi 30 hari setelah perubahan terakhir.' using errcode = '55000';
   end if;
 
   if exists (select 1 from public.profiles p where p.username = candidate and p.id <> caller) then

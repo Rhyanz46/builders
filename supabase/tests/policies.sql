@@ -906,6 +906,18 @@ select checks.denied($$select public.change_username('zikrul-ihsan')$$, 'nama be
 
 reset role;
 
+-- Sign-up, seeded from a GitHub handle, never hands out a name somebody has
+-- left behind, nor a reserved one.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('33333333-3333-4333-8333-333333333333', 'bekas@example.test', '{"name": "Bekas", "user_name": "zikrul-ihsan"}'),
+  ('44444444-4444-4444-8444-444444444444', 'sistem@example.test', '{"name": "Sistem", "user_name": "admin"}');
+select checks.equal(
+  (select username from public.profiles where id = '33333333-3333-4333-8333-333333333333'),
+  'zikrul-ihsan-2', 'pendaftar baru tidak dapat nama bekas orang lain');
+select checks.equal(
+  (select username from public.profiles where id = '44444444-4444-4444-8444-444444444444'),
+  'admin-2', 'pendaftar baru tidak dapat nama sistem');
+
 rollback;
 
 drop schema checks cascade;

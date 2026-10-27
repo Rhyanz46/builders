@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 
-import { PROFILE_MAXIMUM, validateGitHub, validateProfile, validateUsername } from "../app/lib/profile.ts";
+import { PROFILE_MAXIMUM, RESERVED_USERNAMES, USERNAME_FORMAT, validateGitHub, validateProfile, validateUsername } from "../app/lib/profile.ts";
 
 const blank = {
   name: "",
@@ -75,4 +76,16 @@ test("a username that is a site route is refused", () => {
   for (const reserved of ["admin", "account", "u", "projects", "settings"]) {
     assert.ok("error" in validateUsername(reserved), reserved);
   }
+});
+
+test("the reserved names and the username format match the database's", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20261102000000_custom_username.sql", import.meta.url), "utf8");
+  const listed = sql.match(/select lower\(name\) in \(([^)]*)\)/);
+  assert.ok(listed, "is_reserved_username's list was not found");
+  const names = [...listed[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  assert.deepEqual([...names].sort(), [...RESERVED_USERNAMES].sort());
+  // Every copy of the format in the migration is the one the app checks.
+  const formats = [...sql.matchAll(/~ '(\^[^']+\$)'/g)].map((match) => match[1]);
+  assert.ok(formats.length >= 2, "the format checks were not found");
+  for (const format of formats) assert.equal(format, USERNAME_FORMAT.source);
 });

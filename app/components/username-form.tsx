@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { changeUsername, type UsernameState } from "../actions";
+import { site } from "../lib/site";
 import { useLanguage } from "./language-provider";
 
 /**
@@ -10,8 +11,9 @@ import { useLanguage } from "./language-provider";
  * Its own form, like GitHubForm, because each section of the profile editor
  * saves on its own. The input is controlled so the address preview updates as
  * you type and the GitHub suggestion can fill it; the shared Field is
- * uncontrolled, so this one is spelled out. The handle is offered only when it
- * is free to take, and never changes the name on its own. On success the
+ * uncontrolled, so this one is spelled out. The handle offered is the GitHub
+ * account linked at sign-in, only when nobody else holds or has left it, and
+ * it never changes the name on its own. On success the
  * action redirects to the new profile, so the only state shown here is the
  * reason a change was refused.
  */
@@ -39,7 +41,7 @@ export function UsernameForm({ username, suggestion }: { username: string; sugge
         <div className={`field ${state.error ? "has-error" : ""}`}>
           <label htmlFor="username">{tx("Username", "Username")}</label>
           <p className="hint" id="username-preview">
-            oss.swegrowth.id/u/{value || username}
+            {site.url.replace(/^https?:\/\//, "")}/u/{value || username}
           </p>
           <input
             id="username"
@@ -67,6 +69,11 @@ export function UsernameForm({ username, suggestion }: { username: string; sugge
           <button className="ghost-button" type="submit" disabled={pending} aria-busy={pending || undefined}>
             {pending ? tx("Menyimpan…", "Saving…") : tx("Simpan URL", "Save URL")}
           </button>
+          {state.unchanged && !pending ? (
+            <span className="gh-form-saved" role="status">
+              {tx("Itu sudah URL profilmu.", "That is already your profile URL.")}
+            </span>
+          ) : null}
         </div>
       </fieldset>
     </form>

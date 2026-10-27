@@ -6,12 +6,12 @@ import { ProfileForm, type EditableProfile } from "../../components/profile-form
 import { GitHubForm } from "../../components/github-form";
 import { UsernameForm } from "../../components/username-form";
 import { validateUsername } from "../../lib/profile";
-import { listOssContributionsOf, listPeople } from "../../lib/data";
+import { isUsernameFreeFor, listOssContributionsOf, listPeople } from "../../lib/data";
 import { OssAddForm, OssRecordEmpty, OssRecordList } from "../../components/oss-record";
 import { githubHandle } from "../../lib/oss";
 import { termSuggestions } from "../../lib/people";
 import { readPublicly } from "../../lib/public-read";
-import { currentViewer, type Viewer } from "../../lib/session";
+import { currentViewer, linkedGitHubHandle, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
@@ -54,10 +54,16 @@ export default async function EditProfilePage({
   ]);
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
   const handle = githubHandle(viewer.github);
-  // Offer the GitHub handle as a username only when it is a legal one; the
-  // form still checks availability on submit.
-  const handleCheck = handle ? validateUsername(handle) : null;
-  const usernameSuggestion = handleCheck && "username" in handleCheck ? handleCheck.username : undefined;
+  // Offer the handle of the GitHub account linked at sign-in — verified, not
+  // the free-text field above — and only when it is a legal name nobody else
+  // holds or has left behind. The database still has the last word on save.
+  const linked = await linkedGitHubHandle();
+  const handleCheck = linked ? validateUsername(linked) : null;
+  const candidate = handleCheck && "username" in handleCheck ? handleCheck.username : "";
+  const usernameSuggestion =
+    candidate && candidate !== viewer.username && (await readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false)).value
+      ? candidate
+      : undefined;
 
   return (
     <>
