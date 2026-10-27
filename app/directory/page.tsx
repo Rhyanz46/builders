@@ -80,9 +80,24 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
               )}
             </p>
             <div className="dx-head-actions">
-              <Suspense fallback={isOss ? <SuggestFallback locale={locale} /> : <WaButton />}>
-                <JoinCta locale={locale} />
-              </Suspense>
+              {/* The open source directory asks for repos, the same for anyone,
+                  so it renders with the page instead of waiting on who is
+                  looking; joining is the landing page's ask, a quiet link here.
+                  Builders' ask depends on the visitor and streams in. */}
+              {isOss ? (
+                <>
+                  <Link className="primary-action" href="/recommend">
+                    <span aria-hidden="true">+</span> {tx(locale, "Usulkan repo", "Suggest a repo")}
+                  </Link>
+                  <Link className="dx-wa-link" href="/community">
+                    {tx(locale, "atau kenalan dengan komunitas", "or meet the community")}
+                  </Link>
+                </>
+              ) : (
+                <Suspense fallback={<WaButton />}>
+                  <JoinCta locale={locale} />
+                </Suspense>
+              )}
             </div>
           </div>
           <Suspense fallback={null}>
@@ -108,26 +123,6 @@ export default async function Directory({ searchParams }: { searchParams?: Searc
  */
 async function JoinCta({ locale }: { locale: Locale }) {
   const viewer = await currentViewer();
-  // The open source directory asks for repos: joining is the landing page's
-  // ask, so here it is the quieter link beside suggesting one.
-  if (isOss) {
-    return (
-      <>
-        <Link className="primary-action" href="/recommend">
-          <span aria-hidden="true">+</span> {tx(locale, "Usulkan repo", "Suggest a repo")}
-        </Link>
-        {viewer ? (
-          <Link className="dx-wa-link" href="/community">
-            {tx(locale, "atau gabung komunitas", "or join the community")}
-          </Link>
-        ) : (
-          <Link className="dx-wa-link" href="/signin">
-            {tx(locale, `atau gabung ${site.name}`, `or join ${site.name}`)}
-          </Link>
-        )}
-      </>
-    );
-  }
   if (viewer) return <WaButton />;
 
   return (
@@ -141,15 +136,6 @@ async function JoinCta({ locale }: { locale: Locale }) {
         </a>
       ) : null}
     </>
-  );
-}
-
-/** The open source directory's ask while the visitor is still being worked out. */
-function SuggestFallback({ locale }: { locale: Locale }) {
-  return (
-    <Link className="primary-action" href="/recommend">
-      <span aria-hidden="true">+</span> {tx(locale, "Usulkan repo", "Suggest a repo")}
-    </Link>
   );
 }
 
