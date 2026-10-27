@@ -1594,7 +1594,9 @@ form button[aria-busy="true"]::after,
 .ax-board > :not(.ax-board-head) { margin-left: 12px; margin-right: 12px; }
 /* The head carries the colour: a soft purple band over a plain list. */
 .ax-board-head {
-  background: var(--tone-soft); border-bottom: 1px solid color-mix(in srgb, var(--tone) 18%, transparent); display: grid; gap: 8px;
+  /* In light, a deeper, bluer lavender than tone-done's soft pink, so the
+     white pills on it stand out. */
+  background: light-dark(#ebe5fb, var(--tone-soft)); border-bottom: 1px solid color-mix(in srgb, var(--tone) 22%, transparent); display: grid; gap: 8px;
   margin-bottom: 8px; padding: 14px 16px 12px;
 }
 .ax-board h2 { align-items: center; color: var(--dx-ink); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
