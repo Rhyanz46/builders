@@ -1341,17 +1341,24 @@ body:has(main.discovery-page), body:has(main.people-page) { background: light-da
 .bottom-nav { display: none; }
 @media (max-width: 860px) {
   .bottom-nav {
-    background: light-dark(rgba(255, 255, 255, .97), rgba(31, 31, 31, .97)); border: 1px solid light-dark(#e4e4e7, #383839);
-    border-radius: 18px; bottom: calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 10px 30px light-dark(rgba(24, 24, 27, .14), rgba(0, 0, 0, .45));
+    /* Lifted off the page rather than the page's own colour — in dark mode
+       it was the same #1f1f1f and all but vanished: a lighter frosted glass,
+       a clearer edge and a deeper shadow, with what scrolls under it blurred. */
+    -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+    background: light-dark(rgba(255, 255, 255, .82), rgba(44, 44, 48, .82));
+    border: 1px solid light-dark(rgba(9, 9, 11, .12), rgba(255, 255, 255, .14));
+    border-radius: 18px; bottom: calc(12px + env(safe-area-inset-bottom));
+    box-shadow: 0 12px 32px light-dark(rgba(24, 24, 27, .2), rgba(0, 0, 0, .65)), inset 0 1px 0 light-dark(rgba(255, 255, 255, .7), rgba(255, 255, 255, .06));
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; left: 12px; margin: 0 auto; max-width: 480px;
     padding: 6px; position: fixed; right: 12px; z-index: 50;
   }
   .bottom-nav > a, .bottom-nav-placeholder {
-    align-items: center; border-radius: 12px; color: light-dark(#71717a, #a3a3ab); display: flex; flex-direction: column;
+    align-items: center; border-radius: 12px; color: light-dark(#52525b, #b4b4bc); display: flex; flex-direction: column;
     font-size: 11px; font-weight: 500; gap: 3px; justify-content: center; min-height: 50px;
   }
-  .bottom-nav > a:active { background: light-dark(#f4f4f5, #29292c); }
-  .bottom-nav > a.is-active { background: light-dark(#f4f4f5, #29292c); color: light-dark(#09090b, #eaeaed); font-weight: 600; }
+  .bottom-nav > a:active { background: light-dark(rgba(9, 9, 11, .06), rgba(255, 255, 255, .08)); }
+  /* Where you are, unmistakably: a solid pill in ink. */
+  .bottom-nav > a.is-active { background: light-dark(#18181b, #f4f4f5); color: light-dark(#ffffff, #18181b); font-weight: 600; }
   .bottom-nav .menu-icon { height: 22px; width: 22px; }
   /* Room for the bar, so the last of every page is not hidden under it. */
   body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
