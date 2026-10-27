@@ -119,6 +119,29 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
 });
 
 /**
+ * The GitHub handle of the account linked to this sign-in, or empty when
+ * GitHub is not linked. Verified by GitHub's OAuth, unlike the profile's
+ * GitHub field, which anyone can type anyone's handle into — so this is the
+ * one the username editor may suggest.
+ *
+ * Asks the Auth server for the user, a round trip `getClaims()` avoids, so
+ * only the profile editor calls it.
+ */
+export async function linkedGitHubHandle(): Promise<string> {
+  try {
+    const supabase = await getSupabase();
+    if (!supabase) return "";
+    const { data } = await supabase.auth.getUser();
+    const identity = data.user?.identities?.find((item) => item.provider === "github");
+    const handle = identity?.identity_data?.user_name;
+    return typeof handle === "string" ? handle : "";
+  } catch (error) {
+    unstable_rethrow(error);
+    return "";
+  }
+}
+
+/**
  * Local preview only: `DEV_VIEW_AS=<username>` in .env.local shows the site as
  * that member under `next dev`, because signing in through GitHub returns to
  * the deployed site rather than to localhost.
