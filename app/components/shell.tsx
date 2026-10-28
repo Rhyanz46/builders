@@ -321,10 +321,6 @@ function AccountMenu({ viewer, waiting, admin, locale }: { viewer: Viewer; waiti
             <HeaderIcon name="edit" />
             <span>{tx(locale, "Edit profil", "Edit profile")}</span>
           </Link>
-          <Link href="/account/password">
-            <HeaderIcon name="lock" />
-            <span>{tx(locale, "Kata sandi", "Password")}</span>
-          </Link>
           <Link href="/get-started?all=1">
             <HeaderIcon name="steps" />
             <span>{tx(locale, "Langkah berikutnya", "Next steps")}</span>
@@ -398,10 +394,6 @@ function MobileHeaderMenu({
               <Link href="/account/profile">
                 <HeaderIcon name="edit" />
                 <span>{tx(locale, "Edit profil", "Edit profile")}</span>
-              </Link>
-              <Link href="/account/password">
-                <HeaderIcon name="lock" />
-                <span>{tx(locale, "Kata sandi", "Password")}</span>
               </Link>
               {isOss ? null : (
                 <Link href="/inbox">

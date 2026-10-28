@@ -788,6 +788,12 @@ legend { font-size: 13px; font-weight: 700; padding: 0 8px; }
 .sign-in-inline .auth-provider-github:hover { background: light-dark(#373737, #e2e2e2); border-color: light-dark(#373737, #e2e2e2); }
 .signin-simple-alt a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 .signin-simple-alt a:hover { color: var(--ink); }
+/* Google, one click away under the GitHub button, opened in place. */
+.signin-other { margin-top: 16px; }
+.signin-other summary { color: var(--muted); cursor: pointer; font-size: 13px; list-style: none; text-align: center; }
+.signin-other summary::-webkit-details-marker { display: none; }
+.signin-other summary:hover { color: var(--ink); }
+.signin-other[open] summary { margin-bottom: 12px; }
 .signin-simple .signin-privacy { border-top: 1px solid var(--line-soft); margin: 22px 0 0; max-width: none; padding-top: 16px; }
 .signin-form .auth-field { margin-bottom: 18px; }
 .signin-form .auth-field > label, .signin-form .auth-label-row label { font-size: 12px; font-weight: 720; margin: 0; }

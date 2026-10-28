@@ -117,11 +117,6 @@ export default async function EditProfilePage({
           skillSuggestions={termSuggestions(people.value, "skills")}
           returnTo={returnTo}
         />
-
-        <p className="hint">
-          {tx(locale, "Mau ganti kata sandi? Buka ", "Want to change your password? Go to the ")}
-          <Link href="/account/password">{tx(locale, "halaman kata sandi", "password page")}</Link>.
-        </p>
       </main>
 
       <SiteFooter />
