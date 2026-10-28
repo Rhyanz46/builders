@@ -8,8 +8,10 @@ import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { OssRecordEmpty, OssRecordList } from "../../components/oss-record";
+import { GitHubSummary } from "../../components/github-summary";
 import { SubmitButton } from "../../components/submit-button";
 import {
+  getGitHubProfile,
   currentUsernameForFormer,
   getPerson,
   getPersonStats,
@@ -124,6 +126,13 @@ export default async function ProfilePage({
     readPublicly("open source record on a profile", () => listOssContributionsOf(person.id), []),
   ]);
   const records = recordsResult.value;
+  // The open source site's summary straight from GitHub: only for an account
+  // linked through OAuth, and only when its owner said yes to showing their
+  // GitHub activity — the same consent /activity runs on.
+  const gitHubShown = isOss && Boolean(person.github) && person.githubActivityShown;
+  const gh = gitHubShown
+    ? (await readPublicly("GitHub summary on a profile", () => getGitHubProfile(githubHandle(person.github), person.githubId ?? null), null)).value
+    : null;
   const hasOlder = activity.length > limit;
   const trail = activity.slice(0, limit);
   const handle = githubHandle(person.github);
@@ -187,7 +196,14 @@ export default async function ProfilePage({
 
         <ul className="pf-stats" aria-label={tx(locale, "Ringkasan", "Summary")}>
           {/* Repos on the open source site, products and the work on them on builders. */}
-          {isOss ? (
+          {isOss && gh ? (
+            <>
+              <Stat value={gh.merged.count} label={tx(locale, "PR di-merge", "PRs merged")} />
+              <Stat value={gh.open.length} label={tx(locale, "PR berjalan", "open PRs")} />
+              <Stat value={gh.reposContributedTo} label={tx(locale, "repo dikontribusi", "repos contributed to")} />
+              <Stat value={gh.year.contributions.toLocaleString(locale === "id" ? "id-ID" : "en-US")} label={tx(locale, "kontribusi tahun ini", "contributions this year")} />
+            </>
+          ) : isOss ? (
             <>
               <Stat value={contributed} label={tx(locale, "repo dikontribusi", "repos contributed to")} />
               <Stat value={maintained} label={tx(locale, "repo di-maintain", "repos maintained")} />
@@ -198,18 +214,27 @@ export default async function ProfilePage({
               <Stat value={contributing.length} label={tx(locale, "produk dibantu", "products helped")} />
             </>
           )}
-          {stats.since ? <Stat value={monthYear(stats.since, locale)} label={tx(locale, "aktif sejak", "active since")} /> : null}
+          {stats.since && !gh ? <Stat value={monthYear(stats.since, locale)} label={tx(locale, "aktif sejak", "active since")} /> : null}
         </ul>
 
         {isSelf ? <SelfNote person={person} owned={owned} locale={locale} /> : null}
 
-        <div className="pf-layout">
+        <div className={gh ? "pf-layout has-github" : "pf-layout"}>
           <div className="pf-main">
             {/* The open source record is the open source site's; builders points there. */}
-            {isOss ? (
+            {isOss && gh ? <GitHubSummary profile={gh} locale={locale} /> : null}
+            {isOss && isSelf && !gitHubShown ? (
+              <p className="pf-self-note">
+                {tx(locale, "Tampilkan ringkasan GitHub-mu di sini: PR berjalan, yang sudah di-merge, dan repo yang kamu sematkan.", "Show your GitHub summary here: open PRs, merged ones, and your pinned repos.")}{" "}
+                <Link href="/account/profile#github-account">{person.github ? tx(locale, "Nyalakan", "Turn it on") : tx(locale, "Tautkan GitHub", "Link GitHub")}</Link>
+              </p>
+            ) : null}
+            {/* Repos the member listed themselves: these make the directory's
+                badges. Beside GitHub's summary only when there are some. */}
+            {isOss && (records.length > 0 || !gh) ? (
               <section className="pf-section" aria-labelledby="oss-heading">
                 <div className="pf-section-head">
-                  <h2 id="oss-heading">{tx(locale, "Kontribusi open source", "Open source contributions")}</h2>
+                  <h2 id="oss-heading">{gh ? tx(locale, "Repo yang dicatat", "Listed repos") : tx(locale, "Kontribusi open source", "Open source contributions")}</h2>
                   {isSelf ? <Link href="/account/profile#open-source">{tx(locale, "Kelola", "Manage")}</Link> : null}
                 </div>
                 {records.length > 0 ? (
@@ -218,7 +243,7 @@ export default async function ProfilePage({
                   <OssRecordEmpty self={isSelf} locale={locale} />
                 )}
               </section>
-            ) : records.length > 0 ? (
+            ) : !isOss && records.length > 0 ? (
               <p className="pf-note">
                 <a href={ossUrl(`/u/${person.username}`)} target="_blank" rel="noreferrer">
                   {tx(locale, "Kontribusi open source-nya ada di oss.swegrowth.id", "Their open source contributions are on oss.swegrowth.id")} ↗

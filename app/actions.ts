@@ -28,7 +28,6 @@ import {
   PROFILE_LIMITS,
   PROFILE_MAXIMUM,
   isEmail,
-  validateGitHub,
   validateProfile,
   validateUsername,
   type ProfileFieldErrors,
@@ -799,46 +798,66 @@ export async function updateProfile(
 }
 
 export type GitHubState = {
-  errors: { github?: string; form?: string };
-  values: { github: string; shown: boolean };
+  errors: { form?: string };
+  values: { shown: boolean };
   saved?: boolean;
 };
 
 /**
- * Saves the GitHub account, and whether its activity may be shown on
+ * Saves whether the linked GitHub account's activity may be shown on
  * /activity.
  *
- * Its own form at the top of /account/profile, because the open source record
- * sits between it and the rest of the profile and forms cannot nest. The yes
- * to /activity goes with the account it is about: without an account there
- * is nothing to show, so clearing the account clears the yes too, and a new
- * account later starts from no.
+ * The account itself is not typed here any more: it is the one linked through
+ * OAuth, which the database records on the profile (see
+ * 20261103000000_linked_github.sql). Without one there is nothing to show, so
+ * the yes is refused rather than stored.
  */
 export async function saveGitHub(_state: GitHubState, formData: FormData): Promise<GitHubState> {
-  const values = { github: text(formData, "github"), shown: formData.get("github_activity") === "1" };
+  const values = { shown: formData.get("github_activity") === "1" };
   const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) {
     return { errors: { form: tx(locale, "Sesi kamu telah berakhir. Masuk kembali, lalu simpan sekali lagi.", "You are no longer signed in. Sign in again, then save once more.") }, values };
   }
+  if (values.shown && !viewer.github) {
+    return { errors: { form: tx(locale, "Tautkan akun GitHub-mu dulu.", "Link your GitHub account first.") }, values: { shown: false } };
+  }
 
-  const checked = validateGitHub(values.github, locale);
-  if ("error" in checked) return { errors: { github: checked.error }, values };
-
-  const shown = checked.url !== "" && values.shown;
   const supabase = await requireSupabase();
-  const { error } = await supabase
-    .from("profiles")
-    .update({ github: checked.url, github_activity_shown: shown })
-    .eq("id", viewer.id);
+  const { error } = await supabase.from("profiles").update({ github_activity_shown: values.shown }).eq("id", viewer.id);
   if (error) return { errors: { form: error.message }, values };
 
-  // The handle is the picture on directory badges and the person on /activity.
   updateTag(tags.person(viewer.username));
   updateTag(tags.people);
-  updateTag(tags.projects);
   updateTag(tags.activity);
   revalidatePath(`/u/${viewer.username}`);
-  return { errors: {}, values: { github: checked.url, shown }, saved: true };
+  return { errors: {}, values, saved: true };
+}
+
+/**
+ * Unlinks the GitHub account. Only offered when the member has another way to
+ * sign in: an account's last identity cannot be unlinked, or nobody could get
+ * back in. The database clears the profile's GitHub and the yes to /activity
+ * when the identity goes.
+ */
+export async function unlinkGitHub(): Promise<void> {
+  const viewer = await currentViewer();
+  if (!viewer) redirect(signInPath("/account/profile#github-account"));
+
+  const supabase = await requireSupabase();
+  const { data } = await supabase.auth.getUserIdentities();
+  const identities = data?.identities ?? [];
+  const github = identities.find((identity) => identity.provider === "github");
+  if (github && identities.length > 1) {
+    const { error } = await supabase.auth.unlinkIdentity(github);
+    if (error) throw new Error(error.message);
+  }
+
+  updateTag(tags.person(viewer.username));
+  updateTag(tags.people);
+  updateTag(tags.activity);
+  updateTag(tags.oss);
+  revalidatePath("/", "layout");
+  redirect("/account/profile#github-account");
 }
 
 export type UsernameState = {
@@ -873,17 +892,19 @@ export async function changeUsername(_state: UsernameState, formData: FormData):
   const { data, error } = await supabase.rpc("change_username", { new_name: checked.username });
   if (error) {
     const message =
-      error.code === "23505"
-        ? tx(locale, "Username itu sudah dipakai. Coba yang lain.", "That username is taken. Try another.")
-        : error.code === "55000"
-          ? tx(locale, "Username baru bisa diubah lagi 30 hari setelah perubahan terakhir.", "A username can only be changed again 30 days after the last change.")
-          : error.code === "22023"
-            ? tx(
-                locale,
-                "Username harus 2 sampai 48 karakter: huruf kecil, angka atau tanda hubung, diawali huruf atau angka.",
-                "A username is 2 to 48 characters: lowercase letters, digits or hyphens, starting with a letter or digit.",
-              )
-            : error.message;
+      error.hint === "github_login"
+        ? tx(locale, "Itu username akun GitHub member lain. Coba yang lain.", "That is another member's GitHub username. Try another.")
+        : error.code === "23505"
+          ? tx(locale, "Username itu sudah dipakai. Coba yang lain.", "That username is taken. Try another.")
+          : error.code === "55000"
+            ? tx(locale, "Username baru bisa diubah lagi 30 hari setelah perubahan terakhir.", "A username can only be changed again 30 days after the last change.")
+            : error.code === "22023"
+              ? tx(
+                  locale,
+                  "Username harus 2 sampai 48 karakter: huruf kecil, angka atau tanda hubung, diawali huruf atau angka.",
+                  "A username is 2 to 48 characters: lowercase letters, digits or hyphens, starting with a letter or digit.",
+                )
+              : error.message;
     return { error: message, username: checked.username };
   }
 

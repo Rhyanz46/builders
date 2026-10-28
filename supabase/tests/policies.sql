@@ -918,6 +918,56 @@ select checks.equal(
   (select username from public.profiles where id = '44444444-4444-4444-8444-444444444444'),
   'admin-2', 'pendaftar baru tidak dapat nama sistem');
 
+-- ----------------------------------------------------------- linked GitHub --
+--
+-- profiles.github is the GitHub account linked through OAuth, written only by
+-- the trigger on auth.identities (20261103000000); a typed handle could be
+-- anybody's.
+
+reset role;
+
+-- A member cannot type a GitHub account onto their profile.
+select checks.act_as('11111111-1111-4111-8111-111111111111');
+select checks.denied(
+  $$update public.profiles set github = 'https://github.com/torvalds' where id = '11111111-1111-4111-8111-111111111111'$$,
+  'menulis akun GitHub langsung ditolak');
+select checks.denied(
+  $$update public.profiles set github_id = 1 where id = '11111111-1111-4111-8111-111111111111'$$,
+  'menulis github_id langsung ditolak');
+reset role;
+
+-- Linking one writes it, with GitHub's numeric id.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('55555555-5555-4555-8555-555555555555', 'tautan@example.test', '{"name": "Tautan"}');
+insert into auth.identities (provider_id, user_id, identity_data, provider) values
+  ('5005', '55555555-5555-4555-8555-555555555555', '{"user_name": "Tautan-GH"}', 'github');
+select checks.equal(
+  (select github from public.profiles where id = '55555555-5555-4555-8555-555555555555'),
+  'https://github.com/Tautan-GH', 'menautkan GitHub mengisi akunnya');
+select checks.equal(
+  (select github_id from public.profiles where id = '55555555-5555-4555-8555-555555555555'),
+  5005::bigint, 'dengan id numerik GitHub');
+
+-- Its handle is that member's: nobody else takes it as a username, at sign-up
+-- or later; its owner may.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('66666666-6666-4666-8666-666666666666', 'peniru@example.test', '{"name": "Peniru", "user_name": "tautan-gh"}');
+select checks.equal(
+  (select username from public.profiles where id = '66666666-6666-4666-8666-666666666666'),
+  'tautan-gh-2', 'pendaftar baru tidak dapat handle GitHub member lain');
+select checks.act_as('66666666-6666-4666-8666-666666666666');
+select checks.denied($$select public.change_username('tautan-gh')$$, 'handle GitHub member lain ditolak sebagai username');
+select checks.act_as('55555555-5555-4555-8555-555555555555');
+select checks.allowed($$select public.change_username('tautan-gh')$$, 'pemilik akun GitHub boleh memakai handle-nya');
+reset role;
+
+-- Unlinking clears it, and the yes to /activity with it.
+update public.profiles set github_activity_shown = true where id = '55555555-5555-4555-8555-555555555555';
+delete from auth.identities where user_id = '55555555-5555-4555-8555-555555555555';
+select checks.equal(
+  (select github || '|' || coalesce(github_id::text, '') || '|' || github_activity_shown::text from public.profiles where id = '55555555-5555-4555-8555-555555555555'),
+  '||false', 'melepas tautan mengosongkan akun dan persetujuan aktivitas');
+
 rollback;
 
 drop schema checks cascade;
