@@ -59,7 +59,12 @@ export type CommitSummaryRow = {
   checked_at: string;
 };
 
-export type Member = { id: string; handle: string };
+/**
+ * A member to ask about: their login, and GitHub's numeric id for the account
+ * they linked. The id is what is checked — a login can be renamed and then
+ * taken by somebody else, the id cannot.
+ */
+export type Member = { id: string; handle: string; githubId?: number };
 
 /** What GitHub said about one member; `found: false` when the account does not exist. */
 export type MemberActivity =
@@ -120,6 +125,7 @@ export function buildQuery(members: Member[], now: Date): string {
     return `
   u${index}: user(login: ${JSON.stringify(handle)}) {
     login
+    databaseId
     organizations(first: 100) { nodes { login } }
     contributionsCollection(from: ${JSON.stringify(commitsSince)}) {
       commitContributionsByRepository(maxRepositories: 25) {
@@ -166,6 +172,7 @@ type Repository = { nameWithOwner?: unknown; isPrivate?: unknown; owner?: { logi
 
 type UserNode = {
   login?: unknown;
+  databaseId?: unknown;
   organizations?: { nodes?: Array<{ login?: unknown } | null> | null } | null;
   contributionsCollection?: {
     commitContributionsByRepository?: Array<{
@@ -221,6 +228,10 @@ export function parseResponse(members: Member[], body: GraphQLBody, now: Date, n
   return members.map((member, index) => {
     const user = data[`u${index}`] as UserNode | undefined;
     if (!user) return { member, found: false };
+    // The login now belongs to a different account than the one linked: the
+    // member renamed theirs and somebody took the old name. Nothing it shows
+    // is theirs.
+    if (member.githubId !== undefined && user.databaseId !== member.githubId) return { member, found: false };
     const searchFailed = failed(body, `p${index}`);
     const search = searchFailed ? undefined : (data[`p${index}`] as Search);
     const nodes = search?.nodes ?? [];

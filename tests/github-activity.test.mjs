@@ -344,3 +344,16 @@ test("the timeline groups by day in WIB, not in the server's UTC", async () => {
   const days = groupByDay([at("a", "2026-10-22T03:00:00Z"), at("b", "2026-10-21T18:00:00Z"), at("c", "2026-10-21T10:00:00Z")]);
   assert.deepEqual(days.map(({ day, entries }) => [day, entries.map((entry) => entry.key)]), [["2026-10-22", ["a", "b"]], ["2026-10-21", ["c"]]]);
 });
+
+test("a login that now belongs to another account than the one linked is not the member's", () => {
+  const now = new Date("2026-10-27T00:00:00Z");
+  const linked = { id: "a", handle: "fajarhide", githubId: 4821 };
+  const query = buildQuery([linked], now);
+  assert.match(query, /databaseId/);
+
+  const [same] = parseResponse([linked], { data: { u0: { login: "fajarhide", databaseId: 4821 }, p0: { issueCount: 0, nodes: [] } } }, now);
+  assert.equal(same.found, true);
+  // Renamed, and somebody else took the old login: a different id answers.
+  const [taken] = parseResponse([linked], { data: { u0: { login: "fajarhide", databaseId: 9999 }, p0: { issueCount: 0, nodes: [] } } }, now);
+  assert.equal(taken.found, false);
+});
