@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { saveGitHub, unlinkGitHub, type GitHubState } from "../actions";
 import { useLanguage } from "./language-provider";
+import type { GitHubLinkFailure } from "../lib/urls";
 
 /**
  * The GitHub account, first on /account/profile: the directory's badges, the
@@ -28,8 +29,8 @@ export function GitHubForm({
   shown: boolean;
   /** Another way to sign in remains, so GitHub may be unlinked. */
   canUnlink: boolean;
-  /** Why the last attempt to link GitHub came back without it. */
-  linkFailure?: "failed" | "taken";
+  /** Why the last attempt to link or unlink GitHub did not happen. */
+  linkFailure?: GitHubLinkFailure;
 }) {
   const [state, formAction, pending] = useActionState(saveGitHub, {
     errors: {},
@@ -64,7 +65,9 @@ export function GitHubForm({
                   "Akun GitHub itu sudah tertaut ke akun lain di sini. Masuk dengan akun itu untuk melepaskannya dulu, atau tautkan akun GitHub yang lain.",
                   "That GitHub account is already linked to another account here. Sign in with that account to unlink it first, or link a different GitHub account.",
                 )
-              : tx("GitHub belum bisa ditautkan. Coba lagi sebentar lagi.", "GitHub could not be linked. Please try again shortly.")}
+              : linkFailure === "unlink"
+                ? tx("Tautan GitHub belum bisa dilepas. Coba lagi sebentar lagi.", "GitHub could not be unlinked. Please try again shortly.")
+                : tx("GitHub belum bisa ditautkan. Coba lagi sebentar lagi.", "GitHub could not be linked. Please try again shortly.")}
           </p>
         ) : null}
 

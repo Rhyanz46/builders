@@ -23,7 +23,7 @@ import { normalisePeopleTerms } from "./lib/people";
 import { isOssRelation, parseRepoRef } from "./lib/oss";
 import { validateRepoSubmission, type RepoSubmissionInput } from "./lib/open-source";
 import { isSiteAdmin } from "./lib/data";
-import { signInPath } from "./lib/urls";
+import { gitHubLinkFailedPath, signInPath } from "./lib/urls";
 import {
   PROFILE_LIMITS,
   PROFILE_MAXIMUM,
@@ -848,8 +848,12 @@ export async function unlinkGitHub(): Promise<void> {
   const identities = data?.identities ?? [];
   const github = identities.find((identity) => identity.provider === "github");
   if (github && identities.length > 1) {
+    // Said on the form rather than thrown: a throw here is a bare 500.
     const { error } = await supabase.auth.unlinkIdentity(github);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error(`[builders] GitHub unlink refused: ${error.code ?? "unknown"}`, error.message);
+      redirect(gitHubLinkFailedPath("/account/profile", "unlink"));
+    }
   }
 
   updateTag(tags.person(viewer.username));
