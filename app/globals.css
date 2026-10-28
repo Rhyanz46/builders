@@ -2592,6 +2592,16 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
   letter-spacing: .06em; margin: 0 0 10px; text-transform: uppercase;
 }
 .pf-bio { color: var(--dx-text); font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-line; }
+.pf-readme { color: var(--dx-text); display: grid; font-size: 14px; gap: 8px; line-height: 1.6; overflow-wrap: anywhere; }
+.pf-readme h3 { font-size: 14px; font-weight: 650; margin: 6px 0 0; }
+.pf-readme h3:first-child { margin-top: 0; }
+.pf-readme p, .pf-readme ul { margin: 0; }
+.pf-readme ul { display: grid; gap: 4px; list-style: disc; padding-left: 18px; }
+.pf-readme li::marker { color: var(--dx-faint); }
+.pf-readme a { color: var(--dx-text); font-weight: 600; text-decoration: underline; text-decoration-color: var(--dx-faint); text-underline-offset: 2px; }
+.pf-readme a:hover { text-decoration-color: currentColor; }
+.pf-readme code { background: var(--dx-soft); border-radius: 4px; font-size: 12px; padding: 1px 4px; }
+.pf-readme .pf-readme-source { color: var(--dx-muted); font-size: 12px; font-weight: 400; text-decoration: none; }
 .pf-tags { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 0; padding: 0; }
 .pf-tags li { background: var(--dx-soft); border-radius: 6px; color: var(--dx-text); font-size: 12px; padding: 3px 8px; }
 
