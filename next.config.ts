@@ -121,6 +121,13 @@ const nextConfig: NextConfig = {
       revalidate: 900,
       expire: 86400,
     },
+    // A member's work as GitHub tells it, on their profile: read from GitHub's
+    // API with the site's token, so asked for at most hourly per member.
+    github: {
+      stale: 300,
+      revalidate: 3600,
+      expire: 86400,
+    },
     // A person's public trail. Append-only in practice, and never urgent.
     trail: {
       stale: 300,

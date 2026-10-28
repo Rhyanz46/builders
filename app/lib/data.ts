@@ -23,6 +23,7 @@ import type { RepoActivity } from "./directory";
 import { githubHandle, isOssRelation, mergeOssRows, type OssContribution, type OssMember, type OssRelation, type OssRow } from "./oss";
 import type { Lane } from "./feed";
 import { buildGitHubActivity, type ActivityPerson, type GitHubActivityEntry } from "./github-activity";
+import { buildProfileQuery, buildPullRequestQuery, organisationsOf, parseProfile, type GitHubProfile } from "./github-profile";
 import type { ReactionRow } from "./reactions";
 import { FEED_KINDS } from "./product-feed";
 import { availabilityStatus, type AvailabilityStatus } from "./availability";
@@ -48,6 +49,8 @@ export type Person = {
   website: string;
   publicEmail: string;
   github: string;
+  /** GitHub's numeric id of the linked account — 20261103000000_linked_github.sql. */
+  githubId?: number | null;
   linkedin: string;
   x: string;
   resume: string;
@@ -579,6 +582,37 @@ export async function isUsernameFreeFor(username: string, self: string): Promise
   ]);
   if (live.error || former.error) return false;
   return (live.data ?? []).length === 0 && (former.data ?? []).length === 0;
+}
+
+/**
+ * A member's open source work as GitHub tells it, for their profile — see
+ * lib/github-profile.ts. Asked of GitHub's GraphQL API with the site's
+ * GITHUB_TOKEN, at most hourly per account; null without a token, for an
+ * account GitHub does not know, or one that is no longer the linked id.
+ */
+export async function getGitHubProfile(login: string, githubId: number | null): Promise<GitHubProfile | null> {
+  "use cache";
+  cacheLife("github");
+  cacheTag(tags.githubProfile(login.toLowerCase()));
+
+  const token = process.env.GITHUB_TOKEN;
+  const first = buildProfileQuery(login);
+  if (!token || !first) return null;
+
+  const ask = async (request: object) => {
+    const response = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "User-Agent": "builders-profile" },
+      body: JSON.stringify(request),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`GitHub answered ${response.status} for ${login}'s profile.`);
+    return response.json();
+  };
+  // Two requests: the searches leave out the organisations the first names.
+  const profile = await ask(first);
+  const second = buildPullRequestQuery(login, organisationsOf(profile));
+  return second ? parseProfile(profile, await ask(second), githubId) : null;
 }
 
 /** A project somebody helps on, together with the role they hold there. */
@@ -1304,6 +1338,7 @@ function toPerson(row: ProfileRow): Person {
     website: row.website ?? "",
     publicEmail: row.public_email ?? "",
     github: row.github ?? "",
+    githubId: row.github_id ?? null,
     linkedin: row.linkedin ?? "",
     x: row.x_url ?? "",
     resume: row.resume_url ?? "",
