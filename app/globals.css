@@ -2389,6 +2389,42 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .pf-section-head { align-items: center; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 12px; }
 .pf-section-head h2 { color: var(--dx-ink); font-size: 17px; font-weight: 650; letter-spacing: -.02em; margin: 0; }
 .pf-section-head > a { color: var(--dx-muted); font-size: 13px; font-weight: 600; }
+.pf-count { color: var(--dx-muted); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 500; margin-left: 4px; }
+/* The GitHub summary: one row a pull request or a repository. */
+.gh-rows { border: 1px solid var(--dx-line); border-radius: 12px; list-style: none; margin: 0; overflow: hidden; padding: 0; }
+.gh-rows li + li { border-top: 1px solid var(--dx-line); }
+.gh-row {
+  color: inherit; display: grid; gap: 2px 12px; grid-template-columns: minmax(0, 1fr) auto; padding: 11px 14px; text-decoration: none;
+}
+.gh-row:hover { background: light-dark(#fafafa, #232323); }
+.gh-row-repo { color: var(--dx-muted); font-size: 12.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh-row-title { color: var(--dx-ink); font-size: 14px; font-weight: 550; grid-column: 1; line-height: 1.4; min-width: 0; }
+.gh-row-meta { color: var(--dx-muted); font-size: 12px; font-variant-numeric: tabular-nums; grid-column: 2; grid-row: 1; text-align: right; white-space: nowrap; }
+.gh-row-repo-only { align-items: center; grid-template-columns: minmax(0, 1fr) auto auto; }
+.gh-row-repo-only .gh-row-repo { color: var(--dx-ink); font-size: 14px; }
+.gh-row-repo-only .gh-row-meta { grid-column: 2; }
+.gh-merged {
+  background: light-dark(#ede9fe, #2e2547); border-radius: 999px; color: light-dark(#6d28d9, #c4b5fd); font-size: 12.5px;
+  font-variant-numeric: tabular-nums; grid-column: 3; grid-row: 1; min-width: 28px; padding: 2px 9px; text-align: center;
+}
+.gh-draft { border: 1px solid var(--dx-line); border-radius: 999px; font-size: 11px; margin-right: 6px; padding: 0 6px; }
+.gh-pinned { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; }
+.gh-pinned a {
+  border: 1px solid var(--dx-line); border-radius: 12px; color: inherit; display: flex; flex-direction: column; gap: 6px; height: 100%;
+  padding: 12px 14px; text-decoration: none;
+}
+.gh-pinned a:hover { border-color: light-dark(#a1a1aa, #52525b); }
+.gh-pinned strong { color: var(--dx-ink); font-size: 13.5px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh-pinned p {
+  -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--dx-muted); display: -webkit-box; font-size: 12.5px; line-height: 1.45;
+  margin: 0; overflow: hidden;
+}
+.gh-pinned-meta { color: var(--dx-muted); display: flex; font-size: 12px; gap: 12px; margin-top: auto; }
+.gh-pinned-meta i { border-radius: 50%; display: inline-block; height: 9px; margin-right: 5px; width: 9px; }
+@media (max-width: 640px) {
+  .gh-pinned { grid-template-columns: minmax(0, 1fr); }
+  .pf-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .pf-section-head > a:hover { color: var(--dx-ink); }
 .pf-trail-modes { background: var(--dx-soft); border-radius: 8px; display: flex; gap: 2px; padding: 2px; }
 .pf-trail-modes a { border-radius: 6px; color: var(--dx-muted); font-size: 12px; font-weight: 600; padding: 4px 10px; }
@@ -2562,6 +2598,8 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 @media (max-width: 900px) {
   .pf-layout { grid-template-columns: minmax(0, 1fr); }
   .pf-side { order: -1; }
+  /* With GitHub's summary the work leads; the bio and skills follow it. */
+  .pf-layout.has-github .pf-side { order: 0; }
 }
 @media (max-width: 640px) {
   .pf-head { flex-wrap: wrap; gap: 14px; }
