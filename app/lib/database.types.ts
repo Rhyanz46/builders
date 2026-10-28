@@ -77,7 +77,12 @@ export type ProfileRow = {
   availability_status: string;
   website: string;
   public_email: string;
+  /** The linked GitHub account's URL, written only from auth.identities — 20261103000000_linked_github.sql. */
   github: string;
+  /** GitHub's numeric id of the linked account; null when none is linked. */
+  github_id: number | null;
+  /** A handle typed before accounts had to be linked: shown to its owner as what to link, trusted by nothing. */
+  github_typed: string;
   linkedin: string;
   x_url: string;
   resume_url: string;

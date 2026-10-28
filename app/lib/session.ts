@@ -5,7 +5,11 @@ import type { Person } from "./data";
 import type { ProfileRow } from "./database.types";
 import { availabilityStatus } from "./availability";
 
-export type Viewer = Person & { email: string };
+export type Viewer = Person & {
+  email: string;
+  /** A GitHub handle they typed before accounts had to be linked, or empty: what the editor asks them to link. */
+  githubTyped: string;
+};
 
 type AuthIdentity = {
   id: string;
@@ -119,25 +123,22 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
 });
 
 /**
- * The GitHub handle of the account linked to this sign-in, or empty when
- * GitHub is not linked. Verified by GitHub's OAuth, unlike the profile's
- * GitHub field, which anyone can type anyone's handle into — so this is the
- * one the username editor may suggest.
+ * The providers this account can sign in with — `github`, `google`, `email` —
+ * or none when that cannot be read. The profile editor offers to unlink
+ * GitHub only when another way in remains.
  *
- * Asks the Auth server for the user, a round trip `getClaims()` avoids, so
- * only the profile editor calls it.
+ * Asks the Auth server, a round trip `getClaims()` avoids, so only the
+ * profile editor calls it.
  */
-export async function linkedGitHubHandle(): Promise<string> {
+export async function signInProviders(): Promise<string[]> {
   try {
     const supabase = await getSupabase();
-    if (!supabase) return "";
-    const { data } = await supabase.auth.getUser();
-    const identity = data.user?.identities?.find((item) => item.provider === "github");
-    const handle = identity?.identity_data?.user_name;
-    return typeof handle === "string" ? handle : "";
+    if (!supabase) return [];
+    const { data } = await supabase.auth.getUserIdentities();
+    return (data?.identities ?? []).map((identity) => identity.provider);
   } catch (error) {
     unstable_rethrow(error);
-    return "";
+    return [];
   }
 }
 
@@ -187,6 +188,7 @@ function toViewer(profile: ProfileRow, email: string): Viewer {
     resume: profile.resume_url ?? "",
     activityHidden: profile.activity_hidden ?? [],
     githubActivityShown: profile.github_activity_shown === true,
+    githubTyped: profile.github_typed ?? "",
     email,
   };
 }

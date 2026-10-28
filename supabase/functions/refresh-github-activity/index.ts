@@ -7,8 +7,8 @@
  * 20261024000000_github_activity.sql):
  *
  *   - by pg_cron every half hour, with an empty body: every member who has
- *     agreed to be shown (profiles.github_activity_shown) and has a GitHub
- *     account on their profile;
+ *     agreed to be shown (profiles.github_activity_shown) and has linked a
+ *     GitHub account (profiles.github_id, see 20261103000000_linked_github.sql);
  *   - by a trigger when somebody changes either of those, with
  *     `{ "users": ["<uuid>"] }`: just them, now.
  *
@@ -68,7 +68,14 @@ async function refresh(asked: string[] | null): Promise<void> {
   const token = Deno.env.get("GITHUB_TOKEN");
   if (!token) throw new Error("GITHUB_TOKEN is not set.");
 
-  let request = supabase.from("profiles").select("id, github").eq("github_activity_shown", true).neq("github", "");
+  // Only accounts linked through OAuth (github_id set): a handle somebody
+  // typed is not gathered, and the clean-up below clears what was.
+  let request = supabase
+    .from("profiles")
+    .select("id, github, github_id")
+    .eq("github_activity_shown", true)
+    .neq("github", "")
+    .not("github_id", "is", null);
   if (asked) request = request.in("id", asked);
   const { data, error } = await request;
   if (error) throw new Error(error.message);
@@ -76,7 +83,8 @@ async function refresh(asked: string[] | null): Promise<void> {
   const members: Member[] = [];
   for (const row of data ?? []) {
     const handle = githubHandle(String(row.github ?? ""));
-    if (handle) members.push({ id: row.id, handle });
+    const githubId = Number(row.github_id);
+    if (handle && Number.isSafeInteger(githubId)) members.push({ id: row.id, handle, githubId });
   }
 
   // Somebody asked about who took their yes back, or has no GitHub account

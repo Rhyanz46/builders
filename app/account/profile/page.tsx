@@ -11,7 +11,7 @@ import { OssAddForm, OssRecordEmpty, OssRecordList } from "../../components/oss-
 import { githubHandle } from "../../lib/oss";
 import { termSuggestions } from "../../lib/people";
 import { readPublicly } from "../../lib/public-read";
-import { currentViewer, linkedGitHubHandle, type Viewer } from "../../lib/session";
+import { currentViewer, signInProviders, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
@@ -54,16 +54,18 @@ export default async function EditProfilePage({
   ]);
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
   const handle = githubHandle(viewer.github);
-  // Offer the handle of the GitHub account linked at sign-in — verified, not
-  // the free-text field above — and only when it is a legal name nobody else
-  // holds or has left behind. The database still has the last word on save.
-  const linked = await linkedGitHubHandle();
-  const handleCheck = linked ? validateUsername(linked) : null;
+  // The account on the profile is the one linked through OAuth, so its handle
+  // is verified and may be offered as the username — when it is a legal name
+  // nobody else holds or has left behind. The database has the last word.
+  const handleCheck = handle ? validateUsername(handle) : null;
   const candidate = handleCheck && "username" in handleCheck ? handleCheck.username : "";
-  const usernameSuggestion =
-    candidate && candidate !== viewer.username && (await readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false)).value
-      ? candidate
-      : undefined;
+  const [providers, free] = await Promise.all([
+    signInProviders(),
+    candidate && candidate !== viewer.username
+      ? readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false).then((result) => result.value)
+      : Promise.resolve(false),
+  ]);
+  const usernameSuggestion = free ? candidate : undefined;
 
   return (
     <>
@@ -80,7 +82,12 @@ export default async function EditProfilePage({
         {/* First, because the directory is built from it: the badge faces,
             the evidence links and the Activity page all read this account.
             A form of its own, since the open source record below is one too. */}
-        <GitHubForm github={handle ? `https://github.com/${handle}` : viewer.github} shown={viewer.githubActivityShown} />
+        <GitHubForm
+          handle={handle}
+          typed={githubHandle(viewer.githubTyped) || viewer.githubTyped}
+          shown={viewer.githubActivityShown}
+          canUnlink={providers.includes("github") && providers.length > 1}
+        />
 
         {/* Next to GitHub on purpose: the two are a member's identity here, and
             the handle above is offered as the profile URL below. */}
