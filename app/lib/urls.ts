@@ -20,10 +20,12 @@ export function safeNextPath(value: string | null | undefined): string {
   }
 }
 
-export type GitHubLinkFailure = "failed" | "taken" | "unlink";
+/** Why linking or switching GitHub did not happen: refused, already another
+ * member's, or the very account already linked. */
+export type GitHubLinkFailure = "failed" | "taken" | "same";
 
 /**
- * Back where somebody asked to link (or unlink) GitHub, saying why it did not happen.
+ * Back where somebody asked to link (or switch) GitHub, saying why it did not happen.
  * Not /signin: they are signed in already, and /signin sends anyone signed in
  * straight on to `next` — so the failure would vanish without a word.
  */

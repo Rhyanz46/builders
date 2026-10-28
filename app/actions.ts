@@ -23,7 +23,7 @@ import { normalisePeopleTerms } from "./lib/people";
 import { isOssRelation, parseRepoRef } from "./lib/oss";
 import { validateRepoSubmission, type RepoSubmissionInput } from "./lib/open-source";
 import { isSiteAdmin } from "./lib/data";
-import { gitHubLinkFailedPath, signInPath } from "./lib/urls";
+import { signInPath } from "./lib/urls";
 import {
   PROFILE_LIMITS,
   PROFILE_MAXIMUM,
@@ -831,37 +831,6 @@ export async function saveGitHub(_state: GitHubState, formData: FormData): Promi
   updateTag(tags.activity);
   revalidatePath(`/u/${viewer.username}`);
   return { errors: {}, values, saved: true };
-}
-
-/**
- * Unlinks the GitHub account. Only offered when the member has another way to
- * sign in: an account's last identity cannot be unlinked, or nobody could get
- * back in. The database clears the profile's GitHub and the yes to /activity
- * when the identity goes.
- */
-export async function unlinkGitHub(): Promise<void> {
-  const viewer = await currentViewer();
-  if (!viewer) redirect(signInPath("/account/profile#github-account"));
-
-  const supabase = await requireSupabase();
-  const { data } = await supabase.auth.getUserIdentities();
-  const identities = data?.identities ?? [];
-  const github = identities.find((identity) => identity.provider === "github");
-  if (github && identities.length > 1) {
-    // Said on the form rather than thrown: a throw here is a bare 500.
-    const { error } = await supabase.auth.unlinkIdentity(github);
-    if (error) {
-      console.error(`[builders] GitHub unlink refused: ${error.code ?? "unknown"}`, error.message);
-      redirect(gitHubLinkFailedPath("/account/profile", "unlink"));
-    }
-  }
-
-  updateTag(tags.person(viewer.username));
-  updateTag(tags.people);
-  updateTag(tags.activity);
-  updateTag(tags.oss);
-  revalidatePath("/", "layout");
-  redirect("/account/profile#github-account");
 }
 
 export type UsernameState = {

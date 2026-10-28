@@ -11,7 +11,7 @@ import { OssAddForm, OssRecordEmpty, OssRecordList } from "../../components/oss-
 import { githubHandle } from "../../lib/oss";
 import { termSuggestions } from "../../lib/people";
 import { readPublicly } from "../../lib/public-read";
-import { currentViewer, signInProviders, type Viewer } from "../../lib/session";
+import { currentViewer, type Viewer } from "../../lib/session";
 import { signInPath } from "../../lib/urls";
 import { currentLocale } from "../../lib/locale-server";
 import { tx } from "../../lib/locale";
@@ -53,19 +53,17 @@ export default async function EditProfilePage({
     readPublicly("open source record in the editor", () => listOssContributionsOf(viewer.id), []),
   ]);
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
-  const linkFailure = (["failed", "taken", "unlink"] as const).find((reason) => reason === query["github-link"]);
+  const linkFailure = (["failed", "taken", "same"] as const).find((reason) => reason === query["github-link"]);
   const handle = githubHandle(viewer.github);
   // The account on the profile is the one linked through OAuth, so its handle
   // is verified and may be offered as the username — when it is a legal name
   // nobody else holds or has left behind. The database has the last word.
   const handleCheck = handle ? validateUsername(handle) : null;
   const candidate = handleCheck && "username" in handleCheck ? handleCheck.username : "";
-  const [providers, free] = await Promise.all([
-    signInProviders(),
+  const free =
     candidate && candidate !== viewer.username
-      ? readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false).then((result) => result.value)
-      : Promise.resolve(false),
-  ]);
+      ? (await readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false)).value
+      : false;
   const usernameSuggestion = free ? candidate : undefined;
 
   return (
@@ -87,7 +85,6 @@ export default async function EditProfilePage({
           handle={handle}
           typed={githubHandle(viewer.githubTyped) || viewer.githubTyped}
           shown={viewer.githubActivityShown}
-          canUnlink={providers.includes("github") && providers.length > 1}
           linkFailure={linkFailure}
         />
 

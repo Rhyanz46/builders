@@ -961,8 +961,18 @@ select checks.act_as('55555555-5555-4555-8555-555555555555');
 select checks.allowed($$select public.change_username('tautan-gh')$$, 'pemilik akun GitHub boleh memakai handle-nya');
 reset role;
 
--- Unlinking clears it, and the yes to /activity with it.
+-- Switching: a second GitHub account linked, then the first removed. The
+-- new one stays, and so does the yes to /activity.
 update public.profiles set github_activity_shown = true where id = '55555555-5555-4555-8555-555555555555';
+insert into auth.identities (provider_id, user_id, identity_data, provider) values
+  ('7007', '55555555-5555-4555-8555-555555555555', '{"user_name": "Tautan-Baru"}', 'github');
+update auth.identities set identity_data = '{"user_name": "Tautan-GH"}', updated_at = now() where provider_id = '5005';
+delete from auth.identities where provider_id = '5005';
+select checks.equal(
+  (select github || '|' || github_id::text || '|' || github_activity_shown::text from public.profiles where id = '55555555-5555-4555-8555-555555555555'),
+  'https://github.com/Tautan-Baru|7007|true', 'mengganti akun GitHub menyimpan akun yang baru');
+
+-- Removing the last one clears it, and the yes to /activity with it.
 delete from auth.identities where user_id = '55555555-5555-4555-8555-555555555555';
 select checks.equal(
   (select github || '|' || coalesce(github_id::text, '') || '|' || github_activity_shown::text from public.profiles where id = '55555555-5555-4555-8555-555555555555'),

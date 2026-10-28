@@ -40,6 +40,9 @@ const PINNED = "origin";
  */
 export async function startOAuth(request: NextRequest, provider: OAuthProvider): Promise<NextResponse> {
   const next = safeNextPath(request.nextUrl.searchParams.get("next"));
+  // GitHub only: link another GitHub account in place of the one linked. The
+  // callback then unlinks the old one.
+  const switching = provider === "github" && request.nextUrl.searchParams.get("switch") === "1";
 
   // Where the whole round trip has to happen: the verifier written below and
   // the callback that reads it back must be the same host, and this is the
@@ -50,6 +53,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
   if (pinned && pinned !== browser && request.nextUrl.searchParams.get(PINNED) !== "utama") {
     const start = new URL(`/auth/${provider}`, pinned);
     start.searchParams.set("next", next);
+    if (switching) start.searchParams.set("switch", "1");
     start.searchParams.set(PINNED, "utama");
     return NextResponse.redirect(start);
   }
@@ -91,13 +95,13 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
   if (provider === "github") {
     const { data: viewer } = await supabase.auth.getUser();
     const linked = viewer.user?.identities?.some((identity) => identity.provider === "github");
-    if (viewer.user && !linked) {
+    if (viewer.user && (!linked || switching)) {
       linking = true;
       const { data, error } = await supabase.auth.linkIdentity({ provider, options });
       started = { url: data.url, error };
     } else {
-      // Signed out, or GitHub already linked: signing in with it lands on the
-      // same account.
+      // Signed out, or GitHub already linked and not being switched: signing
+      // in with it lands on the same account.
       const { data, error } = await supabase.auth.signInWithOAuth({ provider, options });
       started = { url: data.url, error };
     }
