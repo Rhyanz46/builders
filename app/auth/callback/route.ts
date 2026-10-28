@@ -2,7 +2,7 @@ import { type NextRequest, type NextResponse } from "next/server";
 import { getSupabase } from "../../lib/supabase";
 import { siteOrigin } from "../../lib/origin";
 import { sameOriginRedirect } from "../../lib/redirect";
-import { pinnedOrigin, safeNextPath, startPath } from "../../lib/urls";
+import { gitHubLinkFailedPath, pinnedOrigin, safeNextPath, startPath } from "../../lib/urls";
 
 /**
  * Exchanges a provider's short-lived OAuth code — Google's or GitHub's — for
@@ -52,6 +52,15 @@ export async function GET(request: NextRequest) {
     const missingVerifier = /code[ _]verifier/i.test(error.message);
     failure.set("error", missingVerifier ? "origin-mismatch" : `${via}-failed`);
   } else {
+    // No code: the provider or Supabase refused. Somebody already signed in
+    // was linking GitHub, and /signin would bounce them straight back without
+    // a word — so say it where they started. A GitHub account already on
+    // another member is the one refusal worth naming.
+    const errorCode = request.nextUrl.searchParams.get("error_code");
+    if (via === "github" && supabase && (await supabase.auth.getUser()).data.user) {
+      console.error(`[builders] GitHub link refused: ${errorCode ?? "unknown"}`, request.nextUrl.searchParams.get("error_description"));
+      return sameOriginRedirect(gitHubLinkFailedPath(next, errorCode === "identity_already_exists" ? "taken" : "failed"));
+    }
     failure.set("error", `${via}-failed`);
   }
 

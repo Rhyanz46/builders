@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { resilientSupabaseFetch } from "./resilient-fetch";
 import { sameOriginRedirect } from "./redirect";
 import { siteOrigin } from "./origin";
-import { pinnedOrigin, safeNextPath } from "./urls";
+import { gitHubLinkFailedPath, pinnedOrigin, safeNextPath } from "./urls";
 import { authCookieOptions, site } from "./site";
 
 export type OAuthProvider = "google" | "github";
@@ -86,11 +86,13 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
 
   const options = { redirectTo: callback.toString(), skipBrowserRedirect: true };
   let started: { url: string | null; error: unknown };
+  let linking = false;
 
   if (provider === "github") {
     const { data: viewer } = await supabase.auth.getUser();
     const linked = viewer.user?.identities?.some((identity) => identity.provider === "github");
     if (viewer.user && !linked) {
+      linking = true;
       const { data, error } = await supabase.auth.linkIdentity({ provider, options });
       started = { url: data.url, error };
     } else {
@@ -106,7 +108,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
 
   if (started.error || !started.url) {
     console.error(`[builders] ${provider} OAuth could not start.`, started.error);
-    return refuse(provider, next);
+    return linking ? sameOriginRedirect(gitHubLinkFailedPath(next, "failed")) : refuse(provider, next);
   }
 
   if (!pending.some(({ name }) => name.endsWith("-code-verifier"))) {
@@ -114,7 +116,7 @@ export async function startOAuth(request: NextRequest, provider: OAuthProvider):
     // send them back to a failure. Better to stop here than to spend
     // somebody's time proving it.
     console.error(`[builders] No PKCE verifier was created; ${provider} OAuth was cancelled.`);
-    return refuse(provider, next);
+    return linking ? sameOriginRedirect(gitHubLinkFailedPath(next, "failed")) : refuse(provider, next);
   }
 
   const destination = provider === "github" ? await viaOurDomain(started.url, pinned ?? browser) : started.url;

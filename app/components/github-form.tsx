@@ -19,6 +19,7 @@ export function GitHubForm({
   typed,
   shown,
   canUnlink,
+  linkFailure,
 }: {
   /** The linked account's login, or empty. */
   handle: string;
@@ -27,6 +28,8 @@ export function GitHubForm({
   shown: boolean;
   /** Another way to sign in remains, so GitHub may be unlinked. */
   canUnlink: boolean;
+  /** Why the last attempt to link GitHub came back without it. */
+  linkFailure?: "failed" | "taken";
 }) {
   const [state, formAction, pending] = useActionState(saveGitHub, {
     errors: {},
@@ -51,6 +54,17 @@ export function GitHubForm({
         {errors.form ? (
           <p className="form-error" role="alert">
             {errors.form}
+          </p>
+        ) : null}
+
+        {linkFailure ? (
+          <p className="form-error" role="alert">
+            {linkFailure === "taken"
+              ? tx(
+                  "Akun GitHub itu sudah tertaut ke akun lain di sini. Masuk dengan akun itu untuk melepaskannya dulu, atau tautkan akun GitHub yang lain.",
+                  "That GitHub account is already linked to another account here. Sign in with that account to unlink it first, or link a different GitHub account.",
+                )
+              : tx("GitHub belum bisa ditautkan. Coba lagi sebentar lagi.", "GitHub could not be linked. Please try again shortly.")}
           </p>
         ) : null}
 

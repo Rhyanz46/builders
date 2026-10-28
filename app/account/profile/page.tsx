@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function EditProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ returnTo?: string | string[]; oss?: string | string[] }>;
+  searchParams: Promise<{ returnTo?: string | string[]; oss?: string | string[]; "github-link"?: string | string[] }>;
 }) {
   const [viewer, locale] = await Promise.all([currentViewer(), currentLocale()]);
   if (!viewer) redirect(signInPath("/account/profile"));
@@ -53,6 +53,7 @@ export default async function EditProfilePage({
     readPublicly("open source record in the editor", () => listOssContributionsOf(viewer.id), []),
   ]);
   const ossStatus = typeof query.oss === "string" ? query.oss : "";
+  const linkFailure = query["github-link"] === "taken" ? "taken" : query["github-link"] === "failed" ? "failed" : undefined;
   const handle = githubHandle(viewer.github);
   // The account on the profile is the one linked through OAuth, so its handle
   // is verified and may be offered as the username — when it is a legal name
@@ -87,6 +88,7 @@ export default async function EditProfilePage({
           typed={githubHandle(viewer.githubTyped) || viewer.githubTyped}
           shown={viewer.githubActivityShown}
           canUnlink={providers.includes("github") && providers.length > 1}
+          linkFailure={handle ? undefined : linkFailure}
         />
 
         {/* Next to GitHub on purpose: the two are a member's identity here, and
