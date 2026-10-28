@@ -123,26 +123,6 @@ export const currentViewer = cache(async (): Promise<Viewer | null> => {
 });
 
 /**
- * The providers this account can sign in with — `github`, `google`, `email` —
- * or none when that cannot be read. The profile editor offers to unlink
- * GitHub only when another way in remains.
- *
- * Asks the Auth server, a round trip `getClaims()` avoids, so only the
- * profile editor calls it.
- */
-export async function signInProviders(): Promise<string[]> {
-  try {
-    const supabase = await getSupabase();
-    if (!supabase) return [];
-    const { data } = await supabase.auth.getUserIdentities();
-    return (data?.identities ?? []).map((identity) => identity.provider);
-  } catch (error) {
-    unstable_rethrow(error);
-    return [];
-  }
-}
-
-/**
  * Local preview only: `DEV_VIEW_AS=<username>` in .env.local shows the site as
  * that member under `next dev`, because signing in through GitHub returns to
  * the deployed site rather than to localhost.
