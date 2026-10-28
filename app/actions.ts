@@ -833,33 +833,6 @@ export async function saveGitHub(_state: GitHubState, formData: FormData): Promi
   return { errors: {}, values, saved: true };
 }
 
-/**
- * Unlinks the GitHub account. Only offered when the member has another way to
- * sign in: an account's last identity cannot be unlinked, or nobody could get
- * back in. The database clears the profile's GitHub and the yes to /activity
- * when the identity goes.
- */
-export async function unlinkGitHub(): Promise<void> {
-  const viewer = await currentViewer();
-  if (!viewer) redirect(signInPath("/account/profile#github-account"));
-
-  const supabase = await requireSupabase();
-  const { data } = await supabase.auth.getUserIdentities();
-  const identities = data?.identities ?? [];
-  const github = identities.find((identity) => identity.provider === "github");
-  if (github && identities.length > 1) {
-    const { error } = await supabase.auth.unlinkIdentity(github);
-    if (error) throw new Error(error.message);
-  }
-
-  updateTag(tags.person(viewer.username));
-  updateTag(tags.people);
-  updateTag(tags.activity);
-  updateTag(tags.oss);
-  revalidatePath("/", "layout");
-  redirect("/account/profile#github-account");
-}
-
 export type UsernameState = {
   error?: string;
   username: string;

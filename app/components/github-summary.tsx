@@ -1,4 +1,5 @@
 import type { GitHubProfile } from "../lib/github-profile";
+import type { ReadmeInline } from "../lib/readme";
 import { tx, type Locale } from "../lib/locale";
 
 /**
@@ -105,6 +106,57 @@ export function GitHubSummary({ profile, locale }: { profile: GitHubProfile; loc
         </section>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Their GitHub profile README as the profile's description: the words only,
+ * rendered as text (see lib/readme.ts), with the whole thing a click away.
+ */
+export function GitHubReadme({ profile, locale }: { profile: GitHubProfile; locale: Locale }) {
+  return (
+    <div className="pf-readme">
+      {profile.readme.map((block, index) =>
+        block.kind === "heading" ? (
+          <h3 key={index}>
+            <Inlines parts={block.inlines} />
+          </h3>
+        ) : block.kind === "list" ? (
+          <ul key={index}>
+            {block.items.map((item, itemIndex) => (
+              <li key={itemIndex}>
+                <Inlines parts={item} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p key={index}>
+            <Inlines parts={block.inlines} />
+          </p>
+        ),
+      )}
+      <a className="pf-readme-source" href={`https://github.com/${profile.login}`} target="_blank" rel="noreferrer">
+        {tx(locale, "README di GitHub", "README on GitHub")} ↗
+      </a>
+    </div>
+  );
+}
+
+function Inlines({ parts }: { parts: ReadmeInline[] }) {
+  return parts.map((part, index) =>
+    part.kind === "link" ? (
+      <a key={index} href={part.href} target="_blank" rel="noreferrer nofollow">
+        {part.text}
+      </a>
+    ) : part.kind === "strong" ? (
+      <strong key={index}>{part.text}</strong>
+    ) : part.kind === "em" ? (
+      <em key={index}>{part.text}</em>
+    ) : part.kind === "code" ? (
+      <code key={index}>{part.text}</code>
+    ) : (
+      part.text
+    ),
   );
 }
 

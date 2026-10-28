@@ -1,3 +1,5 @@
+import { parseReadme, type ReadmeBlock } from "./readme";
+
 /**
  * A member's open source work as GitHub tells it, for their profile: the
  * repositories they pinned, the year's contribution counts, the pull requests
@@ -7,6 +9,8 @@
  * "Other people's" means a repository neither under their own login nor one
  * whose owner they belong to (GitHub's OWNER / MEMBER author association) —
  * the same line /activity draws between contributions and own work.
+ *
+ * Their profile README comes with it, as the description: see readme.ts.
  *
  * No Next.js or Supabase imports, so tests/github-profile.test.mjs can call
  * these directly; data.ts does the fetching and the caching.
@@ -31,6 +35,8 @@ export type MergedRepo = { repo: string; url: string; merged: number; lastMerged
 
 export type GitHubProfile = {
   login: string;
+  /** The profile README's words, or none. */
+  readme: ReadmeBlock[];
   pinned: PinnedRepo[];
   /** This year's numbers, from GitHub's contribution calendar. */
   year: { contributions: number; commits: number; pullRequests: number; reviews: number };
@@ -72,6 +78,10 @@ export function buildProfileQuery(login: string): { query: string; variables: Re
       totalPullRequestReviewContributions
     }
     repositoriesContributedTo(first: 1, contributionTypes: [PULL_REQUEST], includeUserRepositories: false) { totalCount }
+  }
+  readme: repository(owner: $login, name: $login) {
+    isPrivate
+    object(expression: "HEAD:README.md") { ... on Blob { text } }
   }
 }`,
     variables: { login },
@@ -123,7 +133,8 @@ type PullRequestNode = {
  * by somebody else must not show their work).
  */
 export function parseProfile(profileBody: unknown, pullRequestBody: unknown, githubId?: number | null): GitHubProfile | null {
-  const user = (profileBody as { data?: { user?: Record<string, unknown> | null } | null } | null)?.data?.user;
+  const profileData = (profileBody as { data?: { user?: Record<string, unknown> | null; readme?: { isPrivate?: unknown; object?: { text?: unknown } | null } | null } | null } | null)?.data;
+  const user = profileData?.user;
   const data = (pullRequestBody as { data?: Record<string, unknown> | null } | null)?.data ?? null;
   if (!user || typeof user.login !== "string") return null;
   if (githubId != null && user.databaseId !== githubId) return null;
@@ -182,8 +193,13 @@ export function parseProfile(profileBody: unknown, pullRequestBody: unknown, git
   }
   const repos = [...byRepo.values()].sort((a, b) => b.merged - a.merged || b.lastMergedAt.localeCompare(a.lastMergedAt));
 
+  // No profile repository is a GraphQL error beside the user, not a failure.
+  const readmeRepo = profileData?.readme;
+  const readme = readmeRepo && readmeRepo.isPrivate !== true && typeof readmeRepo.object?.text === "string" ? parseReadme(readmeRepo.object.text) : [];
+
   return {
     login,
+    readme,
     pinned,
     year,
     reposContributedTo,

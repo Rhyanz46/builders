@@ -72,3 +72,41 @@ test("an account that is not the linked one shows nothing", () => {
   assert.equal(parseProfile(profile, { data: {} }, 99), null);
   assert.equal(parseProfile({ data: { user: null } }, { data: {} }), null);
 });
+
+test("the profile README becomes the description, as words only", async () => {
+  const { parseReadme } = await import("../app/lib/readme.ts");
+  const blocks = parseReadme(`<h1 align="center">Hi, I'm Ana <img src="wave.gif" width="28"></h1>
+<p align="center"><a href="https://ana.dev"><img src="https://img.shields.io/badge/site-blue"></a></p>
+
+[![Stats](https://github-readme-stats.vercel.app/api?username=ana)](https://github.com/ana)
+
+I build **developer tools** and <script>alert(1)</script>write about _Go_.
+
+## Stack
+
+| a | b |
+|---|---|
+
+## Projects
+- **[tool](https://github.com/ana/tool)** — a tool
+- [local](./docs) and \`code\`
+
+\`\`\`js
+console.log("stats")
+\`\`\`
+`);
+  assert.deepEqual(blocks, [
+    { kind: "paragraph", inlines: [{ kind: "text", text: "Hi, I'm Ana" }] },
+    { kind: "paragraph", inlines: [{ kind: "text", text: "I build " }, { kind: "strong", text: "developer tools" }, { kind: "text", text: " and write about " }, { kind: "em", text: "Go" }, { kind: "text", text: "." }] },
+    { kind: "heading", inlines: [{ kind: "text", text: "Projects" }] },
+    { kind: "list", items: [
+      [{ kind: "link", text: "tool", href: "https://github.com/ana/tool" }, { kind: "text", text: " — a tool" }],
+      [{ kind: "text", text: "local" }, { kind: "text", text: " and " }, { kind: "code", text: "code" }],
+    ] },
+  ]);
+
+  const withReadme = structuredClone(profile);
+  withReadme.data.readme = { isPrivate: false, object: { text: "Hello there" } };
+  assert.deepEqual(parseProfile(withReadme, { data: {} }, 42).readme, [{ kind: "paragraph", inlines: [{ kind: "text", text: "Hello there" }] }]);
+  assert.deepEqual(parseProfile(profile, { data: {} }, 42).readme, []);
+});

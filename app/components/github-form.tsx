@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveGitHub, unlinkGitHub, type GitHubState } from "../actions";
+import { saveGitHub, type GitHubState } from "../actions";
 import { useLanguage } from "./language-provider";
+import type { GitHubLinkFailure } from "../lib/urls";
 
 /**
  * The GitHub account, first on /account/profile: the directory's badges, the
@@ -18,15 +19,15 @@ export function GitHubForm({
   handle,
   typed,
   shown,
-  canUnlink,
+  linkFailure,
 }: {
   /** The linked account's login, or empty. */
   handle: string;
   /** A handle typed before accounts had to be linked, to say what to link. */
   typed: string;
   shown: boolean;
-  /** Another way to sign in remains, so GitHub may be unlinked. */
-  canUnlink: boolean;
+  /** Why the last attempt to link or unlink GitHub did not happen. */
+  linkFailure?: GitHubLinkFailure;
 }) {
   const [state, formAction, pending] = useActionState(saveGitHub, {
     errors: {},
@@ -35,6 +36,9 @@ export function GitHubForm({
   const { errors, values } = state;
   const { tx } = useLanguage();
   const linkHref = `/auth/github?next=${encodeURIComponent("/account/profile")}`;
+  // Switched, never unlinked: somebody who signs in with GitHub must keep a
+  // GitHub account to sign in with.
+  const switchHref = `/auth/github?switch=1&next=${encodeURIComponent("/account/profile")}`;
 
   return (
     <form className="create-form gh-form" action={formAction} id="github-account">
@@ -54,20 +58,42 @@ export function GitHubForm({
           </p>
         ) : null}
 
+        {linkFailure ? (
+          <p className="form-error" role="alert">
+            {linkFailure === "taken"
+              ? tx(
+                  "Akun GitHub itu sudah tertaut ke akun lain di sini. Masuk dengan akun itu untuk melepaskannya dulu, atau tautkan akun GitHub yang lain.",
+                  "That GitHub account is already linked to another account here. Sign in with that account to unlink it first, or link a different GitHub account.",
+                )
+              : linkFailure === "same"
+                ? tx(
+                    "GitHub mengembalikan akun yang sama. Pindah dulu ke akun GitHub yang lain di github.com, lalu ganti lagi.",
+                    "GitHub returned the same account. Switch to the other account on github.com first, then try again.",
+                  )
+                : tx("GitHub belum bisa ditautkan. Coba lagi sebentar lagi.", "GitHub could not be linked. Please try again shortly.")}
+          </p>
+        ) : null}
+
         {handle ? (
-          <div className="gh-linked">
-            {/* eslint-disable-next-line @next/next/no-img-element -- the member's GitHub picture */}
-            <img src={`https://github.com/${encodeURIComponent(handle)}.png?size=64`} alt="" width={32} height={32} />
-            <a href={`https://github.com/${handle}`} target="_blank" rel="noopener noreferrer">
-              @{handle}
-            </a>
-            <span className="gh-linked-mark">✓ {tx("Tertaut", "Linked")}</span>
-            {canUnlink ? (
-              <button type="submit" className="text-button" formAction={unlinkGitHub} formNoValidate>
-                {tx("Lepaskan tautan", "Unlink")}
-              </button>
-            ) : null}
-          </div>
+          <>
+            <div className="gh-linked">
+              {/* eslint-disable-next-line @next/next/no-img-element -- the member's GitHub picture */}
+              <img src={`https://github.com/${encodeURIComponent(handle)}.png?size=64`} alt="" width={32} height={32} />
+              <a href={`https://github.com/${handle}`} target="_blank" rel="noopener noreferrer">
+                @{handle}
+              </a>
+              <span className="gh-linked-mark">✓ {tx("Tertaut", "Linked")}</span>
+              <a className="text-button" href={switchHref}>
+                {tx("Ganti akun", "Switch account")}
+              </a>
+            </div>
+            <p className="hint">
+              {tx(
+                "Mau ganti? Pindah dulu ke akun GitHub yang lain di github.com. Setelah diganti, masuk ke sini dengan akun GitHub yang baru.",
+                "Switching? Change to the other account on github.com first. Afterwards, sign in here with the new GitHub account.",
+              )}
+            </p>
+          </>
         ) : (
           <div className="gh-link">
             {typed ? (
