@@ -8,7 +8,7 @@ import { LinkIcon, type LinkIconKind } from "../../components/link-icons";
 import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { OssRecordEmpty, OssRecordList } from "../../components/oss-record";
-import { GitHubSummary } from "../../components/github-summary";
+import { GitHubReadme, GitHubSummary } from "../../components/github-summary";
 import { SubmitButton } from "../../components/submit-button";
 import {
   getGitHubProfile,
@@ -339,7 +339,14 @@ export default async function ProfilePage({
           </div>
 
           <aside className="pf-side">
-            {person.bio ? (
+            {/* Their GitHub profile README says who they are better than a
+                bio written for this site, and stays current on its own. */}
+            {gh && gh.readme.length > 0 ? (
+              <section className="pf-card">
+                <h2>{tx(locale, "Tentang", "About")}</h2>
+                <GitHubReadme profile={gh} locale={locale} />
+              </section>
+            ) : person.bio ? (
               <section className="pf-card">
                 <h2>{tx(locale, "Tentang", "About")}</h2>
                 <p className="pf-bio">{person.bio}</p>
