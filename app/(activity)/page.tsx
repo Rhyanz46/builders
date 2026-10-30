@@ -13,7 +13,7 @@ import { activityPath, readActivityFilters, readActivityPage } from "../lib/acti
 import { listActivityReactions, listGitHubActivity, listOwnPullRequests, listProductFeed, listProjects } from "../lib/data";
 import { summarizeReactions } from "../lib/reactions";
 import { currentViewer } from "../lib/session";
-import { activityStats, dayKey, ownBoards, type GitHubActivityEntry, type PullRequestEntry } from "../lib/github-activity";
+import { activityStats, dayKey, inScope, inWindow, ownBoards, seasonOf, type GitHubActivityEntry, type PullRequestEntry } from "../lib/github-activity";
 import { readPublicly } from "../lib/public-read";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
@@ -175,23 +175,25 @@ async function ActivityBody({ query, locale }: { query: SearchParams; locale: Lo
     readPublicly("activity reactions", listActivityReactions, []),
     currentViewer(),
   ]);
-  const stats = activityStats(result.value);
   const today = dayKey(new Date(), "Asia/Jakarta");
+  // This season's contributions, the board's default, so the numbers name one period.
+  const season = seasonOf(today);
+  const stats = activityStats(inWindow(inScope(result.value, "external"), season));
 
   return (
     <>
       <Heading locale={locale}>
         <dl className="dx-head-stats">
           <div>
-            <dt>{tx(locale, "Member aktif", "Active members")}</dt>
+            <dt>{tx(locale, "Member aktif musim ini", "Active this season")}</dt>
             <dd>{stats.people}</dd>
           </div>
           <div>
-            <dt>{tx(locale, "PR merged", "PRs merged")}</dt>
+            <dt>{tx(locale, "PR merged musim ini", "PRs merged this season")}</dt>
             <dd>{stats.merged}</dd>
           </div>
           <div>
-            <dt>{tx(locale, "Repo dikontribusi", "Repos contributed to")}</dt>
+            <dt>{tx(locale, "Repo musim ini", "Repos this season")}</dt>
             <dd>{stats.repos}</dd>
           </div>
         </dl>

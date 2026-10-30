@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "@/app/components/responsive-link";
 import { setActivityVisibility } from "../../actions";
@@ -9,6 +10,7 @@ import { PageScrollTop } from "../../components/project-scroll-top";
 import { ShareProfileButton } from "../../components/share-profile-button";
 import { OssRecordEmpty, OssRecordList } from "../../components/oss-record";
 import { GitHubReadme, GitHubSummary } from "../../components/github-summary";
+import { SeasonRecord } from "../../components/season-record";
 import { SubmitButton } from "../../components/submit-button";
 import {
   getGitHubProfile,
@@ -221,6 +223,12 @@ export default async function ProfilePage({
 
         <div className={gh ? "pf-layout has-github" : "pf-layout"}>
           <div className="pf-main">
+            {/* Only with the same consent /activity runs on. */}
+            {isOss && handle && person.githubActivityShown ? (
+              <Suspense fallback={null}>
+                <SeasonRecord personId={person.id} self={isSelf} locale={locale} />
+              </Suspense>
+            ) : null}
             {/* The open source record is the open source site's; builders points there. */}
             {isOss && gh ? <GitHubSummary profile={gh} locale={locale} /> : null}
             {isOss && isSelf && !gitHubShown ? (

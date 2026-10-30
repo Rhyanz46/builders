@@ -429,6 +429,12 @@ export function ownBoards(own: PullRequestEntry[], today: string): OwnBoards {
 /** The Mondays of a board's weeks, oldest first, and which one is this week. */
 export type BoardWindow = { weeks: string[]; current: number };
 
+/** Pull requests from the window's first Monday on; summaries keep their own SUMMARY_DAYS. */
+export function inWindow(entries: GitHubActivityEntry[], window: BoardWindow, timeZone = "Asia/Jakarta"): GitHubActivityEntry[] {
+  const from = window.weeks[0];
+  return entries.filter((entry) => entry.kind !== "pull_request" || dayKey(entry.at, timeZone) >= from);
+}
+
 export function boardWindow(today: string, span: BoardSpan): BoardWindow {
   if (span === "season") return seasonOf(today);
   const count = Number(span);

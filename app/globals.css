@@ -1610,6 +1610,11 @@ form button[aria-busy="true"]::after,
    activity-view.tsx). Wider than the directory's filters, for names and
    scores side by side; sticky on a laptop, above the feed on a phone. */
 .ax-layout { grid-template-columns: 280px minmax(0, 1fr); }
+/* The page's choices above both columns; pills as on /leaderboard. */
+.ax-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
+.ax-controls label { display: block; margin: 0; }
+.ax-controls-label { color: var(--dx-muted); font-size: 13px; margin-right: 2px; }
+.ax-controls noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12.5px; height: 32px; padding: 0 12px; }
 /* The feed's heading, then what to show beside the search. */
 .ax-feed-head { align-items: baseline; display: flex; gap: 12px; justify-content: space-between; margin-bottom: 10px; }
 .ax-feed-head h2 { color: var(--dx-ink); font-size: 16px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
@@ -1631,53 +1636,19 @@ form button[aria-busy="true"]::after,
   border-radius: 11px 11px 0 0; margin-bottom: 8px; padding: 14px 16px 12px;
 }
 .ax-board h2 { align-items: center; color: light-dark(#ffffff, #ffffff); display: flex; font-size: 15px; font-weight: 700; gap: 6px; margin: 0; }
-/* "this month · all repos": the board's choices as one line of pills. */
-.ax-board-pills { align-items: center; color: light-dark(rgba(255, 255, 255, .6), rgba(255, 255, 255, .6)); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px; margin: 0; }
-.ax-board-pills label { display: block; margin: 0; }
-.ax-board .ax-pill {
-  align-items: center; background-color: light-dark(rgba(255, 255, 255, .18), rgba(255, 255, 255, .18)); border: 1px solid transparent; border-radius: 99px;
-  color: light-dark(#ffffff, #ffffff);
-  display: inline-flex; font: inherit; font-size: 12.5px; font-weight: 600; height: 28px; line-height: normal; margin: 0; padding: 0 8px; width: auto;
-}
-.ax-board select.ax-pill {
-  /* As wide as the choice showing, not the longest one, where supported. */
-  appearance: none; cursor: pointer; field-sizing: content; padding-right: 20px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
-  background-position: right 6px center; background-repeat: no-repeat; background-size: 12px 12px;
-}
-.ax-board select.ax-pill:hover, .ax-board select.ax-pill:focus-visible { background-color: light-dark(rgba(255, 255, 255, .28), rgba(255, 255, 255, .28)); outline: none; }
-/* Focus as a ring, not a colour: a select keeps focus after a choice, and
-   must still look chosen. */
-.ax-board select.ax-pill:focus-visible { box-shadow: 0 0 0 2px light-dark(rgba(255, 255, 255, .55), rgba(255, 255, 255, .55)); }
-/* A choice that is not the default: the pill turns white, its text purple —
-   hovered or focused too. */
-.ax-board .ax-pill.is-set, .ax-board select.ax-pill.is-set:hover, .ax-board select.ax-pill.is-set:focus-visible {
-  background-color: light-dark(#ffffff, #ffffff); color: light-dark(#6639ba, #4c2889);
-}
-/* The arrow only on a pill that opens a picker; a plain one — "own repos" — just names the feed's choice. */
-.ax-board select.ax-pill.is-set {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236639ba' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
-}
-/* Which PRs fill a week: one round button on white, its PR icon in the
-   feed's colours — green for every PR opened, purple for merged only. */
-.ax-board .ax-count {
-  align-items: center; background-color: light-dark(#ffffff, #ffffff); border-radius: 99px; display: inline-flex; flex: none; height: 28px;
-  justify-content: center; width: 28px;
-}
-.ax-board .ax-count:hover { box-shadow: 0 0 0 3px light-dark(rgba(255, 255, 255, .3), rgba(255, 255, 255, .3)); }
-.ax-board .ax-count .ax-pr-icon.is-open { color: light-dark(#1a7f37, #1a7f37); }
-.ax-board .ax-count .ax-pr-icon.is-merged { color: light-dark(#8250df, #8250df); }
-/* The native picker's own list keeps the page's colours, not white on white. */
-.ax-board select.ax-pill option { color: var(--dx-ink); }
-.ax-board-pills noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12px; height: 28px; padding: 0 10px; }
 .ax-board-list { display: grid; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .ax-board-list:not(.is-expanded) > li:nth-child(n + 11) { display: none; }
-.ax-board-list a {
-  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; gap: 8px; grid-template-columns: 24px 24px minmax(0, 1fr) auto;
-  min-height: 40px; padding: 6px 6px;
+.ax-board-list li { align-items: center; border-radius: 8px; display: flex; }
+.ax-board-person {
+  align-items: center; border-radius: 8px; color: var(--dx-text); display: grid; flex: 1; gap: 8px; grid-template-columns: 24px 24px minmax(0, 1fr) auto;
+  min-height: 40px; min-width: 0; padding: 6px 6px;
 }
-.ax-board-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
-.ax-board-list li.is-active a { background: var(--tone-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent); color: var(--dx-ink); }
+.ax-board-person:hover { background: var(--dx-soft); color: var(--dx-ink); }
+.ax-board-filter { align-items: center; border-radius: 6px; color: var(--dx-muted); display: inline-flex; flex: none; height: 28px; justify-content: center; opacity: .55; width: 24px; }
+.ax-board-filter:hover, .ax-board-filter:focus-visible { background: var(--dx-soft); color: var(--tone); opacity: 1; }
+.ax-board-list li.is-active { background: var(--tone-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent); }
+.ax-board-list li.is-active .ax-board-person { color: var(--dx-ink); }
+.ax-board-list li.is-active .ax-board-filter { color: var(--tone); opacity: 1; }
 .ax-board-list li.is-mine .ax-board-name { color: var(--tone); }
 .ax-board-rank { color: var(--dx-muted); font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 650; text-align: center; }
 .ax-board-list li:nth-child(-n + 3) .ax-board-rank { font-size: 17px; line-height: 1; }
@@ -1699,19 +1670,21 @@ form button[aria-busy="true"]::after,
 .ax-weeks.is-slim i.is-now:not(.is-on) { background: color-mix(in srgb, var(--tone) 35%, var(--dx-line)); }
 /* The bar in the colour of what it counts, as the feed draws PRs: green for
    every PR opened, purple (the board's own) for merged only. */
-.ax-board-list.is-opened .ax-weeks, .lb-board.is-opened .ax-weeks { --tone: light-dark(#1a7f37, #57ab5a); }
+.ax-board-list.is-opened .ax-weeks, .ax-board-you.is-opened .ax-weeks, .lb-board.is-opened .ax-weeks { --tone: light-dark(#1a7f37, #57ab5a); }
 /* Under a name: the bar, then how many PRs it was. The bar gives way when
    the column is narrow — the card beside the feed is — the count never wraps. */
 .ax-board-meta { align-items: center; color: var(--dx-muted); display: flex; font-size: 11px; gap: 6px; margin-top: 3px; min-width: 0; }
 .ax-board-meta .ax-weeks.is-slim { flex: 0 1 auto; margin-top: 0; min-width: 0; }
 .ax-board-meta .ax-weeks.is-slim i { flex: 0 1 7px; min-width: 2px; }
-.ax-board-meta > span:last-child { flex: none; white-space: nowrap; }
+.ax-board-meta > span { flex: none; white-space: nowrap; }
 .ax-board-score { align-items: baseline; color: var(--dx-muted); display: flex; font-size: 12px; gap: 6px; line-height: 1.2; white-space: nowrap; }
 .ax-board-score strong { color: var(--tone); font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .ax-board-score small { font-size: 11px; }
 .ax-board-empty { color: var(--dx-muted); font-size: 13px; line-height: 1.55; margin: 4px 4px 8px; }
-.ax-board-you { border-top: 1px dashed var(--dx-line); color: var(--dx-text); font-size: 12.5px; margin: 8px 4px 0; padding-top: 8px; }
+.ax-board-you { align-items: center; border-top: 1px dashed var(--dx-line); color: var(--dx-muted); display: flex; flex-wrap: wrap; font-size: 12.5px; gap: 4px 8px; line-height: 1.5; margin: 8px 4px 0; padding-top: 8px; }
+.ax-board-you a { color: var(--dx-text); font-weight: 600; }
 .ax-board-you strong { color: var(--tone); }
+.ax-board-you .ax-weeks.is-slim { margin-top: 0; }
 .ax-board-toggle {
   background: none; border: 0; color: var(--tone); cursor: pointer; font-size: 12.5px; font-weight: 650; margin: 6px 0 0; padding: 4px; width: 100%;
 }
@@ -2567,7 +2540,9 @@ footer .theme-row[aria-checked="true"] .theme-switch::after { transform: transla
 .reaction-pill:hover, .reaction-add:hover { border-color: var(--dx-line); }
 .reaction-pill.is-mine { background: light-dark(#ddf4ff, #12263b); border-color: light-dark(#54aeff, #2f6fb0); color: light-dark(#0969da, #79b8ff); }
 .reaction-count { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 650; }
-.reaction-add { color: var(--dx-muted); padding: 0 7px; }
+/* Quiet until used: no pill around the button on a PR nobody has reacted to. */
+.reaction-add { background: transparent; color: var(--dx-muted); opacity: .6; padding: 0 7px; }
+.reaction-add:hover, .reaction-add[aria-expanded="true"] { background: var(--dx-soft); opacity: 1; }
 .reaction-add svg { fill: none; height: 16px; stroke: currentColor; stroke-linecap: round; stroke-width: 1.7; width: 16px; }
 .reaction-add-wrap { position: relative; }
 .reaction-picker {
@@ -2894,6 +2869,23 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .lb-milestones small { color: var(--dx-muted); font-size: 12px; margin-top: 4px; }
 .lb-milestone-icon { font-size: 22px; line-height: 1.2; }
 
+/* A member's season on their profile: /leaderboard's own card. */
+.pf-season { margin-top: 0; }
+.pf-season + * { margin-top: 32px; }
+.pf-season .pf-section-head { justify-self: stretch; margin: 0; }
+.pf-season .pf-section-head h2 { align-items: center; display: flex; gap: 6px; }
+.pf-season-rank { align-items: baseline; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.pf-season-rank strong { color: var(--tone); font-size: 18px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.pf-season-rank span { color: var(--dx-muted); font-size: 12.5px; }
+.pf-badges { color: var(--dx-muted); display: flex; flex-wrap: wrap; font-size: 13px; gap: 4px 16px; list-style: none; margin: 0; padding: 0; }
+.pf-badges li:not(.is-earned) span { filter: grayscale(1); opacity: .5; }
+.pf-badges li.is-earned { color: var(--dx-ink); }
+.pf-badges li.is-earned small { color: light-dark(#1a7f37, #3fb950); font-weight: 650; }
+.pf-season-own { align-items: center; color: var(--dx-muted); display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; }
+.pf-season-own .ax-weeks.is-slim { --tone: light-dark(#1a7f37, #57ab5a); margin-top: 0; }
+.lb-you p.pf-season-own, .lb-you p.pf-season-next { color: var(--dx-muted); font-size: 13px; }
+.pf-season-next a { color: light-dark(#0969da, #4493f8); font-weight: 600; }
+
 .lb-board-head { display: grid; gap: 10px; }
 .lb-board-head h2 { margin: 0; }
 /* BoardFilters (board-filters.tsx): one row of pills that open a native
@@ -2910,8 +2902,6 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 .lb-filter.is-set { border-color: light-dark(#8250df, #b392f0); color: light-dark(#8250df, #b392f0); }
 .lb-filter option { color: var(--dx-ink); }
 .lb-filters noscript button { background: var(--dx-soft); border: 0; border-radius: 99px; font-size: 12.5px; height: 32px; padding: 0 12px; }
-.lb-count { align-items: center; border: 1px solid var(--dx-line); border-radius: 99px; display: inline-flex; height: 32px; justify-content: center; width: 32px; }
-.lb-count:hover { border-color: var(--dx-muted); }
 .lb-week strong { color: var(--dx-ink); }
 .lb-table { margin-top: 12px; max-width: 100%; overflow-x: auto; }
 .lb-board { border-collapse: collapse; font-size: 13.5px; width: 100%; }
@@ -2996,6 +2986,7 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 /* ThisWeek (week-dots.tsx) on the activity page's board: who already has a PR this week. */
 .ax-board-week { color: var(--dx-muted); font-size: 12px; line-height: 1.45; margin: 10px 4px 0; }
 .ax-board-week strong { color: var(--dx-ink); font-weight: 600; }
+.ax-board-week a { color: var(--tone); font-weight: 600; }
 
 /* BoardInfo (week-dots.tsx): an ⓘ whose explanation opens on hover or focus,
    under the heading it sits in and never wider than it, so a phone never

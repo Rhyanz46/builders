@@ -408,3 +408,16 @@ test("every repository is asked about, forty at a time, not only the first forty
   assert.equal(questions.at(-1).at(-1), "org94/repo", "late in the alphabet too");
   assert.equal(questions.flat().includes("mine/own"), false);
 });
+
+test("the feed follows the board's weeks; a summary of own work keeps its own window", async () => {
+  const { boardWindow, inWindow } = await import("../app/lib/github-activity.ts");
+  const person = { id: ana.id, username: "ana", name: "Ana", handle: "ana" };
+  const pr = (at) => ({ kind: "pull_request", key: at, person, repo: "x/y", url: `https://github.com/x/y/pull/${at}`, state: "open", pullRequests: [], at });
+  const summary = { kind: "commit_summary", key: "s", person, commits: 3, merged: 0, repos: [], since: "2026-09-01", at: "2026-09-01T00:00:00.000Z" };
+  // 2026-10-22 is a Thursday: the last four weeks start on Monday 2026-09-28, the season on Monday 2026-10-05.
+  const lastFour = boardWindow("2026-10-22", "4");
+  const kept = inWindow([pr("2026-10-21T03:00:00.000Z"), pr("2026-09-28T01:00:00.000Z"), pr("2026-09-27T10:00:00.000Z"), summary], lastFour);
+  // 2026-09-27 10:00 UTC is 17:00 WIB on Sunday: the week before the window.
+  assert.deepEqual(kept.map((entry) => entry.key), ["2026-10-21T03:00:00.000Z", "2026-09-28T01:00:00.000Z", "s"]);
+  assert.equal(inWindow([pr("2026-10-04T18:00:00.000Z")], boardWindow("2026-10-22", "season")).length, 1, "Monday 01:00 WIB is in the season's first week");
+});

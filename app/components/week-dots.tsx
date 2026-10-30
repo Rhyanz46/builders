@@ -1,5 +1,13 @@
+import Link from "@/app/components/responsive-link";
 import { seasonLabel, seasonOf, type BoardCount, type BoardOf, type BoardSpan, type BoardWindow } from "../lib/github-activity";
 import { tx, type Locale } from "../lib/locale";
+
+/** Each milestone's name: [id, en]. */
+export const MILESTONE_NAMES: Record<string, [string, string]> = {
+  "🌱": ["Mulai rutin", "Getting going"],
+  "🔥": ["Rutin", "Regular"],
+  "🏆": ["Satu musim penuh", "A whole season"],
+};
 
 /**
  * A board's weeks as dots, oldest first: filled when a PR was opened in it,
@@ -131,7 +139,7 @@ export function countedRule(of: BoardOf, count: BoardCount, locale: Locale): str
  * Who has already filled this week, so nobody has to scan the dots for it:
  * a few names, then how many more.
  */
-export function ThisWeek({ names, locale, className }: { names: string[]; locale: Locale; className: string }) {
+export function ThisWeek({ names, locale, className, moreHref }: { names: string[]; locale: Locale; className: string; moreHref?: string }) {
   const shown = names.slice(0, 3);
   const more = names.length - shown.length;
   return (
@@ -141,7 +149,16 @@ export function ThisWeek({ names, locale, className }: { names: string[]; locale
       ) : (
         <>
           <span aria-hidden="true">✓</span> {tx(locale, "Minggu ini sudah PR:", "PR'd this week:")} <strong>{shown.join(", ")}</strong>
-          {more > 0 ? tx(locale, ` +${more} lainnya`, ` +${more} more`) : ""}
+          {more > 0 ? (
+            moreHref ? (
+              <>
+                {" "}
+                <Link href={moreHref}>{tx(locale, `+${more} lainnya`, `+${more} more`)}</Link>
+              </>
+            ) : (
+              tx(locale, ` +${more} lainnya`, ` +${more} more`)
+            )
+          ) : null}
         </>
       )}
     </p>
