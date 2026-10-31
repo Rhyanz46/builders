@@ -30,8 +30,7 @@ export async function SeasonRecord({ personId, self, locale }: { personId: strin
     <section className={`pf-section pf-season lb-you ${thisWeek ? "is-done" : ""}`} aria-labelledby="season-heading">
       <div className="pf-section-head">
         <h2 id="season-heading">
-          {tx(locale, `Musim ${seasonLabel(season, "id")}`, `Season ${seasonLabel(season, "en")}`)}{" "}
-          <BoardInfo weeks={season} span="season" locale={locale} />
+          <span aria-hidden="true">🏆</span> Board of contribution <BoardInfo weeks={season} span="season" locale={locale} />
         </h2>
         <Link href="/leaderboard">Leaderboard →</Link>
       </div>
@@ -45,7 +44,11 @@ export async function SeasonRecord({ personId, self, locale }: { personId: strin
           tx(locale, "Belum ada di papan kontribusi musim ini", "Not on this season's contributions board yet")
         )}
         <span>
-          {tx(locale, `minggu ke-${season.current + 1} dari ${season.weeks.length}`, `week ${season.current + 1} of ${season.weeks.length}`)}
+          {tx(
+            locale,
+            `Musim ${seasonLabel(season, "id")} · minggu ke-${season.current + 1} dari ${season.weeks.length}`,
+            `Season ${seasonLabel(season, "en")} · week ${season.current + 1} of ${season.weeks.length}`,
+          )}
         </span>
       </p>
 

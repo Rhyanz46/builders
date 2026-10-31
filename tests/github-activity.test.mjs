@@ -6,6 +6,7 @@ import {
   buildSearchQuery,
   chunk,
   githubHandle,
+  isHiddenRepo,
   parseResponse,
 } from "../supabase/functions/refresh-github-activity/activity.ts";
 import { activityRepos, activityStats, buildGitHubActivity, queryActivity } from "../app/lib/github-activity.ts";
@@ -82,6 +83,42 @@ test("pull requests are kept, own repos' marked as such; own repos' commits beco
     since: "2026-09-22",
     checked_at: now.toISOString(),
   });
+});
+
+test("a repository the member hides is skipped, by name or by its whole owner", () => {
+  const repository = (name) => ({ nameWithOwner: name, isPrivate: false, owner: { login: name.split("/")[0] } });
+  const pr = (name, number) => ({ url: `https://github.com/${name}/pull/${number}`, number, title: "", state: "OPEN", createdAt: "2026-10-10T00:00:00Z", mergedAt: null, repository: repository(name) });
+  const [activity] = parseResponse(
+    [{ ...ana, hidden: ["org/secret", "work/*"] }],
+    {
+      data: {
+        u0: {
+          login: "ana",
+          contributionsCollection: {
+            commitContributionsByRepository: [
+              { repository: repository("ana/side"), contributions: { totalCount: 3, nodes: [] } },
+              { repository: repository("ana/diary"), contributions: { totalCount: 5, nodes: [] } },
+            ],
+          },
+        },
+        p0: { nodes: [pr("org/tool", 1), pr("Org/Secret", 2), pr("work/api", 3)] },
+      },
+    },
+    now,
+  );
+  assert.deepEqual(activity.pullRequests.map((row) => row.repo), ["org/tool"]);
+
+  const [own] = parseResponse(
+    [{ ...ana, hidden: ["ana/diary"] }],
+    { data: { u0: { login: "ana", contributionsCollection: { commitContributionsByRepository: [{ repository: repository("ana/side"), contributions: { totalCount: 3, nodes: [] } }, { repository: repository("ana/diary"), contributions: { totalCount: 5, nodes: [] } }] } }, p0: { nodes: [] } } },
+    now,
+  );
+  assert.deepEqual(own.summary.repos, [{ repo: "ana/side", commits: 3 }]);
+  assert.equal(own.summary.commits, 3);
+
+  assert.equal(isHiddenRepo("work/api", ["work/*"]), true);
+  assert.equal(isHiddenRepo("workshop/api", ["work/*"]), false);
+  assert.equal(isHiddenRepo("org/tool", []), false);
 });
 
 test("an organisation the member belongs to is their own work, not a contribution", () => {

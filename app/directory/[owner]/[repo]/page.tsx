@@ -182,11 +182,17 @@ export default async function RepoPage({ params }: { params: Params }) {
             </div>
             {community.pullRequests.length > 0 ? (
               <ul className="gh-rows rp-prs">
-                {community.pullRequests.slice(0, PULL_REQUESTS_SHOWN).map((pr) => (
+                {/* Merged first, as on a profile; each kind newest first. */}
+                {[...community.pullRequests]
+                  .sort((a, b) => Number(b.state === "merged") - Number(a.state === "merged"))
+                  .slice(0, PULL_REQUESTS_SHOWN)
+                  .map((pr) => (
                   <li key={pr.url}>
                     <a className="gh-row" href={pr.url} {...external}>
                       <span className="gh-row-repo rp-pr-who">
                         <PullRequestIcon merged={pr.state === "merged"} />
+                        {/* eslint-disable-next-line @next/next/no-img-element -- the member's GitHub picture */}
+                        <img src={`https://github.com/${encodeURIComponent(pr.person.handle)}.png?size=32`} alt="" width={16} height={16} loading="lazy" />
                         {pr.person.name || `@${pr.person.handle}`}
                       </span>
                       <span className="gh-row-title">{pr.title}</span>
