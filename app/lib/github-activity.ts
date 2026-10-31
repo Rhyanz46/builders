@@ -563,6 +563,45 @@ export function activityStats(entries: GitHubActivityEntry[]): ActivityStats {
   };
 }
 
+/** One of the community's pull requests to a repository, as its page lists them. */
+export type RepoPullRequest = PullRequestItem & { person: ActivityPerson; state: "open" | "merged" };
+
+export type RepoCommunity = {
+  /** Members with a pull request merged there, the most recent first. */
+  merged: ActivityPerson[];
+  /** Members with one still in review there and none merged yet. */
+  inReview: ActivityPerson[];
+  /** Their pull requests to it, newest first. */
+  pullRequests: RepoPullRequest[];
+};
+
+/**
+ * What the community has done on one repository — `repo` as `owner/name`, in
+ * any case — from the activity feed's entries: who got merged, who is in
+ * review, and the pull requests themselves. A repo page's community view.
+ */
+export function repoCommunity(entries: GitHubActivityEntry[], repo: string): RepoCommunity {
+  const key = repo.toLowerCase();
+  const pullRequests: RepoPullRequest[] = [];
+  for (const entry of entries) {
+    if (entry.kind !== "pull_request" || entry.repo !== key) continue;
+    for (const item of entry.pullRequests) pullRequests.push({ ...item, person: entry.person, state: entry.state });
+  }
+  pullRequests.sort((a, b) => b.at.localeCompare(a.at) || b.number - a.number);
+
+  const merged = new Map<string, ActivityPerson>();
+  const inReview = new Map<string, ActivityPerson>();
+  for (const pr of pullRequests) {
+    const handle = pr.person.handle.toLowerCase();
+    if (pr.state === "merged" && !merged.has(handle)) merged.set(handle, pr.person);
+  }
+  for (const pr of pullRequests) {
+    const handle = pr.person.handle.toLowerCase();
+    if (pr.state === "open" && !merged.has(handle) && !inReview.has(handle)) inReview.set(handle, pr.person);
+  }
+  return { merged: [...merged.values()], inReview: [...inReview.values()], pullRequests };
+}
+
 /** The repository owner's GitHub picture, the same address the directory uses. */
 export function ownerAvatar(repo: string, size = 40): string {
   return `https://github.com/${encodeURIComponent(repo.slice(0, repo.indexOf("/")))}.png?size=${size}`;

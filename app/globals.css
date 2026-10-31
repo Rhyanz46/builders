@@ -1654,13 +1654,20 @@ form button[aria-busy="true"]::after,
 .ax-board-rank { display: flex; justify-content: center; }
 /* The funnel is a second thing a row does, so on a pointer it waits for the
    row to be pointed at, and keeps no room for itself until then: the score
-   steps aside for it. On a touch screen, and on the chosen row, it stays. */
+   steps aside for it. The bar gives up the room, so its weeks close up into
+   one bar while they do — narrower segments with gaps read as a different
+   bar from the rows around it, one solid bar does not. On a touch screen,
+   and on the chosen row, the funnel stays. */
 @media (hover: hover) {
   .ax-board-list li { position: relative; }
   .ax-board-filter { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
   .ax-board-person { transition: padding-right .15s ease; }
   .ax-board-list li:is(:hover, :focus-within, .is-active) .ax-board-person { padding-right: 32px; }
   .ax-board-list li:not(:hover, :focus-within, .is-active) .ax-board-filter { opacity: 0; }
+  .ax-board-list .ax-board-meta .ax-weeks.is-slim { border-radius: 1.5px; overflow: hidden; transition: gap .15s ease; }
+  .ax-board-list .ax-board-meta .ax-weeks.is-slim i { transition: border-radius .15s ease; }
+  .ax-board-list li:is(:hover, :focus-within, .is-active) .ax-weeks.is-slim { gap: 0; }
+  .ax-board-list li:is(:hover, :focus-within, .is-active) .ax-weeks.is-slim i { border-radius: 0; }
 }
 .ax-board-list img { border-radius: 50%; height: 24px; width: 24px; }
 .ax-board-who { display: grid; gap: 2px; min-width: 0; }
@@ -1725,6 +1732,12 @@ form button[aria-busy="true"]::after,
 }
 .ax-where-list a:hover { background: var(--dx-soft); color: var(--dx-ink); }
 .ax-where-list li.is-active a { background: var(--dx-soft); color: var(--dx-ink); font-weight: 600; }
+/* Under the chosen repo: its page here, quietly, not another row. */
+.ax-where-list li.is-active a.ax-where-page {
+  background: none; color: var(--dx-muted); display: inline-flex; font-size: 12.5px; font-weight: 600; gap: 4px;
+  min-height: 0; padding: 4px 10px 6px 37px;
+}
+.ax-where-list li.is-active a.ax-where-page:hover { color: var(--dx-ink); text-decoration: underline; text-underline-offset: 3px; }
 .ax-where-logo { align-self: start; border-radius: 4px; height: 18px; margin-top: 1px; width: 18px; }
 .ax-where-body { display: grid; gap: 2px; min-width: 0; }
 .ax-where-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -3038,3 +3051,62 @@ a.ab-card:hover h3 { color: light-dark(#0969da, #4493f8); }
 }
 .info-tip-body b { color: var(--dx-ink); font-weight: 650; }
 .info-tip:hover .info-tip-body, .info-tip:focus-within .info-tip-body { opacity: 1; pointer-events: auto; visibility: visible; }
+
+/* ------------------------------------------------------- a repo's page
+   The directory's card grown into a page: the name, where it stands on PRs
+   and what it is, the way to start; then what only this site knows — the
+   members merged there and their latest pull requests. */
+.rp-page { max-width: none; }
+.rp-head { align-items: flex-start; border-bottom: 1px solid var(--dx-line); display: flex; gap: 18px; padding-bottom: 26px; }
+.rp-avatar { border: 1px solid var(--dx-line); border-radius: 12px; flex: none; height: 56px; width: 56px; }
+.rp-head-copy { flex: 1; min-width: 0; }
+.rp-head h1 { color: var(--dx-ink); font-size: clamp(24px, 3.4vw, 32px); font-weight: 700; letter-spacing: -.03em; line-height: 1.15; margin: 0; overflow-wrap: anywhere; }
+.rp-owner { color: var(--dx-muted); font-weight: 500; }
+.rp-flags { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.rp-scope {
+  border: 1px solid var(--dx-line); border-radius: 99px; color: var(--dx-text); font-size: 11.5px; font-weight: 600; line-height: 1;
+  padding: 4px 9px;
+}
+.rp-pick { align-items: center; color: light-dark(#b45309, #f59e0b); display: inline-flex; font-size: 12px; font-weight: 600; gap: 4px; }
+.rp-pick .dx-badge-icon { fill: currentColor; height: 14px; stroke: none; width: 14px; }
+.rp-desc { color: var(--dx-text); font-size: 15.5px; line-height: 1.55; margin: 14px 0 0; max-width: 72ch; }
+.rp-head .dx-shared { font-size: 13px; margin-top: 8px; }
+.rp-head .dx-meta { font-size: 13px; }
+.rp-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.rp-actions .dx-action { height: 34px; padding: 0 14px; }
+/* The profile's share button sits on its dark hero; here it is one more
+   quiet button in the row. */
+.rp-share .profile-share-control { position: static; }
+.rp-share .profile-share-button {
+  background: transparent; border: 1px solid var(--dx-line); color: var(--dx-text); height: 34px; width: 34px;
+}
+.rp-share .profile-share-button:hover { background: var(--dx-soft); border-color: var(--dx-line); color: var(--dx-ink); }
+.rp-why { border-bottom: 1px solid var(--dx-line); padding: 18px 0 22px; }
+.rp-why .dx-badges, .rp-why .dx-tags { margin-top: 0; }
+.rp-why > * + * { margin-top: 10px; }
+.rp-why-quote {
+  border-left: 3px solid var(--dx-line); color: var(--dx-text); font-size: 14.5px; font-style: italic; line-height: 1.55; margin: 0 0 14px;
+  max-width: 72ch; padding-left: 14px;
+}
+.rp-community { align-items: start; display: grid; gap: 40px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); margin-top: 30px; }
+.rp-community .pf-section + .pf-section { margin-top: 0; }
+.rp-subhead { color: var(--dx-muted); font-size: 12.5px; font-weight: 600; margin: 18px 0 8px; }
+.rp-people { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.rp-people a {
+  align-items: center; border: 1px solid var(--dx-line); border-radius: 99px; color: var(--dx-ink); display: inline-flex; font-size: 13px;
+  font-weight: 600; gap: 8px; padding: 3px 12px 3px 3px;
+}
+.rp-people a:hover { background: var(--dx-soft); }
+.rp-people img { border-radius: 50%; height: 26px; width: 26px; }
+.rp-pr-who { align-items: center; display: inline-flex; gap: 6px; }
+.rp-pr-who svg { flex: none; height: 13px; width: 13px; }
+@media (max-width: 860px) {
+  .rp-community { gap: 28px; grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .rp-head { gap: 14px; }
+  .rp-avatar { height: 44px; width: 44px; }
+  /* On a phone the PR's when goes under its title, as on a profile. */
+  .rp-prs .gh-row { grid-template-columns: minmax(0, 1fr); }
+  .rp-prs .gh-row-meta { grid-column: 1; grid-row: auto; text-align: left; }
+}

@@ -48,6 +48,7 @@ import {
 import type { ReactionCount } from "../lib/reactions";
 import { tx, type Locale } from "../lib/locale";
 import { BoardInfo, Rank, ThisWeek, WeekDots } from "./week-dots";
+import { repoPagePath } from "../lib/directory";
 
 const PAGE_SIZE = 20;
 /** Repositories shown under the leaderboard before "See all": a handful, not the list. */
@@ -77,6 +78,7 @@ export function ActivityView({
   unavailable,
   viewerHandle = null,
   ownBoards,
+  listed = [],
 }: {
   entries: GitHubActivityEntry[];
   /** Per pull request URL, or per summary key. */
@@ -90,8 +92,11 @@ export function ActivityView({
   viewerHandle?: string | null;
   /** The own-repos boards, from the server (see `ownBoards`). */
   ownBoards?: OwnBoards;
+  /** The repos the directory lists, as `owner/name` in lower case: those have a page here. */
+  listed?: string[];
 }) {
   const searchParams = useSearchParams();
+  const withPage = useMemo(() => new Set(listed), [listed]);
   const fromUrl = readActivityFilters(searchParams);
   // What is typed is held here and written to the address once typing rests:
   // the list follows every key, the history does not.
@@ -182,7 +187,7 @@ export function ActivityView({
             locale={locale}
           />
 
-          <RepoList entries={scoped} current={current} locale={locale} />
+          <RepoList entries={scoped} current={current} listed={withPage} locale={locale} />
         </div>
 
         <section ref={results} className="dx-results" aria-labelledby="feed-title">
@@ -263,7 +268,7 @@ export function ActivityView({
                       <li key={entry.key} className="ax-event">
                         <Avatar handle={entry.person.handle} size={32} />
                         {entry.kind === "pull_request" ? (
-                          <PullRequestEvent entry={entry} locale={locale} reactions={reactions[entry.url] ?? []} viewerName={viewerName} />
+                          <PullRequestEvent entry={entry} listed={withPage.has(entry.repo)} locale={locale} reactions={reactions[entry.url] ?? []} viewerName={viewerName} />
                         ) : (
                           <CommitSummaryEvent entry={entry} today={today} locale={locale} reactions={reactions[entry.key] ?? []} viewerName={viewerName} />
                         )}
@@ -316,7 +321,17 @@ const FACES_SHOWN = 3;
  * people a pill away. Each repo narrows the feed to it; long names stay on one
  * line, whole in the tooltip.
  */
-function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]; current: ActivityFilters; locale: Locale }) {
+function RepoList({
+  entries,
+  current,
+  listed,
+  locale,
+}: {
+  entries: GitHubActivityEntry[];
+  current: ActivityFilters;
+  listed: ReadonlySet<string>;
+  locale: Locale;
+}) {
   const [order, setOrder] = useState<RepoOrder>("recent");
   const [expanded, setExpanded] = useState(false);
   const repos = useMemo(() => repoSummaries(entries, order), [entries, order]);
@@ -372,6 +387,13 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
                 </span>
                 <span className="ax-where-count">{prs}</span>
               </InstantLink>
+              {/* The row filters the feed; the repo it is filtered to also
+                  offers its page here, when the directory lists it. */}
+              {on && listed.has(repo) ? (
+                <Link className="ax-where-page" href={repoPagePath(repo)}>
+                  {tx(locale, "Halaman repo", "Repo page")} <span aria-hidden="true">→</span>
+                </Link>
+              ) : null}
             </li>
           );
         })}
@@ -669,13 +691,19 @@ function Who({ entry }: { entry: GitHubActivityEntry }) {
   );
 }
 
-function RepoLink({ repo }: { repo: string }) {
-  return (
-    <a className="ax-repo" href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer">
+/** A repo the directory lists opens its page here; any other, GitHub. */
+function RepoLink({ repo, listed }: { repo: string; listed: boolean }) {
+  const content = (
+    <>
       {/* eslint-disable-next-line @next/next/no-img-element -- the repository owner's GitHub picture */}
       <img src={ownerAvatar(repo, 32)} alt="" width={14} height={14} loading="lazy" />
       {repo}
-    </a>
+    </>
+  );
+  return listed ? (
+    <Link className="ax-repo" href={repoPagePath(repo)}>{content}</Link>
+  ) : (
+    <a className="ax-repo" href={`https://github.com/${repo}`} target="_blank" rel="noopener noreferrer">{content}</a>
   );
 }
 
@@ -685,11 +713,14 @@ function RepoLink({ repo }: { repo: string }) {
  */
 function PullRequestEvent({
   entry,
+  listed,
   locale,
   reactions,
   viewerName,
 }: {
   entry: PullRequestEntry;
+  /** The directory lists the repo, so it has a page here. */
+  listed: boolean;
   locale: Locale;
   reactions: ReactionCount[];
   viewerName: string | null;
@@ -718,7 +749,7 @@ function PullRequestEvent({
   return (
     <div className="ax-event-body">
       <p className="ax-event-line">
-        <Who entry={entry} /> {what} <RepoLink repo={entry.repo} />
+        <Who entry={entry} /> {what} <RepoLink repo={entry.repo} listed={listed} />
         {/* The day is the group's heading; the time is enough here. */}
         <time className="ax-time" dateTime={entry.at}>
           {clock(entry.at)}
