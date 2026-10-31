@@ -47,7 +47,7 @@ import {
 } from "../lib/github-activity";
 import type { ReactionCount } from "../lib/reactions";
 import { tx, type Locale } from "../lib/locale";
-import { BoardInfo, ThisWeek, WeekDots } from "./week-dots";
+import { BoardInfo, Rank, ThisWeek, WeekDots } from "./week-dots";
 
 const PAGE_SIZE = 20;
 /** Repositories shown under the leaderboard before "See all": a handful, not the list. */
@@ -253,10 +253,10 @@ export function ActivityView({
             </div>
           ) : (
             <div className="ax-timeline">
-              {groupByDay(shown).map(({ day, entries: onDay }) => (
+              {timelineGroups(shown, today, locale).map(({ day, title, entries: onDay }) => (
                 <section key={day} className="ax-day" aria-labelledby={`day-${day}`}>
                   <h2 id={`day-${day}`} className="ax-day-title">
-                    {dayLabel(day, today, locale)}
+                    {title}
                   </h2>
                   <ol className="ax-events">
                     {onDay.map((entry) => (
@@ -265,7 +265,7 @@ export function ActivityView({
                         {entry.kind === "pull_request" ? (
                           <PullRequestEvent entry={entry} locale={locale} reactions={reactions[entry.url] ?? []} viewerName={viewerName} />
                         ) : (
-                          <CommitSummaryEvent entry={entry} locale={locale} reactions={reactions[entry.key] ?? []} viewerName={viewerName} />
+                          <CommitSummaryEvent entry={entry} today={today} locale={locale} reactions={reactions[entry.key] ?? []} viewerName={viewerName} />
                         )}
                       </li>
                     ))}
@@ -392,7 +392,6 @@ function RepoList({ entries, current, locale }: { entries: GitHubActivityEntry[]
 
 /** How many rows the board shows here; the whole of it is on /leaderboard. */
 const BOARD_SHOWN = 5;
-const MEDALS = ["🥇", "🥈", "🥉"];
 
 /**
  * The left column: who keeps at it (see `seasonBoard`), the top few with the
@@ -449,7 +448,7 @@ function Leaderboard({
               <li key={person.id} className={`${on ? "is-active" : ""} ${mine ? "is-mine" : ""}`}>
                 <Link className="ax-board-person" href={`/u/${encodeURIComponent(person.username)}`}>
                   <span className="ax-board-rank" aria-label={tx(locale, `Peringkat ${index + 1}`, `Rank ${index + 1}`)}>
-                    {MEDALS[index] ?? index + 1}
+                    <Rank place={index + 1} />
                   </span>
                   <Avatar handle={person.handle} size={24} />
                   <span className="ax-board-who">
@@ -635,6 +634,24 @@ function clock(at: string): string {
   return clockFormat.format(new Date(at));
 }
 
+/**
+ * The timeline's sections. A pull request sits under the day it happened; a
+ * commit summary covers the last SUMMARY_DAYS, so the summaries share one
+ * section under that name instead of the day of their latest commit — under
+ * "Today" they read as if all of it happened today.
+ */
+function timelineGroups(entries: GitHubActivityEntry[], today: string, locale: Locale) {
+  const summaries = entries.filter((entry) => entry.kind === "commit_summary");
+  const days = groupByDay(entries.filter((entry) => entry.kind !== "commit_summary")).map(({ day, entries: onDay }) => ({
+    day,
+    title: dayLabel(day, today, locale),
+    entries: onDay,
+  }));
+  return summaries.length > 0
+    ? [{ day: "summaries", title: tx(locale, `${SUMMARY_DAYS} hari terakhir`, `Last ${SUMMARY_DAYS} days`), entries: summaries }, ...days]
+    : days;
+}
+
 /** "Hari ini", "Kemarin", or the date, for a day key from groupByDay. */
 function dayLabel(day: string, today: string, locale: Locale): string {
   if (day === today) return tx(locale, "Hari ini", "Today");
@@ -722,11 +739,13 @@ function PullRequestEvent({
 /** Work on one's own repositories — commits and merged PRs — one event per person. */
 function CommitSummaryEvent({
   entry,
+  today,
   locale,
   reactions,
   viewerName,
 }: {
   entry: CommitSummaryEntry;
+  today: string;
   locale: Locale;
   reactions: ReactionCount[];
   viewerName: string | null;
@@ -738,7 +757,10 @@ function CommitSummaryEvent({
       <p className="ax-event-line">
         <Who entry={entry} />{" "}
         {ownWork(entry, locale)}
-        <span className="ax-time">{tx(locale, `${SUMMARY_DAYS} hari terakhir`, `last ${SUMMARY_DAYS} days`)}</span>
+        {/* The section already says how far back it goes; here, how recent the latest of it is. */}
+        <time className="ax-time" dateTime={entry.at}>
+          {tx(locale, "terakhir", "latest")} {latestLabel(entry.at, today, locale)}
+        </time>
       </p>
       <ul className="ax-repos">
         {named.map((repo) => (
@@ -754,6 +776,18 @@ function CommitSummaryEvent({
       <ReactionBar url={entry.key} initial={reactions} viewerName={viewerName} />
     </div>
   );
+}
+
+/**
+ * "hari ini", "kemarin", or the date: the day of a summary's latest commit or
+ * merge. No clock: GitHub dates a commit contribution by its day alone, so a
+ * time would be made up.
+ */
+function latestLabel(at: string, today: string, locale: Locale): string {
+  const day = dayKey(at, "Asia/Jakarta");
+  const label = dayLabel(day, today, locale);
+  const recent = day === today || label === tx(locale, "Kemarin", "Yesterday");
+  return recent ? label.toLowerCase() : label;
 }
 
 /** "made 205 commits and merged 40 pull requests in 7 of their own repos", leaving out what is zero. */

@@ -10,6 +10,14 @@ export const MILESTONE_NAMES: Record<string, [string, string]> = {
 };
 
 /**
+ * A place on a board: the top three on gold, silver and bronze, the rest a
+ * plain number in the same spot — one column, whatever the place.
+ */
+export function Rank({ place }: { place: number }) {
+  return <span className={`board-rank${place <= 3 ? ` is-${place}` : ""}`}>{place}</span>;
+}
+
+/**
  * A board's weeks as dots, oldest first: filled when a PR was opened in it,
  * this week ringed, the weeks still to come faint. Slim: one thin bar of
  * segments, for a row in a list.

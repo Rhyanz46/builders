@@ -5,7 +5,7 @@ import Link from "@/app/components/responsive-link";
 import { SiteFooter, SiteHeader } from "../components/shell";
 import { Skeleton } from "../components/skeleton";
 import { BoardFilters } from "../components/board-filters";
-import { BoardInfo, MILESTONE_NAMES, ThisWeek, WeekDots } from "../components/week-dots";
+import { BoardInfo, MILESTONE_NAMES, Rank, ThisWeek, WeekDots } from "../components/week-dots";
 import { leaderboardIssueUrl } from "../content";
 import { currentLocale } from "../lib/locale-server";
 import { tx, type Locale } from "../lib/locale";
@@ -73,7 +73,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams?:
 
   return (
     <>
-      <SiteHeader returnTo="/leaderboard" />
+      <SiteHeader returnTo="/leaderboard" active="leaderboard" />
 
       <main id="main-content" className="ab-page lb-page">
         <Suspense fallback={<LeaderboardSkeleton locale={locale} />}>
@@ -386,7 +386,7 @@ function SeasonTable({
         <tbody>
           {rows.map(({ person, weeks, filled, streak, repos, prs }, index) => (
             <tr key={person.id} className={person.handle.toLowerCase() === viewerKey ? "is-mine" : undefined}>
-              <td>{["🥇", "🥈", "🥉"][index] ?? index + 1}</td>
+              <td><Rank place={index + 1} /></td>
               <td>
                 {/* eslint-disable-next-line @next/next/no-img-element -- the member's GitHub picture */}
                 <img className="lb-avatar" src={`https://github.com/${encodeURIComponent(person.handle)}.png?size=56`} alt="" width={28} height={28} />

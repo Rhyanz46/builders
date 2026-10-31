@@ -68,6 +68,8 @@ export function OssRecordList({
           <div className="oss-record-copy">
             <a href={`https://github.com/${record.repo}`} target="_blank" rel="noopener noreferrer">
               <span className="oss-record-owner">{record.repo.split("/")[0]}/</span>
+              {/* When it has to wrap, the break goes after the slash, not inside the name. */}
+              <wbr />
               {record.repo.split("/")[1]}
             </a>
             <span className={`oss-record-relation oss-record-${record.relation}`}>
