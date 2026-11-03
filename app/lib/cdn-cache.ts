@@ -36,6 +36,7 @@ export const GUEST_CACHED_PATHS = [
   "/",
   "/directory",
   "/directory/:owner/:repo",
+  "/directory/:owner/:repo/card",
   "/leaderboard",
   "/recommend",
   "/u/:username",

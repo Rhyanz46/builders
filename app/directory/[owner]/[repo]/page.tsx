@@ -16,6 +16,8 @@ import { readPublicly } from "../../../lib/public-read";
 import { currentLocale } from "../../../lib/locale-server";
 import { tx } from "../../../lib/locale";
 import { isOss, site } from "../../../lib/site";
+import { cardVersion, repoCardFields, repoCardPath } from "../../../lib/repo-card";
+import { OG_SIZE } from "../../../components/og-parts";
 
 type Params = Promise<{ owner: string; repo: string }>;
 
@@ -45,12 +47,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const description =
     entry.description ||
     tx(locale, "Repo open source kurasi komunitas swegrowth, tempat yang bagus buat mulai kontribusi.", "An open source repo curated by the swegrowth community, a good place to start contributing.");
-  // The card image comes from opengraph-image.tsx beside this file.
+  // The card from card/route.tsx, named by a version of what it shows, so a
+  // changed card is a new address for chat apps and the CDN alike.
+  const activity = await readPublicly<GitHubActivityEntry[]>("github activity for a repo card", listGitHubActivity, []);
+  const card = repoCardPath(entry.repo, cardVersion(repoCardFields(entry, repoCommunity(activity.value, entry.repo).merged, locale)));
+  const image = { url: card, width: OG_SIZE.width, height: OG_SIZE.height, alt: site.name };
   return {
     title,
     description,
     alternates: { canonical: repoPagePath(entry.repo) },
-    openGraph: { type: "article", title, description, url: repoPagePath(entry.repo) },
+    openGraph: { type: "article", title, description, url: repoPagePath(entry.repo), images: [image] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 
