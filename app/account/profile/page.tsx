@@ -67,6 +67,7 @@ export default async function EditProfilePage({
       ? (await readPublicly("username suggestion", () => isUsernameFreeFor(candidate, viewer.id), false)).value
       : false;
   const usernameSuggestion = free ? candidate : undefined;
+  const editable = toEditable(viewer);
 
   return (
     <>
@@ -121,8 +122,11 @@ export default async function EditProfilePage({
           <OssAddForm status={ossStatus} locale={locale} />
         </section>
 
+        {/* Remounted with a new key when the stored profile changes: the
+            form's useActionState keeps the values it was mounted with. */}
         <ProfileForm
-          profile={toEditable(viewer)}
+          key={JSON.stringify(editable)}
+          profile={editable}
           skillSuggestions={termSuggestions(people.value, "skills")}
           returnTo={returnTo}
         />

@@ -794,6 +794,7 @@ export async function updateProfile(
   updateTag(tags.projects);
   revalidatePath(`/u/${viewer.username}`);
   revalidatePath("/get-started");
+  revalidatePath("/account/profile");
   redirect(returnTo ?? `/u/${viewer.username}?saved=1`);
 }
 
